@@ -155,7 +155,7 @@ export class AuthService {
   }
 
   async resetPassword(email: string, newPassword: string): Promise<void> {
-    const hashedPassword =  hashPassword(newPassword);
+    const hashedPassword = hashPassword(newPassword);
 
     await this.updatePassword(email, hashedPassword);
   }
@@ -166,5 +166,24 @@ export class AuthService {
       user.password = newPassword;
       await this.userRepository.save(user);
     }
+  }
+
+  async OAuthLogin({ req, res }) {
+    // 1. 회원조회
+    let user = await this.userService.findOneByEmail(req.user.email); //user를 찾아서
+
+    // 2, 회원가입이 안되어있다면? 자동회원가입
+    if (!user) {
+      await this.userRepository.create({ ...req.user });
+    } //user가 없으면 하나 만들고, 있으면 이 if문에 들어오지 않을거기때문에 이러나 저러나 user는 존재하는게 됨.
+
+    // 3. 회원가입이 되어있다면? 로그인(AT, RT를 생성해서 브라우저에 전송)한다
+    this.setRefreshToken(user.id, res);
+    res.redirect('리다이렉트할 url주소');
+  }
+
+  async setRefreshToken(userId: number, token: string) {
+    await this.validate(userId, token);
+    return this.signIn(userId);
   }
 }

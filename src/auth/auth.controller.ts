@@ -9,6 +9,7 @@ import {
   Request,
   Res,
   UseGuards,
+  Get,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignUpDto } from './dtos/sign-up.dto';
@@ -25,6 +26,13 @@ import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { UserService } from '../user/user.service';
 import { PasswordResetUserDto } from './dtos/password-reset-user.dto';
 
+interface IOAuthUser {
+  user: {
+    name: string;
+    email: string;
+    password: string;
+  };
+}
 @ApiTags('인증')
 @Controller('auth')
 export class AuthController {
@@ -33,6 +41,20 @@ export class AuthController {
     private readonly emailService: EmailService,
     private readonly userService: UserService,
   ) {}
+
+  /**
+   * 카카오로그인
+   * @param req
+   * @returns
+   */
+  @Get("/login/kakao")
+  @UseGuards(AuthGuard("kakao"))
+  async loginKakao(
+    @Req() req: Request & IOAuthUser, //
+    @Res() res: Response
+  ) {
+    this.authService.OAuthLogin({ req, res });
+  }
 
   /**
    * 회원가입
