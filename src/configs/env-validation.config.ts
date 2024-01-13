@@ -1,4 +1,4 @@
-import Joi from 'joi';
+import * as Joi from 'joi';
 
 export const configModuleValidationSchema = Joi.object({
   SERVER_PORT: Joi.number().required().default(3000),

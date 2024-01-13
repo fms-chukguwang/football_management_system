@@ -29,6 +29,7 @@
     "@nestjs/typeorm": "^10.0.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
+    "joi": "^17.11.0",
     "nestjs-seeder": "^0.3.2",
     "nodemailer": "^6.9.8",
     "passport-jwt": "^4.0.1",
