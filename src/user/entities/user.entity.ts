@@ -35,16 +35,6 @@ export class User {
   @Column()
   refreshToken: string;
 
-  async saveRefreshTokenToRedis() {
-    const client = await this.redisService.getClient();
-    await client.set(`refreshToken:${this.id}`, this.refreshToken);
-  }
-
-  async getRefreshTokenFromRedis() {
-    const client = await this.redisService.getClient();
-    return client.get(`refreshToken:${this.id}`);
-  }
-
   /**
    * 이메일
    * @example "example@example.com"
@@ -92,6 +82,16 @@ export class User {
 
   // @Column()
   // refreshToken: string;
+
+  // async saveRefreshTokenToRedis() {
+  //   const client = await this.redisService.getClient();
+  //   await client.set(`refreshToken:${this.id}`, this.refreshToken);
+  // }
+
+  // async getRefreshTokenFromRedis() {
+  //   const client = await this.redisService.getClient();
+  //   return client.get(`refreshToken:${this.id}`);
+  // }
 
   /**
    * 상태
