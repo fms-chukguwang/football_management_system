@@ -6,6 +6,8 @@ import { configModuleValidationSchema } from './configs/env-validation.config';
 import { typeOrmModuleOptions } from './configs/database.config';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { TeamMemberController } from './team-member/team-member.controller';
+import { TeamMemberModule } from './team-member/team-member.module';
 
 @Module({
   imports: [
@@ -16,7 +18,9 @@ import { UserModule } from './user/user.module';
     TypeOrmModule.forRootAsync(typeOrmModuleOptions),
     AuthModule,
     UserModule,
+    TeamMemberModule,
 
   ],
+  controllers: [TeamMemberController],
 })
 export class AppModule {}
