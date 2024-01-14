@@ -7,7 +7,7 @@ import {
   IsString,
   IsStrongPassword,
 } from 'class-validator';
-import { UserStatus } from '../../user/types/user-status.type';
+import { UserStatus } from '../../enums/user-status.enum';
 import { Gender } from '../../enums/gender.enum';
 import {
   Column,

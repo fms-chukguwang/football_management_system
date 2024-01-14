@@ -9,6 +9,7 @@ import { UserModule } from './user/user.module';
 import { TeamMemberController } from './manager/manager.controller';
 import { TeamMemberModule } from './manager/manager.module';
 import { PlayerModule } from './player/player.module';
+//import { RedisModule } from 'nestjs-redis';
 
 @Module({
   imports: [
@@ -16,12 +17,17 @@ import { PlayerModule } from './player/player.module';
       isGlobal: true,
       validationSchema: configModuleValidationSchema,
     }),
+    // RedisModule.register([
+    //   {
+    //     host: 'localhost',
+    //     port: 6379,
+    //   },
+    // ]),
     TypeOrmModule.forRootAsync(typeOrmModuleOptions),
     AuthModule,
     UserModule,
     TeamMemberModule,
     PlayerModule,
-
   ],
   controllers: [TeamMemberController],
 })

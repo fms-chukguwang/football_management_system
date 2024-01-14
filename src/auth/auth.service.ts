@@ -13,7 +13,7 @@ import { SignInDto } from './dtos/sign-in.dto';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { UserService } from '../user/user.service';
-import { UserStatus } from '../user/types/user-status.type';
+import { UserStatus } from '../enums/user-status.enum';
 import { hashPassword } from '../helpers/password.helper';
 import passport from 'passport';
 
