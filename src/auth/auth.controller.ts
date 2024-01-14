@@ -50,7 +50,7 @@ export class AuthController {
   @Get("/login/kakao")
   @UseGuards(AuthGuard("kakao"))
   async loginKakao(
-    @Req() req: Request & IOAuthUser, //
+    @Req() req: Request & IOAuthUser, 
     @Res() res: Response
   ) {
     this.authService.OAuthLogin({ req, res });

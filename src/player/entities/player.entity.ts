@@ -8,7 +8,7 @@ import {
   IsStrongPassword,
 } from 'class-validator';
 import { UserStatus } from '../../user/types/user-status.type';
-import { Gender } from '../../user/types/gender.type';
+import { Gender } from '../../enums/gender.enum';
 import {
   Column,
   CreateDateColumn,
@@ -21,7 +21,7 @@ import {
 } from 'typeorm';
 import { Factory } from 'nestjs-seeder';
 import { hashPassword } from '../../helpers/password.helper';
-import { MemberRole } from 'src/user/types/member-role.type';
+import { MemberRole } from 'src/enums/member-role.enum';
 import { Position } from 'src/user/types/position.type';
 
 @Entity('players')
@@ -74,8 +74,8 @@ export class Player {
    * @example "우측 윙어"
    */
   @IsEnum(Position)
-  @Column({ type: 'enum', enum: Position, default: Position.RightWinger })
-  role: Position;
+  @Column({ type: 'enum', enum: Position, default: Position.AttackingMidfielder})
+  position: Position;
 
   /**
    * 사진 url
@@ -114,7 +114,7 @@ export class Player {
    * @example "Male"
    */
   @IsEnum(Gender)
-  @Column({ nullable: false })
+  @Column({ nullable: false, default:Gender.Female })
   gender: Gender;
 
   /**

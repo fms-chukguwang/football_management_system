@@ -8,7 +8,7 @@ import {
   IsStrongPassword,
 } from 'class-validator';
 import { UserStatus } from '../../user/types/user-status.type';
-import { Gender } from '../../user/types/gender.type';
+import { Gender } from '../../enums/gender.enum';
 import {
   Column,
   CreateDateColumn,
@@ -21,7 +21,7 @@ import {
 } from 'typeorm';
 import { Factory } from 'nestjs-seeder';
 import { hashPassword } from '../../helpers/password.helper';
-import { MemberRole } from 'src/user/types/member-role.type';
+import { MemberRole } from 'src/enums/member-role.enum';
 
 @Entity('managers')
 export class Manager {

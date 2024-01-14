@@ -2,7 +2,7 @@ import { IsString, IsEmail, IsOptional } from 'class-validator';
 
 export class UpdateMyInfoDto {
   /**
-   * 닉네임
+   * 이름
    * @example "홍길동"
    */
    @IsString()
