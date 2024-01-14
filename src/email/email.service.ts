@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EmailVerification } from '../email/entities/email.entity';
 import { AuthService } from '../auth/auth.service';
+import { EmailRequest } from 'src/match/dtos/email-request.dto';
 
 const randomBytesAsync = promisify(randomBytes);
 
@@ -188,4 +189,38 @@ export class EmailService {
     const currentDateTime = new Date();
     return expiration > currentDateTime;
   }
+
+  async reqMatchEmail(emailRequest:EmailRequest) {
+    
+    let updateMent = `
+        <li>제안하는 새 일정: ${emailRequest.newSchedule}</li>
+    `;
+    
+    const htmlContent = `
+      <p>안녕하세요, ${emailRequest.clubName} 구단주님.</p>
+      <p>다음의 경기 일정에 대한 ${emailRequest.chk==='update'?'수정':'삭제'}요청 합니다:</p>
+      <ul>
+        <li>경기 일자: ${emailRequest.originalSchedule}</li>
+        ${emailRequest.chk==='update'?updateMent:''}
+        <li>변경 사유: ${emailRequest.reason}</li>
+      </ul>
+      <p>확인 바랍니다.<br></p>
+      <p>감사합니다.<br>${emailRequest.senderName}</p>
+      <a href="${emailRequest.url}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; border-radius: 5px; cursor: pointer;">수락</a>
+    `;
+  
+    const mailOptions = {
+      from: process.env.EMAIL_USER, // 발신자 이메일
+      to: emailRequest.email,
+      subject: emailRequest.subject,
+      html: htmlContent, // HTML 형식의 메일 내용
+    };
+  
+    try {
+      const info = await this.transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
+  }
+  
 }
