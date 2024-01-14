@@ -12,6 +12,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   JoinTable,
   ManyToMany,
   OneToMany,
@@ -21,6 +22,8 @@ import {
 import { UserRole } from '../types/user-role.type';
 import { Factory } from 'nestjs-seeder';
 import { hashPassword } from '../../helpers/password.helper';
+import { Chats } from 'src/chats/entities/chats.entity';
+import { Message } from 'src/chats/messages/entities/messages.entity';
 
 @Entity('users')
 export class User {
@@ -89,7 +92,6 @@ export class User {
   @Column({ type: 'enum', enum: UserRole, default: UserRole.User })
   role: UserRole;
 
-
   /**
    * 상태
    * @example "Active"
@@ -115,4 +117,11 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @ManyToMany(() => Chats, (chat) => chat.users)
+  @JoinTable()
+  chats: Chats[];
+
+  @OneToMany(() => Message, (message) => message.author)
+  messages: Message[];
 }

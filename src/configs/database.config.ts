@@ -1,5 +1,6 @@
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
+import { Chats } from 'src/chats/entities/chats.entity';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 export const typeOrmModuleOptions: TypeOrmModuleAsyncOptions = {
