@@ -7,7 +7,7 @@ import {
   IsString,
   IsStrongPassword,
 } from 'class-validator';
-import { UserStatus } from '../../enums/user-status.enum';
+import { UserStatus } from '../types/user-status.type';
 import {
   Column,
   CreateDateColumn,
@@ -63,15 +63,17 @@ export class User {
   @Column()
   name: string;
 
-    /**
+  /**
    * 역할
    * @example "User"
    */
 
-     @IsEnum(UserRole)
-     @Column({ type: 'enum', enum: UserRole, default: UserRole.User })
-     role: UserRole;
-   
+  @IsEnum(UserRole)
+  @Column({ type: 'enum', enum: UserRole, default: UserRole.User })
+  role: UserRole;
+
+  @Column()
+  refreshToken: string;
 
   /**
    * 상태

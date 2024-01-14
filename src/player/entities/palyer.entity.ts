@@ -7,8 +7,8 @@ import {
   IsString,
   IsStrongPassword,
 } from 'class-validator';
-import { UserStatus } from '../../enums/user-status.enum';
-import { Gender } from '../../enums/gender.enum';
+import { UserStatus } from '../../user/types/user-status.type';
+import { Gender } from '../../user/types/gender.type';
 import {
   Column,
   CreateDateColumn,
@@ -19,13 +19,13 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UserRole } from '../types/user-role.type';
 import { Factory } from 'nestjs-seeder';
 import { hashPassword } from '../../helpers/password.helper';
 import { MemberRole } from 'src/user/types/member-role.type';
+import { Position } from 'src/user/types/position.type';
 
-@Entity('users')
-export class User {
+@Entity('players')
+export class Player {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -33,6 +33,64 @@ export class User {
    * 팀 이름
    * @example "맨유"
    */
+
+  /**
+   * 유저 아이디
+   * @example "1"
+   */
+
+  /**
+   * 선수 이름
+   * @example "김메시"
+   */
+
+  @IsString()
+  @Column({ nullable: true })
+  name: string;
+
+  /**
+   * 실력
+   * @example "9"
+   */
+  @Column({ nullable: true })
+  skill_level: number;
+
+  /**
+   * 몸무게
+   * @example "59"
+   */
+  @Column({ nullable: true })
+  weight: number;
+
+  /**
+   * 키
+   * @example "159"
+   */
+  @Column({ nullable: true })
+  height: number;
+
+  /**
+   * 포지션
+   * @example "우측 윙어"
+   */
+  @IsEnum(Position)
+  @Column({ type: 'enum', enum: Position, default: Position.RightWinger })
+  role: Position;
+
+  /**
+   * 사진 url
+   * @example "사진url"
+   */
+  @IsString()
+  @Column({ nullable: true })
+  imageUrl: string;
+
+  /**
+   * 나이
+   * @example "18"
+   */
+  @Column({ nullable: true })
+  age: number;
 
   /**
    * 휴대폰 번호
@@ -52,15 +110,6 @@ export class User {
   birthdate: Date;
 
   /**
-   * 팀내 역할
-   * @example "Manager"
-   */
-
-  @IsEnum(MemberRole)
-  @Column({ type: 'enum', enum: MemberRole })
-  role: MemberRole;
-
-  /**
    * 성별
    * @example "Male"
    */
@@ -72,15 +121,6 @@ export class User {
    * 위치
    * @example "Location_id"
    */
-
-  @Column({ nullable: true })
-  kakaoId: string;
-
-  @Column({ nullable: true })
-  googleId: string;
-
-  @Column({ nullable: true })
-  appleId: string;
 
   @CreateDateColumn()
   createdAt: Date;
