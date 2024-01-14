@@ -11,6 +11,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { UserService } from '../user/user.service';
 import { EmailModule } from '../email/email.module';
+import { JwtKakaoStrategy } from './strategies/jwt-social-kakao.strategy';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { EmailModule } from '../email/email.module';
     LocalStrategy,
     JwtStrategy,
     JwtRefreshStrategy,
+    JwtKakaoStrategy,
     UserService,
   ],
   exports: [TypeOrmModule.forFeature([User])],

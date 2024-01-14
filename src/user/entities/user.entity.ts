@@ -7,7 +7,7 @@ import {
   IsString,
   IsStrongPassword,
 } from 'class-validator';
-import { UserStatus } from '../types/user-status.type';
+import { UserStatus } from '../../enums/user-status.enum';
 import {
   Column,
   CreateDateColumn,
@@ -21,11 +21,19 @@ import {
 import { UserRole } from '../types/user-role.type';
 import { Factory } from 'nestjs-seeder';
 import { hashPassword } from '../../helpers/password.helper';
+import { Inject } from '@nestjs/common';
+import { RedisService } from 'nestjs-redis';
 
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Inject()
+  private readonly redisService: RedisService;
+
+  @Column()
+  refreshToken: string;
 
   /**
    * 이메일
@@ -72,8 +80,18 @@ export class User {
   @Column({ type: 'enum', enum: UserRole, default: UserRole.User })
   role: UserRole;
 
-  @Column()
-  refreshToken: string;
+  // @Column()
+  // refreshToken: string;
+
+  // async saveRefreshTokenToRedis() {
+  //   const client = await this.redisService.getClient();
+  //   await client.set(`refreshToken:${this.id}`, this.refreshToken);
+  // }
+
+  // async getRefreshTokenFromRedis() {
+  //   const client = await this.redisService.getClient();
+  //   return client.get(`refreshToken:${this.id}`);
+  // }
 
   /**
    * 상태
