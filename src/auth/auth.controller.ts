@@ -10,6 +10,8 @@ import {
   Res,
   UseGuards,
   Get,
+  Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignUpDto } from './dtos/sign-up.dto';
@@ -25,7 +27,8 @@ import { extractTokenFromHeader } from '../helpers/auth.helper';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { UserService } from '../user/user.service';
 import { PasswordResetUserDto } from './dtos/password-reset-user.dto';
-
+import { Response } from 'express';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 interface IOAuthUser {
   user: {
     name: string;
@@ -42,19 +45,40 @@ export class AuthController {
     private readonly userService: UserService,
   ) {}
 
+
+
   /**
-   * 카카오로그인
+   * 카카오로그인  CODE_REDIRECT_URI
    * @param req
    * @returns
    */
-  @Get("/login/kakao")
-  @UseGuards(AuthGuard("kakao"))
-  async loginKakao(
-    @Req() req: Request & IOAuthUser, //
-    @Res() res: Response
-  ) {
-    this.authService.OAuthLogin({ req, res });
+  @Get('/kakao')
+  // @UseGuards(AuthGuard('kakao'))
+  // async loginKakao(@Req() req: Request & IOAuthUser, @Res() res: Response) {
+  //   this.authService.OAuthLogin({ req, res });
+  // }
+  @Get('kakao')
+  async getKakaoInfo(@Query() code: string) {
+    console.log(code);
   }
+
+   /**
+   * 카카오로그인 
+   * @param req
+   * @returns
+   */
+  @Get('/kakao-login')
+  async loginWithKakao(@Res() res: Response) {
+    const url = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${process.env.KAKAO_API_KEY}&redirect_uri=${process.env.CODE_REDIRECT_URI}`;
+    res.redirect(url);
+  }
+  // @Get('/kakao-login')
+  // async loginWithKakao(@Res() res: Response) {
+  //   let KAKAO_API_KEY="";
+  //   let CODE_REDIRECT_URI="";
+  //   const url = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${KAKAO_API_KEY}&redirect_uri=${CODE_REDIRECT_URI}`;
+  //   res.redirect(url);
+  // }
 
   /**
    * 회원가입
@@ -110,12 +134,15 @@ export class AuthController {
   }
 
   /**
-   * 리프레쉬 토큰 재발급 
+   * 리프레쉬 토큰 재발급
    * @param req
    * @returns {Object} statusCode, message, accessToken
    */
+  
   @ApiBearerAuth()
   @UseGuards(JwtRefreshGuard)
+   @UseInterceptors(CacheInterceptor) 
+   @CacheTTL(30) // override TTL to 30 seconds
   @Post('refresh')
   async refresh(@Req() req) {
     const authHeader = req.headers['authorization'];
@@ -136,10 +163,10 @@ export class AuthController {
    * @param emailVerifyDto - 사용자 이메일 및 인증 관련 정보를 담은 DTO
    * @returns 인증 번호를 이메일로 전송한 결과 메시지
    */
-  @HttpCode(HttpStatus.OK)
-  @Post('/send-verification-email')
-  async sendVerificationEmail(@Body() emailVerifyDto: EmailVerifyDto) {
-    const { email } = emailVerifyDto;
+   @HttpCode(HttpStatus.OK)
+   @Post('/send-verification-email')
+   async sendVerificationEmail(@Body() emailVerifyDto: EmailVerifyDto) {
+     const { email } = emailVerifyDto;
 
     // 이메일 중복 체크
     const existingUser = await this.userService.findOneByEmail(email);

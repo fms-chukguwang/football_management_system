@@ -3,11 +3,22 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as dotenv from 'dotenv';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const cors = require('cors');
+  // .env 파일을 현재 환경에 로드
+  dotenv.config();
+
+  const corsOptions = {
+    origin: 'http://localhost:3000',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+    allowedHeaders: 'Origin,X-Requested-With,Content-Type,Accept,Authorization',
+  };
+
+  app.enableCors(corsOptions);
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>('SERVER_PORT');
@@ -37,8 +48,6 @@ async function bootstrap() {
       operationsSorter: 'alpha', // API 그룹 내 정렬을 알파벳 순으로
     },
   });
-
-  app.use(cors());
 
   await app.listen(port);
 }

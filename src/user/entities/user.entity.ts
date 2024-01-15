@@ -21,11 +21,19 @@ import {
 import { UserRole } from '../types/user-role.type';
 import { Factory } from 'nestjs-seeder';
 import { hashPassword } from '../../helpers/password.helper';
+import { Inject } from '@nestjs/common';
+import { RedisService } from 'nestjs-redis';
 
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Inject()
+  private readonly redisService: RedisService;
+
+  @Column()
+  refreshToken: string;
 
   /**
    * 이메일
@@ -54,41 +62,36 @@ export class User {
   password: string;
 
   /**
-   * 닉네임
+   * 이름
    * @example "홍길동"
    */
-  @Factory((faker) => faker.person.firstName())
+  @Factory((faker) => faker.person.fullName())
   @IsNotEmpty({ message: '이름을 입력해 주세요.' })
   @IsString()
   @Column()
   name: string;
 
   /**
-   * 휴대폰 번호
-   * @example "010-000-0000"
-   */
-
-  @IsString()
-  @Column({ nullable: true })
-  phone: string;
-
-  /**
-   * 생년월일
-   * @example "7001010"
-   */
-  @IsDate()
-  @Column({ nullable: true })
-  birthdate: Date;
-
-  /**
    * 역할
-   * @example "Collaborator"
+   * @example "User"
    */
 
   @IsEnum(UserRole)
   @Column({ type: 'enum', enum: UserRole, default: UserRole.User })
   role: UserRole;
 
+  // @Column()
+  // refreshToken: string;
+
+  // async saveRefreshTokenToRedis() {
+  //   const client = await this.redisService.getClient();
+  //   await client.set(`refreshToken:${this.id}`, this.refreshToken);
+  // }
+
+  // async getRefreshTokenFromRedis() {
+  //   const client = await this.redisService.getClient();
+  //   return client.get(`refreshToken:${this.id}`);
+  // }
 
   /**
    * 상태
@@ -98,21 +101,12 @@ export class User {
   @Column({ default: 'Active' })
   status: UserStatus;
 
-  @Column({ nullable: true })
-  refreshToken: string;
-
-  @Column({ nullable: true })
-  kakaoId: string;
-
-  @Column({ nullable: true })
-  googleId: string;
-
-  @Column({ nullable: true })
-  appleId: string;
-
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column()
+  deletedAt: Date;
 }
