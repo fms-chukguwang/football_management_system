@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { createMatchDto } from './dtos/create-match.dto';
@@ -6,6 +6,14 @@ import { Match } from './entities/match.entity';
 import { updateMatchDto } from './dtos/update-match.dto';
 import { EmailService } from 'src/email/email.service';
 import { EmailRequest } from './dtos/email-request.dto';
+import { AuthService } from 'src/auth/auth.service';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { User } from 'src/user/entities/user.entity';
+import { deleteMatchDto } from './dtos/delete-match.dto';
+import { deleteRequestDto } from './dtos/delete-request.dto';
+import { createRequestDto } from './dtos/create-request.dto';
+import { updateRequestDto } from './dtos/update-request.dto';
 
 @Injectable()
 export class MatchService {
@@ -14,10 +22,55 @@ export class MatchService {
         @InjectRepository(Match)
         private matchRepository: Repository<Match>,
 
-        private emailService: EmailService
+        @InjectRepository(User)
+        private userRepository: Repository<User>,
+        private emailService: EmailService,
+        private authService: AuthService,
+        private jwtService: JwtService,
+        private configService: ConfigService
       ) {}
 
-    async createMatch(userId:number,creatematchDto:createMatchDto) {
+    // 경기 생성 요청(상대팀 구단주에게)
+    async requestCreMatch(userId: number, createrequestDto:createRequestDto) {
+
+        const token = this.authService.generateAccessToken(userId);
+
+        //TODO 입력자 구단주 체크하는 메서드 추가
+
+        // EmailRequest 객체 생성 및 초기화
+        const emailRequest: EmailRequest = {
+            email: "codzero00@gmail.com", // TODO 상대팀 구단주의 이메일 가져와서 집어넣기
+            subject: "경기 일정 생성 요청",
+            clubName: 'FC 예시',    // TODO 상대팀 코드로 팀명 가져와서 집어넣기
+            originalSchedule: ``,
+            newSchedule: `${createrequestDto.date} ${createrequestDto.time}`,
+            reason: '경기 제안',
+            homeTeamId:createrequestDto.homeTeamId,
+            awayTeamId:createrequestDto.awayTeamId,
+            fieldId:createrequestDto.fieldId,
+            senderName: 'FC 예시 관리자', // TODO 본인팀 코드로 팀명 가져와서 집어넣기
+            url: `http://localhost:3000/api/match/book/accept`,
+            chk: 'create',
+            token:token
+        };
+
+        const send = await this.emailService.reqMatchEmail(emailRequest);
+
+        return send ;
+    }
+
+    async createMatch(creatematchDto:createMatchDto) {
+
+        const payload = await this.jwtService.verify(creatematchDto.token, {
+            secret: this.configService.get<string>("JWT_SECRET"),
+        });
+        const user = await this.userRepository.findOne({
+            where: { id: payload.userId },
+        });
+
+        if(!user){
+            throw new UnauthorizedException('사용자 정보가 유효하지 않습니다.');
+        }
 
         //TODO 입력자 구단주 체크하는 메서드 추가
 
@@ -28,13 +81,12 @@ export class MatchService {
         await this.verifyReservedMatch(matchDate,matchTime);
 
         const match = this.matchRepository.create({
-                        id:1,
-                        owner_id:userId,
+                        owner_id:user.id,
                         date:matchDate,
                         time:matchTime,
-                        home_team_id:creatematchDto.homeTeamId,
-                        away_team_id:creatematchDto.awayTeamId,
-                        field_id:creatematchDto.fieldId
+                        home_team_id:Number(creatematchDto.homeTeamId),
+                        away_team_id:Number(creatematchDto.awayTeamId),
+                        field_id:Number(creatematchDto.fieldId)
                     });
 
         if (!match) {
@@ -60,7 +112,9 @@ export class MatchService {
     }
 
     // 경기 수정 요청(상대팀 구단주에게)
-    async requestUptMatch(userId: number, matchId:number,updatematchDto:updateMatchDto) {
+    async requestUptMatch(userId: number, matchId:number,updaterequestDto:updateRequestDto) {
+
+        const token = this.authService.generateAccessToken(userId);
 
         //TODO 입력자 구단주 체크하는 메서드 추가
 
@@ -68,25 +122,41 @@ export class MatchService {
 
         // EmailRequest 객체 생성 및 초기화
         const emailRequest: EmailRequest = {
-            email: "codzero00@gmail.com",
+            email: "codzero00@gmail.com", // TODO 상대팀 구단주의 이메일 가져와서 집어넣기
             subject: "경기 일정 수정 요청",
-            clubName: 'FC 예시',
+            clubName: 'FC 예시',    // TODO 상대팀 코드로 팀명 가져와서 집어넣기
             originalSchedule: `${match.date} ${match.time}`,
-            newSchedule: `${updatematchDto.date} ${updatematchDto.time}`,
-            reason: '날씨 악화 예상',
-            senderName: 'FC 예시 관리자',
-            url: 'https://www.naver.com', //TODO url 전송시 qeury에 스케줄, matchId 보내기?
-            chk: 'update'
+            newSchedule: `${updaterequestDto.date} ${updaterequestDto.time}`,
+            reason: updaterequestDto.reason,
+            homeTeamId:0,
+            awayTeamId:0,
+            fieldId:0,
+            senderName: 'FC 예시 관리자', // TODO 본인팀 코드로 팀명 가져와서 집어넣기
+            url: `http://localhost:3000/api/match/${matchId}/update`,
+            chk: 'update',
+            token:token
         };
-                
+
         const send = await this.emailService.reqMatchEmail(emailRequest);
 
         return send ;
     }
 
-    async updateMatch(userId: number, matchId:number,updatematchDto:updateMatchDto) {
+    async updateMatch(matchId:number,updatematchDto:updateMatchDto) {
+
+        const payload = await this.jwtService.verify(updatematchDto.token, {
+            secret: this.configService.get<string>("JWT_SECRET"),
+        });
+        const user = await this.userRepository.findOne({
+            where: { id: payload.userId },
+        });
+
+        if(!user){
+            throw new UnauthorizedException('사용자 정보가 유효하지 않습니다.');
+        }
 
         //TODO 입력자 구단주 체크하는 메서드 추가
+
 
         await this.findOneMatch(matchId);
 
@@ -102,7 +172,9 @@ export class MatchService {
     }
 
     // 경기 삭제 요청(상대팀 구단주에게)
-    async requestDelMatch(userId: number, matchId:number) {
+    async requestDelMatch(userId: number, matchId:number,deleterequestDto:deleteRequestDto) {
+
+        const token = this.authService.generateAccessToken(userId);
 
         //TODO 입력자 구단주 체크하는 메서드 추가
 
@@ -115,10 +187,14 @@ export class MatchService {
             clubName: 'FC 예시',
             originalSchedule: `${match.date} ${match.time}`,
             newSchedule: ``,
-            reason: '장소 대여 문제로 일정 취소',
+            reason: deleterequestDto.reason,
+            homeTeamId:0,
+            awayTeamId:0,
+            fieldId:0,
             senderName: 'FC 예시 관리자',
-            url: 'https://www.naver.com', //TODO url 전송시 qeury에 스케줄, matchId 보내기?
-            chk: 'delete'
+            url: `http://localhost:3000/api/match/${matchId}/delete`, //TODO url 전송시 qeury에 스케줄, matchId 보내기?
+            chk: 'delete',
+            token:token
         };
 
         const send = await this.emailService.reqMatchEmail(emailRequest);
@@ -126,7 +202,18 @@ export class MatchService {
         return send ;
     }
 
-    async deleteMatch(userId: number, matchId: number) {
+    async deleteMatch(deletematchDto: deleteMatchDto, matchId: number) {
+
+        const payload = await this.jwtService.verify(deletematchDto.token, {
+            secret: this.configService.get<string>("JWT_SECRET"),
+        });
+        const user = await this.userRepository.findOne({
+            where: { id: payload.userId },
+        });
+
+        if(!user){
+            throw new UnauthorizedException('사용자 정보가 유효하지 않습니다.');
+        }
 
         //TODO 입력자 구단주 체크하는 메서드 추가
 
@@ -160,7 +247,6 @@ export class MatchService {
         }
         return clubOwner;*/
     }
-
 
 }
 

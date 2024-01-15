@@ -84,8 +84,13 @@ export class AuthService {
     return this.signIn(userId);
   }
 
-  private generateAccessToken(userId: number): string {
-    const accessToken = this.jwtService.sign({ id: userId });
+  // 이메일에서 수락버튼시 사용하는 token으로 수락 유효기간(3일)에 맞게 해둠
+  generateAccessToken(userId: number): string {
+    const payload = { userId };
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: '3d',
+    });
     return accessToken;
   }
 

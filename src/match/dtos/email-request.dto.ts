@@ -8,4 +8,8 @@ export interface EmailRequest {
     senderName: string;
     url: string;
     chk: string;
+    homeTeamId:number;
+    awayTeamId:number;
+    fieldId:number;
+    token:string;
   }

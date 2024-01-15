@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
-export class createMatchDto {
+export class createRequestDto {
 
     @IsString()
     @IsNotEmpty({ message: '경기 예약일자를 입력해주세요.' })
@@ -10,19 +10,15 @@ export class createMatchDto {
     @IsNotEmpty({ message: '경기 예약시간을 입력해주세요.' })
     time: string;
 
-    @IsString()
+    @IsNumber()
     @IsNotEmpty({ message: '홈팀을 입력해주세요.' })
-    homeTeamId: string;
+    homeTeamId: number;
 
-    @IsString()
+    @IsNumber()
     @IsNotEmpty({ message: '어웨이팀을 입력해주세요.' })
-    awayTeamId: string;
+    awayTeamId: number;
 
-    @IsString()
+    @IsNumber()
     @IsNotEmpty({ message: '경기장을 입력해주세요.' })
-    fieldId: string;
-
-    @IsString()
-    @IsNotEmpty({ message: '토큰 값이 없습니다.' })
-    token: string;
+    fieldId: number;
   }
