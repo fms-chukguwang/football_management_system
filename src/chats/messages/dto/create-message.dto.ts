@@ -5,7 +5,4 @@ import { IsNumber } from 'class-validator';
 export class CreateMessagesDto extends PickType(Message, ['message']) {
   @IsNumber()
   chatId: number;
-
-  @IsNumber()
-  authorId: number;
 }

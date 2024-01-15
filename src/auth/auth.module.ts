@@ -36,6 +36,6 @@ import { EmailModule } from '../email/email.module';
     JwtRefreshStrategy,
     UserService,
   ],
-  exports: [TypeOrmModule.forFeature([User])],
+  exports: [TypeOrmModule.forFeature([User]), AuthService],
 })
 export class AuthModule {}
