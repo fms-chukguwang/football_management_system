@@ -12,6 +12,10 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { UserService } from '../user/user.service';
 import { EmailModule } from '../email/email.module';
 import { JwtKakaoStrategy } from './strategies/jwt-social-kakao.strategy';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-yet';
+import { RedisModule } from 'nestjs-redis';
+
 
 @Module({
   imports: [
@@ -28,6 +32,11 @@ import { JwtKakaoStrategy } from './strategies/jwt-social-kakao.strategy';
         },
       }),
     }),
+    CacheModule.register({
+      store: redisStore,
+      url: 'redis://localhost:6379',
+    }),
+    RedisModule, // 여기에 RedisModule 포함
   ],
   controllers: [AuthController],
   providers: [
@@ -36,8 +45,9 @@ import { JwtKakaoStrategy } from './strategies/jwt-social-kakao.strategy';
     JwtStrategy,
     JwtRefreshStrategy,
     JwtKakaoStrategy,
-    UserService,
+    UserService, 
+    
   ],
-  exports: [TypeOrmModule.forFeature([User])],
+  exports: [TypeOrmModule.forFeature([User]), RedisModule], // RedisModule 내보내기
 })
 export class AuthModule {}

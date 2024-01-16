@@ -16,6 +16,7 @@ import { UserService } from '../user/user.service';
 import { UserStatus } from '../enums/user-status.enum';
 import { hashPassword } from '../helpers/password.helper';
 import passport from 'passport';
+import { RedisService } from 'nestjs-redis';
 
 interface CustomRequest extends Request {
   session: any;
@@ -28,6 +29,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    //private readonly redisService: RedisService,
   ) {}
 
   async signUp({ email, password, passwordConfirm, name }: SignUpDto) {
@@ -67,6 +69,22 @@ export class AuthService {
     this.userRepository.update(id, { refreshToken });
     return { accessToken, refreshToken };
   }
+
+  //레디스 토큰 사용
+  // async signIn(id: number) {
+  //   const payload = { id };
+  //   const accessToken = this.jwtService.sign(payload, {
+  //     secret: process.env.JWT_SECRET,
+  //   });
+  //   const refreshToken = this.jwtService.sign(payload, {
+  //     secret: process.env.REFRESH_SECRET,
+  //     expiresIn: '7d',
+  //   });
+
+  //   await this.saveRefreshTokenToRedis(id, refreshToken);
+  //   this.userRepository.update(id, { refreshToken });
+  //   return { accessToken, refreshToken };
+  // }
 
   async signOut(id: number) {
     console.log('id=', id);
@@ -186,4 +204,17 @@ export class AuthService {
     await this.validate(userId, token);
     return this.signIn(userId);
   }
+
+  // async saveRefreshTokenToRedis(
+  //   userId: number,
+  //   refreshToken: string,
+  // ): Promise<void> {
+  //   const redisClient = this.redisService.getClient();
+  //   await redisClient.set(`refreshToken:${userId}`, refreshToken);
+  // }
+
+  // async getRefreshTokenFromRedis(userId: number): Promise<string | null> {
+  //   const redisClient = this.redisService.getClient();
+  //   return await redisClient.get(`refreshToken:${userId}`);
+  // }
 }

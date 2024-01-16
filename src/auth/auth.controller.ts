@@ -45,8 +45,6 @@ export class AuthController {
     private readonly userService: UserService,
   ) {}
 
-
-
   /**
    * 카카오로그인  CODE_REDIRECT_URI
    * @param req
@@ -62,8 +60,8 @@ export class AuthController {
     console.log(code);
   }
 
-   /**
-   * 카카오로그인 
+  /**
+   * 카카오로그인
    * @param req
    * @returns
    */
@@ -138,11 +136,11 @@ export class AuthController {
    * @param req
    * @returns {Object} statusCode, message, accessToken
    */
-  
+
   @ApiBearerAuth()
   @UseGuards(JwtRefreshGuard)
-   @UseInterceptors(CacheInterceptor) 
-   @CacheTTL(30) // override TTL to 30 seconds
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(30) // override TTL to 30 seconds
   @Post('refresh')
   async refresh(@Req() req) {
     const authHeader = req.headers['authorization'];
@@ -163,10 +161,10 @@ export class AuthController {
    * @param emailVerifyDto - 사용자 이메일 및 인증 관련 정보를 담은 DTO
    * @returns 인증 번호를 이메일로 전송한 결과 메시지
    */
-   @HttpCode(HttpStatus.OK)
-   @Post('/send-verification-email')
-   async sendVerificationEmail(@Body() emailVerifyDto: EmailVerifyDto) {
-     const { email } = emailVerifyDto;
+  @HttpCode(HttpStatus.OK)
+  @Post('/send-verification-email')
+  async sendVerificationEmail(@Body() emailVerifyDto: EmailVerifyDto) {
+    const { email } = emailVerifyDto;
 
     // 이메일 중복 체크
     const existingUser = await this.userService.findOneByEmail(email);
