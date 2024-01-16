@@ -10,7 +10,9 @@ import { TeamMemberController } from './manager/manager.controller';
 import { TeamMemberModule } from './manager/manager.module';
 import { PlayerModule } from './player/player.module';
 //import { RedisModule } from 'nestjs-redis';
+import { redisStore } from 'cache-manager-redis-yet';
 import { CacheModule } from '@nestjs/cache-manager';
+import { RedisModule } from 'nestjs-redis';
 
 @Module({
   imports: [
@@ -18,19 +20,17 @@ import { CacheModule } from '@nestjs/cache-manager';
       isGlobal: true,
       validationSchema: configModuleValidationSchema,
     }),
-    CacheModule.register({ isGlobal: true }),
-    // RedisModule.register([
-    //   {
-    //     host: 'localhost',
-    //     port: 6379,
-    //   },
-    // ]),
+    CacheModule.register({
+      store: redisStore,
+      url: 'redis://localhost:6379',
+    }),
     TypeOrmModule.forRootAsync(typeOrmModuleOptions),
     AuthModule,
     UserModule,
     TeamMemberModule,
     PlayerModule,
+    // RedisModule
   ],
-  controllers: [TeamMemberController],
+  controllers: [AppController],
 })
 export class AppModule {}

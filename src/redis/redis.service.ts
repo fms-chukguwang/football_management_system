@@ -7,13 +7,17 @@ export class RedisService {
 
   saveRefreshToken(userId: number, refreshToken: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.redisClient.set(`refreshToken:${userId}`, refreshToken, (err, reply) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
+      this.redisClient.set(
+        `refreshToken:${userId}`,
+        refreshToken,
+        (err, reply) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        },
+      );
     });
   }
 

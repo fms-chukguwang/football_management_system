@@ -12,12 +12,19 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { UserService } from '../user/user.service';
 import { EmailModule } from '../email/email.module';
 import { JwtKakaoStrategy } from './strategies/jwt-social-kakao.strategy';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-yet';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
     PassportModule,
     EmailModule,
+    // 여기
+    CacheModule.register({
+      store: redisStore,
+      url: 'redis://localhost:6379',
+    }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
