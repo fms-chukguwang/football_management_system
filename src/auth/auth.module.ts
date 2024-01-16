@@ -14,7 +14,10 @@ import { EmailModule } from '../email/email.module';
 import { JwtKakaoStrategy } from './strategies/jwt-social-kakao.strategy';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
-import { RedisModule } from 'nestjs-redis';
+import { RedisModule } from 'src/redis/redis.module';
+import { RedisService } from 'src/redis/redis.service';
+import { RedisService as NestRedisService } from 'nestjs-redis';
+
 
 
 @Module({
@@ -22,6 +25,7 @@ import { RedisModule } from 'nestjs-redis';
     TypeOrmModule.forFeature([User]),
     PassportModule,
     EmailModule,
+    RedisModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -32,11 +36,12 @@ import { RedisModule } from 'nestjs-redis';
         },
       }),
     }),
-    CacheModule.register({
-      store: redisStore,
-      url: 'redis://localhost:6379',
-    }),
-    RedisModule, // 여기에 RedisModule 포함
+    
+    // CacheModule.register({
+    //   store: redisStore,
+    //   url: 'redis://localhost:6379',
+    // }),
+  
   ],
   controllers: [AuthController],
   providers: [
@@ -45,9 +50,10 @@ import { RedisModule } from 'nestjs-redis';
     JwtStrategy,
     JwtRefreshStrategy,
     JwtKakaoStrategy,
-    UserService, 
-    
+    UserService,
+    RedisService,
+    NestRedisService,
   ],
-  exports: [TypeOrmModule.forFeature([User]), RedisModule], // RedisModule 내보내기
+  exports: [TypeOrmModule.forFeature([User])], 
 })
 export class AuthModule {}

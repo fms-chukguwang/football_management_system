@@ -1,31 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { RedisClient } from './interfaces/redis-client.interface';
+import { RedisService as NestRedisService } from 'nestjs-redis';
 
 @Injectable()
 export class RedisService {
-  constructor(private readonly redisClient: RedisClient) {}
+  private client;
 
-  saveRefreshToken(userId: number, refreshToken: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.redisClient.set(`refreshToken:${userId}`, refreshToken, (err, reply) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    });
+  constructor(private readonly nestRedisService: NestRedisService) {
+    this.client = this.nestRedisService.getClient();
   }
 
-  getRefreshToken(userId: number): Promise<string | null> {
-    return new Promise((resolve, reject) => {
-      this.redisClient.get(`refreshToken:${userId}`, (err, reply) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(reply);
-        }
-      });
-    });
+  async saveRefreshToken(userId: number, refreshToken: string): Promise<void> {
+    const key = `refreshToken:${userId}`;
+    await this.client.set(key, refreshToken);
+  }
+
+  async getRefreshToken(userId: number): Promise<string | null> {
+    const key = `refreshToken:${userId}`;
+    return await this.client.get(key);
   }
 }
