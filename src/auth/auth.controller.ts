@@ -28,7 +28,7 @@ import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { UserService } from '../user/user.service';
 import { PasswordResetUserDto } from './dtos/password-reset-user.dto';
 import { Response } from 'express';
-import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
+
 interface IOAuthUser {
   user: {
     name: string;
@@ -132,15 +132,13 @@ export class AuthController {
   }
 
   /**
-   * 리프레쉬 토큰 재발급
+   * 액세스 토큰 재발급
    * @param req
    * @returns {Object} statusCode, message, accessToken
    */
 
   @ApiBearerAuth()
   @UseGuards(JwtRefreshGuard)
-  @UseInterceptors(CacheInterceptor)
-  @CacheTTL(30) // override TTL to 30 seconds
   @Post('refresh')
   async refresh(@Req() req) {
     const authHeader = req.headers['authorization'];

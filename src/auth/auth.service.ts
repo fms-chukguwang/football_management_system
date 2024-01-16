@@ -27,26 +27,12 @@ export class AuthService {
     private readonly redisService: RedisService,
   ) {}
 
-  async refreshToken(userId: number, refreshToken: string) {
-    await this.validate(userId, refreshToken);
-
-    // Generate a new access token
+  async refreshToken(userId: number, token:string) {
     const newAccessToken = this.generateAccessToken(userId);
-
-    return newAccessToken;
+    const newRefreshToken = this.setRefreshToken(userId, token);
+    return {newAccessToken,newRefreshToken};
   }
 
-  @CacheKey('validateRefreshToken')
-  @CacheTTL(60 * 60 * 24 * 7)
-  async validate(userId: number, refreshToken: string) {
-    const storedRefreshToken = await this.getRefreshTokenFromRedis(userId);
-
-    if (refreshToken !== storedRefreshToken) {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-
-    return true;
-  }
 
   async setRefreshToken(userId: number, token: string) {
     await this.saveRefreshTokenToRedis(userId, token);
@@ -58,7 +44,7 @@ export class AuthService {
   }
 
   async saveRefreshTokenToRedis(userId: number, refreshToken: string): Promise<void> {
-    await this.redisService.saveRefreshToken(userId, refreshToken);
+    await this.redisService.setRefreshToken(userId, refreshToken);
   }
 
   async getRefreshTokenFromRedis(userId: number): Promise<string | null> {

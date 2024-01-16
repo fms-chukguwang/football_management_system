@@ -12,13 +12,8 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { UserService } from '../user/user.service';
 import { EmailModule } from '../email/email.module';
 import { JwtKakaoStrategy } from './strategies/jwt-social-kakao.strategy';
-import { CacheModule } from '@nestjs/cache-manager';
-import { redisStore } from 'cache-manager-redis-yet';
 import { RedisModule } from 'src/redis/redis.module';
 import { RedisService } from 'src/redis/redis.service';
-import { RedisService as NestRedisService } from 'nestjs-redis';
-
-
 
 @Module({
   imports: [
@@ -32,16 +27,10 @@ import { RedisService as NestRedisService } from 'nestjs-redis';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: '12h',
+          expiresIn: '1h',
         },
       }),
     }),
-    
-    // CacheModule.register({
-    //   store: redisStore,
-    //   url: 'redis://localhost:6379',
-    // }),
-  
   ],
   controllers: [AuthController],
   providers: [
@@ -52,8 +41,7 @@ import { RedisService as NestRedisService } from 'nestjs-redis';
     JwtKakaoStrategy,
     UserService,
     RedisService,
-    NestRedisService,
   ],
-  exports: [TypeOrmModule.forFeature([User])], 
+  exports: [TypeOrmModule.forFeature([User])],
 })
 export class AuthModule {}

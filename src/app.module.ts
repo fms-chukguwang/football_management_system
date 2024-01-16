@@ -9,9 +9,8 @@ import { UserModule } from './user/user.module';
 import { TeamMemberController } from './manager/manager.controller';
 import { TeamMemberModule } from './manager/manager.module';
 import { PlayerModule } from './player/player.module';
-import { redisStore } from 'cache-manager-redis-yet';
-import { CacheModule } from '@nestjs/cache-manager';
-import { RedisModule } from 'nestjs-redis';
+import { RedisModule } from './redis/redis.module';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -24,11 +23,9 @@ import { RedisModule } from 'nestjs-redis';
     UserModule,
     TeamMemberModule,
     PlayerModule,
-    RedisModule.register({
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT, 10) || 6379,
-    }),
+    RedisModule
   ],
   controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

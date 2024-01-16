@@ -1,21 +1,34 @@
 import { Injectable } from '@nestjs/common';
-import { RedisService as NestRedisService } from 'nestjs-redis';
+import { ConfigService } from '@nestjs/config';
+import IORedis from 'ioredis';
 
 @Injectable()
 export class RedisService {
-  private client;
+  private readonly redisClient: IORedis;
+  private readonly refreshTokenTTL: number = 1 * 24 * 60 * 60; // 하루
 
-  constructor(private readonly nestRedisService: NestRedisService) {
-    this.client = this.nestRedisService.getClient();
+  constructor(private readonly configService: ConfigService) {
+    this.redisClient = new IORedis({
+      host: this.configService.get<string>('REDIS_HOST'),
+      port: this.configService.get<number>('REDIS_PORT'),
+    });
+    this.redisClient.on('connect', () => {
+      console.log('Connected to Redis');
+    });
+    this.redisClient.on('error', (err) => {
+      console.error('Redis connection error:', err);
+    });
   }
 
-  async saveRefreshToken(userId: number, refreshToken: string): Promise<void> {
-    const key = `refreshToken:${userId}`;
-    await this.client.set(key, refreshToken);
+  async setRefreshToken(userId: number, refreshToken: string): Promise<void> {
+    await this.redisClient.set(`refreshToken:${userId}`, refreshToken);
+    await this.redisClient.expire(
+      `refreshToken:${userId}`,
+      this.refreshTokenTTL,
+    );
   }
 
   async getRefreshToken(userId: number): Promise<string | null> {
-    const key = `refreshToken:${userId}`;
-    return await this.client.get(key);
+    return await this.redisClient.get(`refreshToken:${userId}`);
   }
 }
