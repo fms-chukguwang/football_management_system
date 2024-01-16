@@ -1,12 +1,17 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ChatsService } from './chats.service';
+import { PaginateChatDto } from './dto/paginate-chat.dto';
 
 @Controller('chats')
 export class ChatsController {
   constructor(private readonly chatsService: ChatsService) {}
 
+  // @Get()
+  // async getAllChats() {
+  //   return await this.chatsService.getAllChats();
+  // }
   @Get()
-  async getAllChats() {
-    return await this.chatsService.getAllChats();
+  paginateChat(@Query() dto: PaginateChatDto) {
+    return this.chatsService.paginateChat(dto);
   }
 }

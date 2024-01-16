@@ -20,6 +20,9 @@ async function bootstrap() {
       transform: true,
       whitelist: true,
       forbidNonWhitelisted: true,
+      transformOptions: {
+        enableImplicitConversion: true, // DTO에 ClassValidator로 정의된 타입으로 자동 변환
+      },
     }),
   );
 

@@ -7,9 +7,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Message } from './messages/entities/messages.entity';
 import { ChatMessagesService } from './messages/messages.service';
 import { MessagesController } from './messages/messages.controller';
+import { CommonModule } from 'src/common/common.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Chats, Message])],
+  imports: [TypeOrmModule.forFeature([Chats, Message]), CommonModule],
   controllers: [ChatsController, MessagesController],
   providers: [ChatsService, ChatsGateway, ChatMessagesService],
 })

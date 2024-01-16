@@ -3,18 +3,34 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Chats } from './entities/chats.entity';
 import { Repository } from 'typeorm';
 import { CreateChatDto } from './dto/create-chat.dto';
+import { CommonService } from 'src/common/common.service';
+import { PaginateChatDto } from './dto/paginate-chat.dto';
 
 @Injectable()
 export class ChatsService {
   constructor(
     @InjectRepository(Chats)
     private readonly chatsRepository: Repository<Chats>,
+    private readonly commonService: CommonService,
   ) {}
 
   async getAllChats() {
     return await this.chatsRepository.find({
       relations: ['users'],
     });
+  }
+
+  paginateChat(dto: PaginateChatDto) {
+    return this.commonService.paginate(
+      dto,
+      this.chatsRepository,
+      {
+        relations: {
+          users: true,
+        },
+      },
+      'chats',
+    );
   }
 
   // 채팅방 생성
