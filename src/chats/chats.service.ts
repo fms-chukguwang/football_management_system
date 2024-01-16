@@ -20,17 +20,23 @@ export class ChatsService {
     });
   }
 
-  paginateChat(dto: PaginateChatDto) {
-    return this.commonService.paginate(
-      dto,
-      this.chatsRepository,
-      {
-        relations: {
-          users: true,
+  async paginateChat(dto: PaginateChatDto, userId: number) {
+    const filterOptions = {
+      relations: ['users'],
+      where: {
+        users: {
+          id: userId,
         },
       },
+    };
+
+    const chats = await this.commonService.paginate(
+      dto,
+      this.chatsRepository,
+      filterOptions,
       'chats',
     );
+    return chats;
   }
 
   // 채팅방 생성
