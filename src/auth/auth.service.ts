@@ -27,15 +27,20 @@ export class AuthService {
     private readonly redisService: RedisService,
   ) {}
 
-  async refreshToken(userId: number, token:string) {
+  async refreshToken(userId: number) {
+    const refreshToken = await this.getRefreshTokenFromRedis(userId);
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('리프레시 토큰이 유효하지 않습니다.');
+    }
+
     const newAccessToken = this.generateAccessToken(userId);
-    const newRefreshToken = this.setRefreshToken(userId, token);
-    return {newAccessToken,newRefreshToken};
+    const newRefreshToken = await this.generateRefreshToken(userId);
+    return { newAccessToken, newRefreshToken };
   }
 
-
   async setRefreshToken(userId: number, token: string) {
-    await this.saveRefreshTokenToRedis(userId, token);
+    return await this.saveRefreshTokenToRedis(userId, token);
   }
 
   private generateAccessToken(userId: number): string {
@@ -43,8 +48,20 @@ export class AuthService {
     return accessToken;
   }
 
-  async saveRefreshTokenToRedis(userId: number, refreshToken: string): Promise<void> {
-    await this.redisService.setRefreshToken(userId, refreshToken);
+  private async generateRefreshToken(userId: number): Promise<string> {
+    const newRefreshToken = this.jwtService.sign({ id: userId }, {
+      secret: process.env.REFRESH_SECRET,
+      expiresIn: '7d',
+    });
+    await this.saveRefreshTokenToRedis(userId, newRefreshToken);
+    return newRefreshToken;
+  }
+
+  async saveRefreshTokenToRedis(
+    userId: number,
+    refreshToken: string,
+  ): Promise<void> {
+    return await this.redisService.setRefreshToken(userId, refreshToken);
   }
 
   async getRefreshTokenFromRedis(userId: number): Promise<string | null> {
@@ -54,7 +71,9 @@ export class AuthService {
   async signUp({ email, password, passwordConfirm, name }: SignUpDto) {
     const isPasswordMatched = password === passwordConfirm;
     if (!isPasswordMatched) {
-      throw new BadRequestException('비밀번호와 비밀번호 확인이 서로 일치하지 않습니다.');
+      throw new BadRequestException(
+        '비밀번호와 비밀번호 확인이 서로 일치하지 않습니다.',
+      );
     }
 
     const existedUser = await this.userRepository.findOne({ where: { email } });
@@ -79,13 +98,11 @@ export class AuthService {
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET,
     });
-    const refreshToken = this.jwtService.sign(payload, {
-      secret: process.env.REFRESH_SECRET,
-      expiresIn: '7d',
-    });
-    this.userRepository.update(id, { refreshToken });
+    const refreshToken = await this.generateRefreshToken(id);
+    // Database update removed, as refreshToken is stored only in Redis
     return { accessToken, refreshToken };
   }
+
 
   async signOut(id: number) {
     console.log('id=', id);
@@ -103,7 +120,10 @@ export class AuthService {
       where: { email },
       select: { id: true, password: true },
     });
-    const isPasswordMatched = bcrypt.compareSync(password, user?.password ?? '');
+    const isPasswordMatched = bcrypt.compareSync(
+      password,
+      user?.password ?? '',
+    );
 
     if (!user || !isPasswordMatched) {
       return null;
@@ -112,7 +132,10 @@ export class AuthService {
     return { id: user.id };
   }
 
-  async validaterefreshToken(userId: number, refreshToken: string): Promise<User | null> {
+  async validaterefreshToken(
+    userId: number,
+    refreshToken: string,
+  ): Promise<User | null> {
     const user = await this.userRepository.findOne({
       where: { id: userId, refreshToken },
     });
@@ -137,7 +160,9 @@ export class AuthService {
     }
 
     if (user.status === UserStatus.Inactive) {
-      throw new UnauthorizedException('계정이 잠겼습니다. 관리자에게 문의하세요.');
+      throw new UnauthorizedException(
+        '계정이 잠겼습니다. 관리자에게 문의하세요.',
+      );
     }
 
     return user;

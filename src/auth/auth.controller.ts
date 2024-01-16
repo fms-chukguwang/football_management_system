@@ -145,7 +145,7 @@ export class AuthController {
     console.log(authHeader);
     const token = extractTokenFromHeader(authHeader);
     console.log(token);
-    const accessToken = await this.authService.refreshToken(req.user.id, token);
+    const accessToken = await this.authService.refreshToken(req.user.id);
 
     return {
       statusCode: HttpStatus.OK,
