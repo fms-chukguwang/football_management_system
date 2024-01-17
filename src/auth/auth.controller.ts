@@ -10,6 +10,8 @@ import {
   Res,
   UseGuards,
   Get,
+  Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignUpDto } from './dtos/sign-up.dto';
@@ -25,6 +27,7 @@ import { extractTokenFromHeader } from '../helpers/auth.helper';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { UserService } from '../user/user.service';
 import { PasswordResetUserDto } from './dtos/password-reset-user.dto';
+import { Response } from 'express';
 
 interface IOAuthUser {
   user: {
@@ -43,17 +46,29 @@ export class AuthController {
   ) {}
 
   /**
+   * 카카오로그인  CODE_REDIRECT_URI
+   * @param req
+   * @returns
+   */
+  @Get('/kakao/callback')
+  async getKakaoInfo(@Query() code: string) {
+    console.log(code);
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: '카카오 로그인에 성공했습니다.',
+      code,
+    };
+  }
+
+  /**
    * 카카오로그인
    * @param req
    * @returns
    */
-  @Get("/login/kakao")
-  @UseGuards(AuthGuard("kakao"))
-  async loginKakao(
-    @Req() req: Request & IOAuthUser, //
-    @Res() res: Response
-  ) {
-    this.authService.OAuthLogin({ req, res });
+  @Get('/kakao')
+  async loginWithKakao(@Res() res: Response) {
+    const url = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${process.env.KAKAO_API_KEY}&redirect_uri=${process.env.KAKAO_CALLBACK_URL}`;
+    res.redirect(url);
   }
 
   /**
@@ -110,10 +125,11 @@ export class AuthController {
   }
 
   /**
-   * 리프레쉬 토큰 재발급 
+   * 액세스 토큰 재발급
    * @param req
    * @returns {Object} statusCode, message, accessToken
    */
+
   @ApiBearerAuth()
   @UseGuards(JwtRefreshGuard)
   @Post('refresh')
@@ -122,7 +138,7 @@ export class AuthController {
     console.log(authHeader);
     const token = extractTokenFromHeader(authHeader);
     console.log(token);
-    const accessToken = await this.authService.refreshToken(req.user.id, token);
+    const accessToken = await this.authService.refreshToken(req.user.id);
 
     return {
       statusCode: HttpStatus.OK,

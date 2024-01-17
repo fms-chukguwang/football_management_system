@@ -3,11 +3,30 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as dotenv from 'dotenv';
+import { HttpExceptionFilter } from './common/exception-filter/http.exception-filter';
+import { winstonLogger } from './configs/winston.config';
+import { LoggingService } from './logging/logging.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(
+    AppModule,
+    //    {
+    //   logger: winstonLogger,
+    // }
+  );
 
-  const cors = require('cors');
+  // .env 파일을 현재 환경에 로드
+  dotenv.config();
+
+  const corsOptions = {
+    origin: 'http://localhost:3000',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+    allowedHeaders: 'Origin,X-Requested-With,Content-Type,Accept,Authorization',
+  };
+
+  app.enableCors(corsOptions);
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>('SERVER_PORT');
@@ -19,8 +38,15 @@ async function bootstrap() {
       transform: true,
       whitelist: true,
       forbidNonWhitelisted: true,
+      transformOptions: {
+        enableImplicitConversion: true, // DTO에 ClassValidator로 정의된 타입으로 자동 변환
+      },
     }),
   );
+
+  // 에러메세지 형식 통일
+  const logger = app.get(LoggingService);
+  app.useGlobalFilters(new HttpExceptionFilter(logger));
 
   const config = new DocumentBuilder()
     .setTitle('Sparta Node.js TS')
@@ -37,8 +63,6 @@ async function bootstrap() {
       operationsSorter: 'alpha', // API 그룹 내 정렬을 알파벳 순으로
     },
   });
-
-  app.use(cors());
 
   await app.listen(port);
 }
