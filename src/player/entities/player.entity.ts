@@ -8,7 +8,7 @@ import {
   IsStrongPassword,
 } from 'class-validator';
 import { UserStatus } from '../../enums/user-status.enum';
-import { Gender } from '../../enums/gender.enum';
+import { Gender } from '../../enums/gender.enum';
 import {
   Column,
   CreateDateColumn,
@@ -74,7 +74,11 @@ export class Player {
    * @example "우측 윙어"
    */
   @IsEnum(Position)
-  @Column({ type: 'enum', enum: Position, default: Position.AttackingMidfielder})
+  @Column({
+    type: 'enum',
+    enum: Position,
+    default: Position.AttackingMidfielder,
+  })
   position: Position;
 
   /**
@@ -114,7 +118,7 @@ export class Player {
    * @example "Male"
    */
   @IsEnum(Gender)
-  @Column({ nullable: false, default:Gender.Female })
+  @Column({ nullable: false, default: Gender.Female })
   gender: Gender;
 
   /**

@@ -5,9 +5,15 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as dotenv from 'dotenv';
 import { HttpExceptionFilter } from './common/exception-filter/http.exception-filter';
+import { winstonLogger } from './configs/winston.config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(
+    AppModule,
+    //   {
+    //   logger: winstonLogger,
+    // }
+  );
 
   // .env 파일을 현재 환경에 로드
   dotenv.config();
