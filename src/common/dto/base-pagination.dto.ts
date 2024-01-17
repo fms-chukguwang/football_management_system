@@ -24,5 +24,5 @@ export class BasePaginationDto {
   // 몇개의 데이터를 가져올지
   @IsNumber()
   @IsOptional()
-  take: number = 5;
+  take: number = 30;
 }

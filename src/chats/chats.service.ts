@@ -58,4 +58,23 @@ export class ChatsService {
     });
     return exists;
   }
+
+  async checkMember(chatId: number, userId: number) {
+    const exists = await this.chatsRepository
+      .createQueryBuilder('chat')
+      .leftJoin('chat.users', 'users')
+      .where('chat.id = :chatId', { chatId })
+      .andWhere('users.id = :userId', { userId })
+      .getCount();
+
+    return exists;
+  }
+
+  async leaveChat(chatId: number, socketId: number) {
+    return await this.chatsRepository
+      .createQueryBuilder('chat')
+      .relation('users')
+      .of(chatId)
+      .remove(socketId);
+  }
 }
