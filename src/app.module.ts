@@ -1,4 +1,9 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { AppController } from './app.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -13,7 +18,10 @@ import { RedisModule } from './redis/redis.module';
 import { AppService } from './app.service';
 import { ChatsModule } from './chats/chats.module';
 import { CommonModule } from './common/common.module';
-
+import { LoggerMiddleware } from './common/middleware/logger.middleware';
+import { MongooseModule } from '@nestjs/mongoose';
+import { LoggingModule } from './logging/logging.module';
+import * as mongoose from 'mongoose';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -21,15 +29,24 @@ import { CommonModule } from './common/common.module';
       validationSchema: configModuleValidationSchema,
     }),
     TypeOrmModule.forRootAsync(typeOrmModuleOptions),
+    MongooseModule.forRoot(process.env.MONGO_URI),
     AuthModule,
     UserModule,
     TeamMemberModule,
     PlayerModule,
     RedisModule,
     ChatsModule,
-    CommonModule
+    CommonModule,
+    LoggingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+    mongoose.set('debug', true);
+  }
+}

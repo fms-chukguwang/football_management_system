@@ -1,5 +1,5 @@
 import { IsString, IsEmail, IsOptional } from 'class-validator';
-import { Gender } from 'src/enums/gender.enum';
+import { Gender } from 'src/enums/gender.enum';
 import { Position } from 'src/user/types/position.type';
 
 export class UpdatePlayerInfoDto {

@@ -8,7 +8,7 @@ import {
   IsStrongPassword,
 } from 'class-validator';
 import { UserStatus } from '../../enums/user-status.enum';
-import { Gender } from '../../enums/gender.enum';
+import { Gender } from '../../enums/gender.enum';
 import {
   Column,
   CreateDateColumn,
