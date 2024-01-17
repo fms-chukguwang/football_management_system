@@ -111,6 +111,55 @@ export class ChatsGateway implements OnGatewayConnection {
     }),
   )
   @UseFilters(WsExceptionFilter)
+  @SubscribeMessage('kick_out')
+  async kickOut() {}
+
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  )
+  // 내가 나가고 싶은 방 번호를 보내면, 그 방에서 나가게 해주는 메소드
+  @UseFilters(WsExceptionFilter)
+  @SubscribeMessage('leave_room')
+  async leaveRoom(
+    @MessageBody() payload: { chatId: number },
+    @ConnectedSocket() socket: Socket,
+  ) {
+    const { chatId } = payload;
+    const exists = await this.chatsService.checkIdChatExists(chatId);
+    // 내가 그 방에 속해있는지 확인
+    const isMember = await this.chatsService.checkMember(
+      chatId,
+      socket['userId'],
+    );
+    if (!isMember) {
+      throw new WsException({
+        statusCode: 403,
+        message: `${chatId}번 채팅방에 속해있지 않습니다.`,
+      });
+    }
+    if (!exists) {
+      throw new WsException({
+        statusCode: 404,
+        message: `${chatId}번 채팅방은 존재하지 않습니다.`,
+      });
+    }
+    await this.chatsService.leaveChat(chatId, socket['userId']);
+    socket.leave(chatId.toString());
+    console.log(`leave_room: ${socket.id}`);
+  }
+
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  )
+  @UseFilters(WsExceptionFilter)
   @SubscribeMessage('send_message')
   async sendMessage(
     @MessageBody() creatMessagesDto: CreateMessagesDto,
