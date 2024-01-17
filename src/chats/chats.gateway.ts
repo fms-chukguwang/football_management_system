@@ -112,7 +112,59 @@ export class ChatsGateway implements OnGatewayConnection {
   )
   @UseFilters(WsExceptionFilter)
   @SubscribeMessage('kick_out')
-  async kickOut() {}
+  async kickOut(
+    @MessageBody() payload: { chatId: number; targetUserId: number },
+    @ConnectedSocket() socket: Socket,
+  ) {
+    // userId와 socket이 서로 일치해야함
+    const { chatId, targetUserId } = payload;
+    const exists = await this.chatsService.checkIdChatExists(chatId);
+
+    // 방이 존재하는지 확인(나중엔 팀으로 변경)
+    if (!exists) {
+      throw new WsException({
+        statusCode: 404,
+        message: `${chatId}번 채팅방은 존재하지 않습니다.`,
+      });
+    }
+
+    // 내가 팀에 속해있어야 함
+    const isMember = await this.chatsService.checkMember(
+      chatId,
+      socket['userId'],
+    );
+
+    if (!isMember) {
+      throw new WsException({
+        statusCode: 403,
+        message: `현재 본인이 ${chatId}번 채팅방에 속해있지 않습니다.`,
+      });
+    }
+
+    // 내가 구단주인지 확인
+
+    // 내보내려는 사람이 방에 속해있는지 확인
+    const isTargetUserInChat = await this.chatsService.checkMember(
+      chatId,
+      targetUserId,
+    );
+
+    if (!isTargetUserInChat) {
+      throw new WsException({
+        statusCode: 403,
+        message: `${targetUserId}번 유저는 ${chatId}번 채팅방에 속해있지 않습니다.`,
+      });
+    }
+    try {
+      await this.chatsService.leaveChat(chatId, targetUserId);
+      return true;
+    } catch (error) {
+      throw new WsException({
+        statusCode: 401,
+        message: '유저 강퇴에 실패했습니다.',
+      });
+    }
+  }
 
   @UsePipes(
     new ValidationPipe({
