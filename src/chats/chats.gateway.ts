@@ -30,6 +30,7 @@ import * as jwt from 'jsonwebtoken';
   namespace: 'chats',
 })
 export class ChatsGateway implements OnGatewayConnection {
+  private userToSocketMap = new Map<number, string>();
   constructor(
     private readonly chatsService: ChatsService,
     private readonly messagesService: ChatMessagesService,
@@ -40,8 +41,6 @@ export class ChatsGateway implements OnGatewayConnection {
 
   @UseGuards(SocketBearerTokenGuard)
   handleConnection(socket: Socket) {
-    console.log(`on connection: ${socket.id}`);
-
     const headers = socket.handshake.headers;
     const bearerToken = headers['authorization'];
     const rawToken = bearerToken.split(' ')[1];
@@ -56,6 +55,8 @@ export class ChatsGateway implements OnGatewayConnection {
 
       // 소켓은 한번 연결되면 정보가 유지됨
       socket['userId'] = decoded['id'];
+      this.userToSocketMap.set(socket['userId'], socket.id);
+      console.log(`on connection: ${socket['userId']} ${socket.id} `);
       return true;
     } catch (e) {
       socket.disconnect();
