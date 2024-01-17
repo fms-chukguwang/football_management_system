@@ -1,6 +1,0 @@
-/node_modules/
-/public/build/
-
-.DS_Store
-prisma/generated/client/edge.js
-prisma/generated/client/index.js
