@@ -22,6 +22,7 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { MongooseModule } from '@nestjs/mongoose';
 import { LoggingModule } from './logging/logging.module';
 import * as mongoose from 'mongoose';
+import { LoggingService } from './logging/logging.service';
 @Module({
   imports: [
     ConfigModule.forRoot({

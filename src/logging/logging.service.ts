@@ -7,7 +7,7 @@ import { Model } from 'mongoose';
 export class LoggingService implements LoggerService {
   constructor(
     @InjectModel(Logging.name)
-    private loggingModel: Model<Logging>,
+    private loggingModel: Model<LoggingDocument>,
   ) {}
 
   async log(message: any) {

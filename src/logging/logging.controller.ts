@@ -9,11 +9,8 @@ export class LoggingController {
 
   @Get()
   async loggingTest() {
-    this.mylogger.error('this is error테스트입니다');
-    this.mylogger.log('this is log테스트입니다');
-    this.mylogger.debug('debug 로그 테스트');
-    this.mylogger.warn('warn 테스트');
-    this.mylogger.verbose('verbos 테스트');
-    // this.appService.getHello();
+    console.log('로깅 출력 검사 : ');
+    this.mylogger.error('this is error테스트입니다 01.18');
+    this.mylogger.log('this is log테스트입니다 01.18');
   }
 }

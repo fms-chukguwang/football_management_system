@@ -49,10 +49,13 @@ export class AuthService {
   }
 
   private async generateRefreshToken(userId: number): Promise<string> {
-    const newRefreshToken = this.jwtService.sign({ id: userId }, {
-      secret: process.env.REFRESH_SECRET,
-      expiresIn: '7d',
-    });
+    const newRefreshToken = this.jwtService.sign(
+      { id: userId },
+      {
+        secret: process.env.REFRESH_SECRET,
+        expiresIn: '7d',
+      },
+    );
     await this.saveRefreshTokenToRedis(userId, newRefreshToken);
     return newRefreshToken;
   }
@@ -98,11 +101,11 @@ export class AuthService {
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET,
     });
+    throw new UnauthorizedException('에러가 로그에 저장됩니까!?');
     const refreshToken = await this.generateRefreshToken(id);
     // Database update removed, as refreshToken is stored only in Redis
     return { accessToken, refreshToken };
   }
-
 
   async signOut(id: number) {
     console.log('id=', id);
