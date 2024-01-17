@@ -32,8 +32,6 @@ export class User {
   @Inject()
   private readonly redisService: RedisService;
 
-  @Column()
-  refreshToken: string;
 
   /**
    * 이메일
@@ -80,8 +78,8 @@ export class User {
   @Column({ type: 'enum', enum: UserRole, default: UserRole.User })
   role: UserRole;
 
-  // @Column()
-  // refreshToken: string;
+  @Column({ nullable: true }) 
+  refreshToken: string;
 
   // async saveRefreshTokenToRedis() {
   //   const client = await this.redisService.getClient();

@@ -1,35 +1,34 @@
 import { Injectable } from '@nestjs/common';
-import { RedisClient } from './interfaces/redis-client.interface';
+import { ConfigService } from '@nestjs/config';
+import IORedis from 'ioredis';
 
 @Injectable()
 export class RedisService {
-  constructor(private readonly redisClient: RedisClient) {}
+  private readonly redisClient: IORedis;
+  private readonly refreshTokenTTL: number = 1 * 24 * 60 * 60; // 하루
 
-  saveRefreshToken(userId: number, refreshToken: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.redisClient.set(
-        `refreshToken:${userId}`,
-        refreshToken,
-        (err, reply) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        },
-      );
+  constructor(private readonly configService: ConfigService) {
+    this.redisClient = new IORedis({
+      host: this.configService.get<string>('REDIS_HOST'),
+      port: this.configService.get<number>('REDIS_PORT'),
+    });
+    this.redisClient.on('connect', () => {
+      console.log('Connected to Redis');
+    });
+    this.redisClient.on('error', (err) => {
+      console.error('Redis connection error:', err);
     });
   }
 
-  getRefreshToken(userId: number): Promise<string | null> {
-    return new Promise((resolve, reject) => {
-      this.redisClient.get(`refreshToken:${userId}`, (err, reply) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(reply);
-        }
-      });
-    });
+  async setRefreshToken(userId: number, refreshToken: string): Promise<void> {
+    await this.redisClient.set(`refreshToken:${userId}`, refreshToken);
+    await this.redisClient.expire(
+      `refreshToken:${userId}`,
+      this.refreshTokenTTL,
+    );
+  }
+
+  async getRefreshToken(userId: number): Promise<string | null> {
+    return await this.redisClient.get(`refreshToken:${userId}`);
   }
 }
