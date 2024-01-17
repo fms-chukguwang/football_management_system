@@ -101,7 +101,6 @@ export class AuthService {
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET,
     });
-    throw new UnauthorizedException('에러가 로그에 저장됩니까!?');
     const refreshToken = await this.generateRefreshToken(id);
     // Database update removed, as refreshToken is stored only in Redis
     return { accessToken, refreshToken };
