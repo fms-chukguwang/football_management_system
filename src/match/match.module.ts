@@ -12,10 +12,11 @@ import { UserService } from 'src/user/user.service';
 import { User } from 'src/user/entities/user.entity';
 import { MatchResult } from './entities/match-result.entity';
 import { PlayerStats } from './entities/player-stats.entity';
+import { RedisService } from 'src/redis/redis.service';
 
 @Module({
   imports:[TypeOrmModule.forFeature([Match,MatchResult,User,PlayerStats,EmailVerification]),AuthModule],
   controllers: [MatchController],
-  providers: [MatchService,EmailService,AuthService,JwtService,UserService]
+  providers: [MatchService,EmailService,AuthService,JwtService,UserService,RedisService]
 })
 export class MatchModule {}

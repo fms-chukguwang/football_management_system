@@ -45,7 +45,7 @@ export class MatchService {
     // 경기 생성 요청(상대팀 구단주에게)
     async requestCreMatch(userId: number, createrequestDto:createRequestDto) {
 
-        const token = this.authService.generateAccessToken(userId);
+        const token = this.authService.generateAccessEmailToken(userId);
 
         //TODO 입력자 구단주 체크하는 메서드 추가
 
@@ -127,7 +127,7 @@ export class MatchService {
     // 경기 수정 요청(상대팀 구단주에게)
     async requestUptMatch(userId: number, matchId:number,updaterequestDto:updateRequestDto) {
 
-        const token = this.authService.generateAccessToken(userId);
+        const token = this.authService.generateAccessEmailToken(userId);
 
         //TODO 입력자 구단주 체크하는 메서드 추가
 
@@ -187,7 +187,7 @@ export class MatchService {
     // 경기 삭제 요청(상대팀 구단주에게)
     async requestDelMatch(userId: number, matchId:number,deleterequestDto:deleteRequestDto) {
 
-        const token = this.authService.generateAccessToken(userId);
+        const token = this.authService.generateAccessEmailToken(userId);
 
         //TODO 입력자 구단주 체크하는 메서드 추가
 
