@@ -50,14 +50,14 @@ export class AuthController {
    * @param req
    * @returns
    */
-  @Get('/kakao')
-  // @UseGuards(AuthGuard('kakao'))
-  // async loginKakao(@Req() req: Request & IOAuthUser, @Res() res: Response) {
-  //   this.authService.OAuthLogin({ req, res });
-  // }
-  @Get('kakao')
+  @Get('/kakao/callback')
   async getKakaoInfo(@Query() code: string) {
     console.log(code);
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: '카카오 로그인에 성공했습니다.',
+      code,
+    };
   }
 
   /**
@@ -65,18 +65,11 @@ export class AuthController {
    * @param req
    * @returns
    */
-  @Get('/kakao-login')
+  @Get('/kakao')
   async loginWithKakao(@Res() res: Response) {
-    const url = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${process.env.KAKAO_API_KEY}&redirect_uri=${process.env.CODE_REDIRECT_URI}`;
+    const url = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${process.env.KAKAO_API_KEY}&redirect_uri=${process.env.KAKAO_CALLBACK_URL}`;
     res.redirect(url);
   }
-  // @Get('/kakao-login')
-  // async loginWithKakao(@Res() res: Response) {
-  //   let KAKAO_API_KEY="";
-  //   let CODE_REDIRECT_URI="";
-  //   const url = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${KAKAO_API_KEY}&redirect_uri=${CODE_REDIRECT_URI}`;
-  //   res.redirect(url);
-  // }
 
   /**
    * 회원가입
