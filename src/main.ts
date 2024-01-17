@@ -6,11 +6,12 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as dotenv from 'dotenv';
 import { HttpExceptionFilter } from './common/exception-filter/http.exception-filter';
 import { winstonLogger } from './configs/winston.config';
+import { LoggingService } from './logging/logging.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(
     AppModule,
-    //   {
+    //    {
     //   logger: winstonLogger,
     // }
   );
@@ -44,7 +45,8 @@ async function bootstrap() {
   );
 
   // 에러메세지 형식 통일
-  app.useGlobalFilters(new HttpExceptionFilter());
+  const logger = app.get(LoggingService);
+  app.useGlobalFilters(new HttpExceptionFilter(logger));
 
   const config = new DocumentBuilder()
     .setTitle('Sparta Node.js TS')
