@@ -8,6 +8,8 @@ import { deleteMatchDto } from './dtos/delete-match.dto';
 import { deleteRequestDto } from './dtos/delete-request.dto';
 import { createRequestDto } from './dtos/create-request.dto';
 import { updateRequestDto } from './dtos/update-request.dto';
+import { createMatchResultDto } from './dtos/result-match.dto';
+import { createPlayerStatsDto } from './dtos/player-stats.dto';
 
 @ApiTags('예약')
 @Controller('match')
@@ -120,6 +122,44 @@ export class MatchController {
         return {
           statusCode: HttpStatus.OK,
           success: true
+        };
+    }
+
+    /**
+     * 경기 결과 등록
+     * @param req
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Post(':matchId/result')
+    async resultMatchCreate(@Request() req, @Param('matchId') matchId: number, @Body() creatematchResultDto: createMatchResultDto) {
+        const userId = req.user.id;
+
+        await this.matchService.resultMatchCreate(userId,matchId,creatematchResultDto);
+    
+        return {
+            statusCode: HttpStatus.OK,
+            success: true
+        };
+    }
+
+    /**
+     * 경기 후 선수 기록 등록
+     * @param req
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Post(':matchId/result/:memberId')
+    async resultPlayerCreate(@Request() req, @Param('matchId') matchId: number,@Param('memberId') memberId: number, @Body() createplayerStatsDto: createPlayerStatsDto) {
+        const userId = req.user.id;
+
+        await this.matchService.resultPlayerCreate(userId,matchId,memberId,createplayerStatsDto);
+    
+        return {
+            statusCode: HttpStatus.OK,
+            success: true
         };
     }
 }

@@ -9,11 +9,12 @@ import { EmailVerification } from 'src/email/entities/email.entity';
 import { AuthService } from 'src/auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { User } from 'src/user/entities/user.entity';
+import { MatchResult } from './entities/match-result.entity';
+import { PlayerStats } from './entities/player-stats.entity';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([Match,User,EmailVerification]),AuthModule],
+  imports:[TypeOrmModule.forFeature([Match,MatchResult,User,PlayerStats,EmailVerification]),AuthModule],
   controllers: [MatchController],
   providers: [MatchService,EmailService,AuthService,JwtService,UserService]
 })

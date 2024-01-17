@@ -1,6 +1,6 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { createMatchDto } from './dtos/create-match.dto';
 import { Match } from './entities/match.entity';
 import { updateMatchDto } from './dtos/update-match.dto';
@@ -14,6 +14,10 @@ import { deleteMatchDto } from './dtos/delete-match.dto';
 import { deleteRequestDto } from './dtos/delete-request.dto';
 import { createRequestDto } from './dtos/create-request.dto';
 import { updateRequestDto } from './dtos/update-request.dto';
+import { createMatchResultDto } from './dtos/result-match.dto';
+import { MatchResult } from './entities/match-result.entity';
+import { createPlayerStatsDto } from './dtos/player-stats.dto';
+import { PlayerStats } from './entities/player-stats.entity';
 
 @Injectable()
 export class MatchService {
@@ -24,10 +28,18 @@ export class MatchService {
 
         @InjectRepository(User)
         private userRepository: Repository<User>,
+
+        @InjectRepository(MatchResult)
+        private matchResultRepository: Repository<MatchResult>,
+
+        @InjectRepository(PlayerStats)
+        private playerStatsRepository: Repository<PlayerStats>,
+
         private emailService: EmailService,
         private authService: AuthService,
         private jwtService: JwtService,
-        private configService: ConfigService
+        private configService: ConfigService,
+        private readonly dataSource: DataSource,
       ) {}
 
     // 경기 생성 요청(상대팀 구단주에게)
@@ -42,7 +54,7 @@ export class MatchService {
             email: "codzero00@gmail.com", // TODO 상대팀 구단주의 이메일 가져와서 집어넣기
             subject: "경기 일정 생성 요청",
             clubName: 'FC 예시',    // TODO 상대팀 코드로 팀명 가져와서 집어넣기
-            originalSchedule: ``,
+            originalSchedule: `${createrequestDto.date} ${createrequestDto.time}`,
             newSchedule: `${createrequestDto.date} ${createrequestDto.time}`,
             reason: '경기 제안',
             homeTeamId:createrequestDto.homeTeamId,
@@ -59,6 +71,7 @@ export class MatchService {
         return send ;
     }
 
+    // 실제 경기 생성
     async createMatch(creatematchDto:createMatchDto) {
 
         const payload = await this.jwtService.verify(creatematchDto.token, {
@@ -86,7 +99,7 @@ export class MatchService {
                         time:matchTime,
                         home_team_id:Number(creatematchDto.homeTeamId),
                         away_team_id:Number(creatematchDto.awayTeamId),
-                        field_id:Number(creatematchDto.fieldId)
+                        soccer_field_id:Number(creatematchDto.fieldId)
                     });
 
         if (!match) {
@@ -219,9 +232,106 @@ export class MatchService {
 
         await this.findOneMatch(matchId);
 
-        await this.matchRepository.delete({id:matchId});
+        const queryRunner = this.dataSource.createQueryRunner();
 
-        return;
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try{
+
+            await queryRunner.manager.delete('match_results', { match_id:matchId });
+            await queryRunner.manager.delete('matches', { id:matchId });
+
+            await queryRunner.commitTransaction();
+
+            return;
+
+        }catch(error){
+            await queryRunner.rollbackTransaction();
+            console.log(`error : ${error}`);
+            if (error instanceof HttpException) {
+                // HttpException을 상속한 경우(statusCode 속성이 있는 경우)
+                throw error;
+            } else {
+                // 그 외의 예외
+                throw new InternalServerErrorException('서버 에러가 발생했습니다.');
+            }
+        }finally{
+            await queryRunner.release();
+        }
+
+
+    }
+
+    // 경기 결과 등록
+    async resultMatchCreate(userId: number, matchId:number, creatematchResultDto:createMatchResultDto) {
+
+        //TODO 입력자 구단주 체크하는 메서드 추가하기
+
+        const match = await this.findOneMatch(matchId);
+
+        const matchResult = this.matchResultRepository.create({
+            date:match.date,
+            time:match.time,
+            match_id:matchId,
+            owner_id:userId,
+            soccer_field_id:match.soccer_field_id,
+            home_team_id:match.home_team_id,
+            away_team_id:match.away_team_id,
+            win:creatematchResultDto.win,
+            lose:creatematchResultDto.lose,
+            draw:creatematchResultDto.draw,
+            red_cards:creatematchResultDto.redCards,
+            yellow_cards:creatematchResultDto.yellowCards,
+            substitions:creatematchResultDto.substitions,
+            save:creatematchResultDto.save,
+            intercept:creatematchResultDto.intercept
+        });
+
+        if (!matchResult) {
+        throw new NotFoundException('경기결과 기록을 생성할 수 없습니다.');
+        }
+
+        await this.matchResultRepository.save(matchResult);
+
+        return matchResult ;
+    }
+
+    // 경기 후 선수 기록 등록
+    async resultPlayerCreate(userId: number, matchId:number, memberId:number, createplayerStatsDto: createPlayerStatsDto) {
+
+        //TODO 입력자 구단주 체크하는 메서드 추가하기
+
+        //TODO 플레이어 아이디로 팀 아이디 가져오는 메서드 추가하기
+
+        const match = await this.findOneMatch(matchId);
+
+        const playerStats = this.playerStatsRepository.create({
+            team_id:1,  //위에서 팀id 추후에 가져오기
+            match_id: match.id,
+            member_id: memberId,
+            assists: createplayerStatsDto.assists,
+            goals: createplayerStatsDto.goals,
+            headings: createplayerStatsDto.headings,
+            yellow_cards:createplayerStatsDto.yellowCards,
+            red_cards: createplayerStatsDto.redCards,
+            substitutions: createplayerStatsDto.substitions,
+            save: createplayerStatsDto.save,
+            intercepts: createplayerStatsDto.intercepts,
+            pass: createplayerStatsDto.pass,
+            pass_success: createplayerStatsDto.passSuccess,
+            heading_success: createplayerStatsDto.headingSuccess,
+            shooting_success: createplayerStatsDto.shootingSuccess,
+            shooting: createplayerStatsDto.shooting
+        });
+
+        if (!playerStats) {
+        throw new NotFoundException('경기결과 기록을 생성할 수 없습니다.');
+        }
+
+        await this.playerStatsRepository.save(playerStats);
+
+        return playerStats ;
     }
 
 
@@ -247,6 +357,7 @@ export class MatchService {
         }
         return clubOwner;*/
     }
+
 
 }
 
