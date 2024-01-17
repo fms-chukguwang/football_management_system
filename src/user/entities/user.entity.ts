@@ -23,6 +23,8 @@ import { Factory } from 'nestjs-seeder';
 import { hashPassword } from '../../helpers/password.helper';
 import { Inject } from '@nestjs/common';
 import { RedisService } from 'nestjs-redis';
+import { Chats } from 'src/chats/entities/chats.entity';
+import { Message } from 'src/chats/messages/entities/messages.entity';
 
 @Entity('users')
 export class User {
@@ -107,4 +109,11 @@ export class User {
 
   @Column()
   deletedAt: Date;
+
+  @ManyToMany(() => Chats, (chat) => chat.users)
+  @JoinTable()
+  chats: Chats[];
+
+  @OneToMany(() => Message, (message) => message.author)
+  messages: Message[];
 }

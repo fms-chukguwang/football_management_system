@@ -11,6 +11,8 @@ import { TeamMemberModule } from './manager/manager.module';
 import { PlayerModule } from './player/player.module';
 import { RedisModule } from './redis/redis.module';
 import { AppService } from './app.service';
+import { ChatsModule } from './chats/chats.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -23,7 +25,9 @@ import { AppService } from './app.service';
     UserModule,
     TeamMemberModule,
     PlayerModule,
-    RedisModule
+    RedisModule,
+    ChatsModule,
+    CommonModule
   ],
   controllers: [AppController],
   providers: [AppService],
