@@ -4,6 +4,7 @@ import {
     DeleteDateColumn,
     Entity,
     JoinColumn,
+    ManyToOne,
     OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
@@ -16,7 +17,7 @@ import { Match } from './match.entity';
     @PrimaryGeneratedColumn()
     id: number;
 
-    @OneToOne(() => Match,(match) => match.matchresult, {cascade: true})
+    @ManyToOne(() => Match,(match) => match.matchresult, {onDelete: 'CASCADE'})
     @JoinColumn({ name: 'match_id' })
     match: Match;
   
@@ -36,10 +37,7 @@ import { Match } from './match.entity';
     soccer_field_id: number;
   
     @Column({ type: 'int', nullable: false })
-    home_team_id: number;
-  
-    @Column({ type: 'int', nullable: false })
-    away_team_id: number;
+    team_id: number;
 
     @Column({ type: 'int', nullable: false })
     win: number;
