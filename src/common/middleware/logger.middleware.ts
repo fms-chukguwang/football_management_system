@@ -17,14 +17,14 @@ export class LoggerMiddleware implements NestMiddleware {
     const { ip, method, originalUrl } = req;
     const userAgent = req.get('user-agent');
 
-    if (
-      method === 'POST' ||
-      method === 'PUT' ||
-      method === 'DELETE' ||
-      method === 'PATCH'
-    ) {
-      this.myLogger.log(`${method} ${originalUrl} ${ip} ${userAgent}`);
-    }
+    // if (
+    //   method === 'POST' ||
+    //   method === 'PUT' ||
+    //   method === 'DELETE' ||
+    //   method === 'PATCH'
+    // ) {
+    //   this.myLogger.log(`${method} ${originalUrl} ${ip} ${userAgent}`);
+    // }
     // 응답이 끝나는 이벤트가 발생하면 로그를 찍는다.
     res.on('finish', () => {
       const { statusCode } = res;

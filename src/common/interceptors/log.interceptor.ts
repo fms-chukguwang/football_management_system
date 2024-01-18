@@ -3,40 +3,64 @@ import {
   CallHandler,
   ExecutionContext,
   Injectable,
+  Logger,
   NestInterceptor,
 } from '@nestjs/common';
 import { Observable, map, observable, tap } from 'rxjs';
+import { LoggerMiddleware } from '../middleware/logger.middleware';
+import { LoggingService } from 'src/logging/logging.service';
 
 @Injectable()
 export class LogInterceptor implements NestInterceptor {
+  constructor(private readonly myLogger: LoggingService) {}
   intercept(
     context: ExecutionContext,
     next: CallHandler<any>,
   ): Observable<any> {
-    // return next.handle() 전까지 코드는 우리가 사용하려는 함수의 로직이 적용되기 전에 요청이 들어오자마자 실행이 되는 부분
-    /**
-     * 요청이 들어올 때 REQ 요청이 들어온 타임스탬프를 찍는다.
-     * [REQ] {요청 path} {요청 시간}
-     *
-     * 요청이 끝날 때 (응답이 나갈때) 다시 타임스탬프를 찍는다.
-     * [RES {요청 path} {응답 시간} {얼마나 걸렸는지 ms}
-     */
     const now = new Date(); // 현재 시간과 날짜
     const req = context.switchToHttp().getRequest();
     const path = req.originalUrl;
+    const method = req.method;
 
-    console.log(`[REQ] ${path} ${now.toLocaleString('kr')}`);
-
-    return next
-      .handle()
-      .pipe(
-        tap((observable) =>
-          console.log(
-            `[RES] ${path} ${new Date().toLocaleString('kr')} ${
-              new Date().getMilliseconds() - now.getMilliseconds()
-            }ms`,
-          ),
-        ),
+    console.log(
+      `[REQ] ${path} ${now.toLocaleString('ko-KR', {
+        timeZone: 'Asia/Seoul',
+      })}`,
+    );
+    if (
+      method === 'GET' ||
+      method === 'POST' ||
+      method === 'PUT' ||
+      method === 'DELETE' ||
+      method === 'PATCH'
+    ) {
+      this.myLogger.log(
+        `[REQ] ${method} ${path} ${now.toLocaleString('ko-KR', {
+          timeZone: 'Asia/Seoul',
+        })}`,
       );
+    }
+    return next.handle().pipe(
+      tap(() => {
+        console.log(
+          `[RES] ${method} ${path} ${new Date().toLocaleString('ko-KR', {
+            timeZone: 'Asia/Seoul',
+          })} ${new Date().getMilliseconds() - now.getMilliseconds()}ms`,
+        );
+        if (
+          method === 'GET' ||
+          method === 'POST' ||
+          method === 'PUT' ||
+          method === 'DELETE' ||
+          method === 'PATCH'
+        ) {
+          this.myLogger.log(
+            `[RES] ${method} ${path} ${new Date().toLocaleString('ko-KR', {
+              timeZone: 'Asia/Seoul',
+            })} ${new Date().getMilliseconds() - now.getMilliseconds()}ms`,
+          );
+        }
+      }),
+    );
   }
 }
