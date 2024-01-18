@@ -18,7 +18,16 @@ export class HttpExceptionFilter implements ExceptionFilter {
       | { message: any; statusCode: number; error: number }
       | { error: number; statusCode: 400; message: string[] }; // class-validator 타이핑
 
-    this.myLogger.error('status : ' + status + ' error : ' + err.message);
+    this.myLogger.error(
+      ' method : ' +
+        req.method +
+        'status : ' +
+        status +
+        ' error : ' +
+        err.message +
+        ' path : ' +
+        req.url,
+    );
 
     res.status(status).json({
       statusCode: status,
