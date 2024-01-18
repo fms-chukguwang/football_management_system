@@ -1,18 +1,26 @@
 import {
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
+    CreateDateColumn,
+    DeleteDateColumn,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 
-@Entity()
-export abstract class BaseModel {
-  @PrimaryGeneratedColumn()
-  id: number;
+export class BaseModel {
+    @PrimaryGeneratedColumn()
+    id: number;
 
-  @CreateDateColumn()
-  createdAt: Date;
+    @CreateDateColumn({
+        name: 'created_at',
+    })
+    createdAt: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+    @UpdateDateColumn({
+        name: 'updated_at',
+    })
+    updatedAt: Date;
+
+    @DeleteDateColumn({
+        name: 'deleted_at',
+    })
+    deletedAt: Date | null;
 }

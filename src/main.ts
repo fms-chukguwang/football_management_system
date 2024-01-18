@@ -9,61 +9,62 @@ import { winstonLogger } from './configs/winston.config';
 import { LoggingService } from './logging/logging.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(
-    AppModule,
-    //   {
-    //   logger: winstonLogger,
-    // }
-  );
+    const app = await NestFactory.create(
+        AppModule,
+        //   {
+        //   logger: winstonLogger,
+        // }
+    );
 
-  // .env 파일을 현재 환경에 로드
-  dotenv.config();
+    // .env 파일을 현재 환경에 로드
+    dotenv.config();
 
-  const corsOptions = {
-    origin: 'http://localhost:3000',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
-    allowedHeaders: 'Origin,X-Requested-With,Content-Type,Accept,Authorization',
-  };
+    const corsOptions = {
+        origin: 'http://localhost:3000',
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+        credentials: true,
+        allowedHeaders:
+            'Origin,X-Requested-With,Content-Type,Accept,Authorization',
+    };
 
-  app.enableCors(corsOptions);
+    app.enableCors(corsOptions);
 
-  const configService = app.get(ConfigService);
-  const port = configService.get<number>('SERVER_PORT');
+    const configService = app.get(ConfigService);
+    const port = configService.get<number>('SERVER_PORT');
 
-  app.setGlobalPrefix('api', { exclude: ['/health-check'] });
+    app.setGlobalPrefix('api', { exclude: ['/health-check'] });
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transformOptions: {
-        enableImplicitConversion: true, // DTO에 ClassValidator로 정의된 타입으로 자동 변환
-      },
-    }),
-  );
+    app.useGlobalPipes(
+        new ValidationPipe({
+            transform: true,
+            whitelist: true,
+            forbidNonWhitelisted: true,
+            transformOptions: {
+                enableImplicitConversion: true, // DTO에 ClassValidator로 정의된 타입으로 자동 변환
+            },
+        }),
+    );
 
-  // 에러메세지 형식 통일
-  const logger = app.get(LoggingService);
-  app.useGlobalFilters(new HttpExceptionFilter(logger));
+    // 에러메세지 형식 통일
+    const logger = app.get(LoggingService);
+    app.useGlobalFilters(new HttpExceptionFilter(logger));
 
-  const config = new DocumentBuilder()
-    .setTitle('Sparta Node.js TS')
-    .setDescription('Document for Sparta Node.js TS')
-    .setVersion('1.0')
-    .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }) // JWT 사용을 위한 설정
-    .build();
+    const config = new DocumentBuilder()
+        .setTitle('Sparta Node.js TS')
+        .setDescription('Document for Sparta Node.js TS')
+        .setVersion('1.0')
+        .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }) // JWT 사용을 위한 설정
+        .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document, {
-    swaggerOptions: {
-      persistAuthorization: true, // 새로고침 시에도 JWT 유지하기
-      tagsSorter: 'alpha', // API 그룹 정렬을 알파벳 순으로
-      operationsSorter: 'alpha', // API 그룹 내 정렬을 알파벳 순으로
-    },
-  });
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document, {
+        swaggerOptions: {
+            persistAuthorization: true, // 새로고침 시에도 JWT 유지하기
+            tagsSorter: 'alpha', // API 그룹 정렬을 알파벳 순으로
+            operationsSorter: 'alpha', // API 그룹 내 정렬을 알파벳 순으로
+        },
+    });
 
-  await app.listen(port);
+    await app.listen(port);
 }
 bootstrap();
