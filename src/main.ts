@@ -4,51 +4,60 @@ import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as dotenv from 'dotenv';
+import {
+    initializeTransactionalContext,
+    patchTypeORMRepositoryWithBaseRepository,
+} from 'typeorm-transactional-cls-hooked';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create(AppModule);
 
-  // .env 파일을 현재 환경에 로드
-  dotenv.config();
+    // .env 파일을 현재 환경에 로드
+    dotenv.config();
 
-  const corsOptions = {
-    origin: 'http://localhost:3000',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
-    allowedHeaders: 'Origin,X-Requested-With,Content-Type,Accept,Authorization',
-  };
+    // 트랜잭션 미들웨어 설정
+    initializeTransactionalContext();
+    patchTypeORMRepositoryWithBaseRepository();
 
-  app.enableCors(corsOptions);
+    const corsOptions = {
+        origin: 'http://localhost:3000',
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+        credentials: true,
+        allowedHeaders:
+            'Origin,X-Requested-With,Content-Type,Accept,Authorization',
+    };
 
-  const configService = app.get(ConfigService);
-  const port = configService.get<number>('SERVER_PORT');
+    app.enableCors(corsOptions);
 
-  app.setGlobalPrefix('api', { exclude: ['/health-check'] });
+    const configService = app.get(ConfigService);
+    const port = configService.get<number>('SERVER_PORT');
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      whitelist: true,
-      forbidNonWhitelisted: true,
-    }),
-  );
+    app.setGlobalPrefix('api', { exclude: ['/health-check'] });
 
-  const config = new DocumentBuilder()
-    .setTitle('Sparta Node.js TS')
-    .setDescription('Document for Sparta Node.js TS')
-    .setVersion('1.0')
-    .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }) // JWT 사용을 위한 설정
-    .build();
+    app.useGlobalPipes(
+        new ValidationPipe({
+            transform: true,
+            whitelist: true,
+            forbidNonWhitelisted: true,
+        }),
+    );
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document, {
-    swaggerOptions: {
-      persistAuthorization: true, // 새로고침 시에도 JWT 유지하기
-      tagsSorter: 'alpha', // API 그룹 정렬을 알파벳 순으로
-      operationsSorter: 'alpha', // API 그룹 내 정렬을 알파벳 순으로
-    },
-  });
+    const config = new DocumentBuilder()
+        .setTitle('Sparta Node.js TS')
+        .setDescription('Document for Sparta Node.js TS')
+        .setVersion('1.0')
+        .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }) // JWT 사용을 위한 설정
+        .build();
 
-  await app.listen(port);
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document, {
+        swaggerOptions: {
+            persistAuthorization: true, // 새로고침 시에도 JWT 유지하기
+            tagsSorter: 'alpha', // API 그룹 정렬을 알파벳 순으로
+            operationsSorter: 'alpha', // API 그룹 내 정렬을 알파벳 순으로
+        },
+    });
+
+    await app.listen(port);
 }
 bootstrap();
