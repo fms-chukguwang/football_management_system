@@ -23,7 +23,7 @@ export class LogInterceptor implements NestInterceptor {
     const method = req.method;
 
     console.log(
-      `[REQ] ${path} ${now.toLocaleString('ko-KR', {
+      `[REQ] ${method} ${path} ${now.toLocaleString('ko-KR', {
         timeZone: 'Asia/Seoul',
       })}`,
     );
