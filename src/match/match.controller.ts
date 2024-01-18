@@ -126,7 +126,7 @@ export class MatchController {
     }
 
     /**
-     * 경기 결과 등록
+     * 경기 결과 등록 (팀)
      * @param req
      * @returns
      */
@@ -160,6 +160,44 @@ export class MatchController {
         return {
             statusCode: HttpStatus.OK,
             success: true
+        };
+    }
+
+    /**
+     * 팀 경기 일정 조회
+     * @param req
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get('team/:teamId')
+    async findTeamMatches(@Param('teamId') teamId: number) {
+
+        const data = await this.matchService.findTeamMatches(teamId);
+    
+        return {
+            statusCode: HttpStatus.OK,
+            success: true,
+            data
+        };
+    }
+
+    /**
+     * 특정 경기 세부 조회
+     * @param req
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get(':matchId')
+    async findMatchDetail(@Param('matchId') matchId: number) {
+
+        const data = await this.matchService.findMatchDetail(matchId);
+    
+        return {
+            statusCode: HttpStatus.OK,
+            success: true,
+            data
         };
     }
 }

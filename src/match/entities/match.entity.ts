@@ -16,8 +16,8 @@ import { PlayerStats } from './player-stats.entity';
     @PrimaryGeneratedColumn()
     id: number;
 
-    // Match와 MatchResult 간의 1대1 관계를 설정
-    @OneToOne(() => MatchResult, (matchresult) => matchresult.match)
+    // Match와 MatchResult 간의 1대N 관계를 설정
+    @OneToMany(() => MatchResult, (matchresult) => matchresult.match,{cascade: true})
     matchresult: MatchResult;
 
     // Match와 PlayerStats 간의 1대N 관계를 설정

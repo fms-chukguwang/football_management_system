@@ -107,15 +107,17 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
+  //사실상 쿠키를 지우는게 로그아웃인데 필요한지 모르겠음
   async signOut(id: number) {
     console.log('id=', id);
-    const { refreshToken } = await this.userRepository.findOne({
-      where: { id },
-    });
 
-    console.log('refreshToken', refreshToken);
-    this.userRepository.update(id, { refreshToken: '' });
-    console.log(this.userRepository.findOne({ where: { id } }));
+    // 리프레시 토큰을 제거하려면 다음과 같이 Redis 또는 다른 저장소에서 제거
+    await this.redisService.deleteRefreshToken(id);
+
+    // 사용자 업데이트를 위한 코드 -> 로그인/회원가입할때 리프레시토큰 다시 생성해서 필요없음
+    // this.userRepository.update(id, { refreshToken: '' });
+
+    console.log(await this.userRepository.findOne({ where: { id } }));
   }
 
   async validateUser({ email, password }: SignInDto) {
@@ -135,19 +137,6 @@ export class AuthService {
     return { id: user.id };
   }
 
-  async validaterefreshToken(
-    userId: number,
-    refreshToken: string,
-  ): Promise<User | null> {
-    const user = await this.userRepository.findOne({
-      where: { id: userId, refreshToken },
-    });
-    console.log('validaterefreshToken user=', user);
-    console.log('validaterefreshToken userId=', userId);
-    console.log('validaterefreshToken refreshToken=', refreshToken);
-    return user || null;
-  }
-
   async updateUserToInactive(email: string): Promise<void> {
     await this.userRepository.update(
       { email },
@@ -155,8 +144,8 @@ export class AuthService {
     );
   }
 
-  async validateUserStatus(userId: number, refreshToken: string) {
-    const user = await this.validaterefreshToken(userId, refreshToken);
+  async validateUserStatus(userId: number) {
+    const user = await this.userService.findOneById(userId);
 
     if (!user) {
       throw new UnauthorizedException();

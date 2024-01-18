@@ -86,15 +86,4 @@ export class UserService {
 
     return user;
   }
-
-  async validateRefreshToken(
-    userId: number,
-    refreshToken: string,
-  ): Promise<User | null> {
-    const user = await this.userRepository.findOne({
-      where: { id: userId, refreshToken },
-    });
-    console.log(user);
-    return user || null;
-  }
 }

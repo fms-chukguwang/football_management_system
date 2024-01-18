@@ -18,6 +18,7 @@ import { createMatchResultDto } from './dtos/result-match.dto';
 import { MatchResult } from './entities/match-result.entity';
 import { createPlayerStatsDto } from './dtos/player-stats.dto';
 import { PlayerStats } from './entities/player-stats.entity';
+import { TeamStats } from './entities/team-stats.entity';
 
 @Injectable()
 export class MatchService {
@@ -34,6 +35,9 @@ export class MatchService {
 
         @InjectRepository(PlayerStats)
         private playerStatsRepository: Repository<PlayerStats>,
+
+        @InjectRepository(TeamStats)
+        private teamStatsRepository: Repository<TeamStats>,
 
         private emailService: EmailService,
         private authService: AuthService,
@@ -270,31 +274,105 @@ export class MatchService {
 
         const match = await this.findOneMatch(matchId);
 
-        const matchResult = this.matchResultRepository.create({
+        const matchDetail = await this.isMatchDetail(matchId);
+
+        if(matchDetail){
+            throw new NotFoundException('이미 경기 결과 등록했습니다.');
+        }
+
+        // 홈팀 경기 결과
+        const matchHomeResult = this.matchResultRepository.create({
             date:match.date,
             time:match.time,
             match_id:matchId,
             owner_id:userId,
             soccer_field_id:match.soccer_field_id,
-            home_team_id:match.home_team_id,
-            away_team_id:match.away_team_id,
-            win:creatematchResultDto.win,
-            lose:creatematchResultDto.lose,
-            draw:creatematchResultDto.draw,
-            red_cards:creatematchResultDto.redCards,
-            yellow_cards:creatematchResultDto.yellowCards,
-            substitions:creatematchResultDto.substitions,
-            save:creatematchResultDto.save,
-            intercept:creatematchResultDto.intercept
+            team_id:match.home_team_id,
+            win:creatematchResultDto.homeWin,
+            lose:creatematchResultDto.homeLose,
+            draw:creatematchResultDto.homeDraw,
+            red_cards:creatematchResultDto.homeRedCards,
+            yellow_cards:creatematchResultDto.homeYellowCards,
+            substitions:creatematchResultDto.homeSubstitions,
+            save:creatematchResultDto.homeSave,
+            intercept:creatematchResultDto.homeIntercept
         });
 
-        if (!matchResult) {
+        // 어웨이팀 경기 결과
+        const matchAwayResult = this.matchResultRepository.create({
+            date:match.date,
+            time:match.time,
+            match_id:matchId,
+            owner_id:userId,
+            soccer_field_id:match.soccer_field_id,
+            team_id:match.away_team_id,
+            win:creatematchResultDto.awayWin,
+            lose:creatematchResultDto.awayLose,
+            draw:creatematchResultDto.awayDraw,
+            red_cards:creatematchResultDto.awayRedCards,
+            yellow_cards:creatematchResultDto.awayYellowCards,
+            substitions:creatematchResultDto.awaySubstitions,
+            save:creatematchResultDto.awaySave,
+            intercept:creatematchResultDto.awayIntercept
+        });
+
+        
+        // 홈팀 스탯 생성
+        const homeTeamTotalGames = await this.findTeamStats(match.home_team_id);
+        const homeTeamResult = this.teamStatsRepository.create({
+            team_id:match.home_team_id,
+            wins:creatematchResultDto.homeWin,
+            loses:creatematchResultDto.homeLose,
+            draws:creatematchResultDto.homeDraw,
+            total_games: Number(homeTeamTotalGames)+1
+        });
+
+        // 어웨이팀 스탯 생성
+        const awayTeamTotalGames = await this.findTeamStats(match.away_team_id);
+        const awayTeamResult = this.teamStatsRepository.create({
+            team_id:match.away_team_id,
+            wins:creatematchResultDto.homeLose,
+            loses:creatematchResultDto.homeWin,
+            draws:creatematchResultDto.homeDraw,
+            total_games: Number(awayTeamTotalGames)+1
+        });
+
+        if (!matchHomeResult || !matchAwayResult) {
         throw new NotFoundException('경기결과 기록을 생성할 수 없습니다.');
         }
 
-        await this.matchResultRepository.save(matchResult);
+        // 위 생성한 데이터 저장
+        const queryRunner = this.dataSource.createQueryRunner();
 
-        return matchResult ;
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try{
+
+            await queryRunner.manager.save('match_results', matchHomeResult);
+            await queryRunner.manager.save('match_results', matchAwayResult);
+            await queryRunner.manager.save('team_statistics', homeTeamResult);
+            await queryRunner.manager.save('team_statistics', awayTeamResult);
+
+            await queryRunner.commitTransaction();
+
+            return matchHomeResult ;
+
+        }catch(error){
+
+            await queryRunner.rollbackTransaction();
+            console.log(`error : ${error}`);
+            if (error instanceof HttpException) {
+                // HttpException을 상속한 경우(statusCode 속성이 있는 경우)
+                throw error;
+            } else {
+                // 그 외의 예외
+                throw new InternalServerErrorException('서버 에러가 발생했습니다.');
+            }
+
+        }finally{
+            await queryRunner.release();
+        }
     }
 
     // 경기 후 선수 기록 등록
@@ -307,7 +385,7 @@ export class MatchService {
         const match = await this.findOneMatch(matchId);
 
         const playerStats = this.playerStatsRepository.create({
-            team_id:1,  //위에서 팀id 추후에 가져오기
+            team_id:1,  //TODO 위에서 팀id 추후에 가져오기
             match_id: match.id,
             member_id: memberId,
             assists: createplayerStatsDto.assists,
@@ -334,6 +412,60 @@ export class MatchService {
         return playerStats ;
     }
 
+    // 팀 총 경기 일정 조회
+    async findTeamMatches(teamId: number) {
+        const teamMatches = await this.matchRepository.findOne({
+            where: [
+                        { home_team_id:teamId },
+                        { away_team_id:teamId }
+                    ]
+
+        });
+
+        if (!teamMatches) {
+            throw new NotFoundException('팀에서 진행한 경기가 없습니다.');
+            }
+
+        return teamMatches;
+    }
+
+    // 특정 경기 세부 조회
+    async findMatchDetail(matchId: number) {
+        const teamMatches = await this.matchResultRepository.findOne({
+            where: { match_id:matchId }
+
+        });
+
+        if (!teamMatches) {
+            throw new NotFoundException('경기 기록이 없습니다.');
+            }
+
+        return teamMatches;
+    }
+
+    // 특정 경기 세부 조회(중복 체크용)
+    async isMatchDetail(matchId: number) {
+        const teamMatches = await this.matchResultRepository.findOne({
+            where: { match_id:matchId }
+
+        });
+
+        return teamMatches;
+    }
+
+    // 팀 총 경기 횟수
+    private async findTeamStats(teamId: number) {
+        const teamStats = await this.teamStatsRepository.findOne({
+            select: ['total_games'],
+            where: { team_id:teamId },
+        });
+
+        if(!teamStats){
+            return 0;
+        }
+
+        return teamStats;
+    }
 
     // 예약일자, 시간 중복 체크
     async verifyReservedMatch(date: string,time:string) {

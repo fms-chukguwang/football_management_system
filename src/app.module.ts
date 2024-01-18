@@ -27,6 +27,9 @@ import { MatchModule } from './match/match.module';
 import { AdminModule } from './admin/admin.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LogInterceptor } from './common/interceptors/log.interceptor';
+import { ProfileController } from './profile/profile.controller';
+import { ProfileService } from './profile/profile.service';
+import { ProfileModule } from './profile/profile.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -45,6 +48,7 @@ import { LogInterceptor } from './common/interceptors/log.interceptor';
     CommonModule,
     LoggingModule,
     AdminModule,
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [

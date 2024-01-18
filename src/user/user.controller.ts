@@ -19,22 +19,6 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   /**
-   * 전체 회원 정보 조회
-   * @param req
-   * @returns
-   */
-  @Get('')
-  async allUsers() {
-    const data = await this.userService.findAllUsers();
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: '전체 회원 조회에 성공했습니다.',
-      data,
-    };
-  }
-
-  /**
    * 내 정보 조회
    * @param req
    * @returns
