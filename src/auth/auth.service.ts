@@ -194,4 +194,14 @@ export class AuthService {
     this.setRefreshToken(user.id, res);
     res.redirect('리다이렉트할 url주소');
   }
+
+  // 이메일에서 수락버튼시 사용하는 token으로 수락 유효기간(3일)에 맞게 해둠
+  generateAccessEmailToken(userId: number): string {
+    const payload = { userId };
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: '3d',
+    });
+    return accessToken;
+  }
 }

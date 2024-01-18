@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EmailVerification } from '../email/entities/email.entity';
 import { AuthService } from '../auth/auth.service';
+import { EmailRequest } from 'src/match/dtos/email-request.dto';
 
 const randomBytesAsync = promisify(randomBytes);
 
@@ -188,4 +189,76 @@ export class EmailService {
     const currentDateTime = new Date();
     return expiration > currentDateTime;
   }
+
+  async reqMatchEmail(emailRequest:EmailRequest) {
+    
+    const newSchedule = emailRequest.newSchedule; // '2024-01-19 20:00:00'
+    const parts = newSchedule.split(' '); // 공백을 기준으로 분리
+    const threeDay = this.getThreeDaysLater();
+
+    const date = parts[0]; // '2024-01-19'
+    const time = parts[1]; // '20:00:00'
+
+    const updateMent = `
+        <li>제안하는 새 일정: ${newSchedule}</li>
+    `;
+    
+    const htmlContent = `
+      <p>안녕하세요, ${emailRequest.clubName} 구단주님.</p>
+      <p>다음의 경기 일정에 대한 ${emailRequest.chk==='update'?'수정':emailRequest.chk==='delete'?'삭제':'제안'}요청 합니다:</p>
+      <ul>
+        <li>경기 일자: ${emailRequest.originalSchedule}</li>
+        ${emailRequest.chk==='update'?updateMent:''}
+        <li>사유: ${emailRequest.reason}</li>
+      </ul>
+      <p>${threeDay} 이후로는 수락 불가하니 확인 바랍니다.<br></p>
+      <p>감사합니다.<br>${emailRequest.senderName}</p>
+      <form action="${emailRequest.url}" method="POST">
+      ${emailRequest.chk!=='delete'?`
+      <input type ="hidden" name = "date" value = ${date}>
+      <input type ="hidden" name = "time" value = ${time}>
+      `:''}
+      ${emailRequest.chk==='create'?`
+      <input type ="hidden" name = "homeTeamId" value = ${emailRequest.homeTeamId}>
+      <input type ="hidden" name = "awayTeamId" value = ${emailRequest.awayTeamId}>
+      <input type ="hidden" name = "fieldId" value = ${emailRequest.fieldId}>
+      `:`<input type ="hidden" name = "reason" value = ${emailRequest.reason}>`}
+      
+      <input type ="hidden" name = "token" value = ${emailRequest.token}>
+      <button style="background-color: #4CAF50; color: white; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; border-radius: 5px; cursor: pointer;">수락</button>
+      </form>
+      `;
+  
+    const mailOptions = {
+      from: process.env.EMAIL_USER, // 발신자 이메일
+      to: emailRequest.email,
+      subject: emailRequest.subject,
+      html: htmlContent, // HTML 형식의 메일 내용
+    };
+  
+    try {
+      const info = await this.transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
+  }
+
+  private getThreeDaysLater() {
+    const now = new Date();
+    const threeDaysLater = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000); // 현재 시간에 3일을 더함
+  
+    const year = threeDaysLater.getFullYear();
+    const month = threeDaysLater.getMonth() + 1; // getMonth()는 0부터 시작하므로 1을 더해줌
+    const date = threeDaysLater.getDate();
+    const hours = threeDaysLater.getHours();
+    const minutes = threeDaysLater.getMinutes();
+    //const seconds = threeDaysLater.getSeconds();
+    const seconds = '00';
+  
+    // 숫자가 10보다 작으면 앞에 0을 붙여줌
+    const formatNumber = (num) => (num < 10 ? `0${num}` : num);
+  
+    return `${year}-${formatNumber(month)}-${formatNumber(date)} ${formatNumber(hours)}:${formatNumber(minutes)}:${seconds}`;
+  }
+  
 }

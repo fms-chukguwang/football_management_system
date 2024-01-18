@@ -23,6 +23,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { LoggingModule } from './logging/logging.module';
 import * as mongoose from 'mongoose';
 import { LoggingService } from './logging/logging.service';
+import { MatchModule } from './match/match.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -33,6 +34,7 @@ import { LoggingService } from './logging/logging.service';
     MongooseModule.forRoot(process.env.MONGO_URI),
     AuthModule,
     UserModule,
+    MatchModule,
     TeamMemberModule,
     PlayerModule,
     RedisModule,
