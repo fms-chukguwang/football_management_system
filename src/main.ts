@@ -4,20 +4,20 @@ import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as dotenv from 'dotenv';
-import {
-    initializeTransactionalContext,
-    patchTypeORMRepositoryWithBaseRepository,
-} from 'typeorm-transactional-cls-hooked';
+import { HttpExceptionFilter } from './common/exception-filter/http.exception-filter';
+import { winstonLogger } from './configs/winston.config';
+import { LoggingService } from './logging/logging.service';
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create(
+        AppModule,
+        //   {
+        //   logger: winstonLogger,
+        // }
+    );
 
     // .env 파일을 현재 환경에 로드
     dotenv.config();
-
-    // 트랜잭션 미들웨어 설정
-    initializeTransactionalContext();
-    patchTypeORMRepositoryWithBaseRepository();
 
     const corsOptions = {
         origin: 'http://localhost:3000',
@@ -39,8 +39,15 @@ async function bootstrap() {
             transform: true,
             whitelist: true,
             forbidNonWhitelisted: true,
+            transformOptions: {
+                enableImplicitConversion: true, // DTO에 ClassValidator로 정의된 타입으로 자동 변환
+            },
         }),
     );
+
+    // 에러메세지 형식 통일
+    const logger = app.get(LoggingService);
+    app.useGlobalFilters(new HttpExceptionFilter(logger));
 
     const config = new DocumentBuilder()
         .setTitle('Sparta Node.js TS')

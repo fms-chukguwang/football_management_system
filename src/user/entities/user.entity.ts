@@ -1,5 +1,6 @@
 import { Exclude } from 'class-transformer';
 import {
+    IsBoolean,
     IsDate,
     IsEmail,
     IsEnum,
@@ -25,6 +26,10 @@ import { Factory } from 'nestjs-seeder';
 import { hashPassword } from '../../helpers/password.helper';
 import { TeamModel } from 'src/team/entities/team.entity';
 import { Member } from 'src/member/entities/member.entity';
+import { Inject } from '@nestjs/common';
+import { RedisService } from 'nestjs-redis';
+import { Chats } from 'src/chats/entities/chats.entity';
+import { Message } from 'src/chats/messages/entities/messages.entity';
 
 @Entity('users')
 export class User {
@@ -103,6 +108,21 @@ export class User {
 
     @Column({ nullable: true })
     refreshToken: string;
+    /**
+     * is_admin
+     * @example false
+     */
+    @IsBoolean()
+    @Column({ default: false })
+    isAdmin: boolean;
+
+    /**
+     * is_social_login_user
+     * @example false
+     */
+    @IsBoolean()
+    @Column({ default: false })
+    isSocialLoginUser: boolean;
 
     @Column({ nullable: true })
     kakaoId: string;
@@ -126,4 +146,13 @@ export class User {
 
     @OneToOne(() => Member, (member) => member.user)
     member: Member;
+    @Column()
+    deletedAt: Date;
+
+    @ManyToMany(() => Chats, (chat) => chat.users)
+    @JoinTable()
+    chats: Chats[];
+
+    @OneToMany(() => Message, (message) => message.author)
+    messages: Message[];
 }

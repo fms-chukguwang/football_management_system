@@ -12,19 +12,22 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { UserService } from '../user/user.service';
 import { EmailModule } from '../email/email.module';
 import { JwtKakaoStrategy } from './strategies/jwt-social-kakao.strategy';
+import { RedisModule } from 'src/redis/redis.module';
+import { RedisService } from 'src/redis/redis.service';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
     PassportModule,
     EmailModule,
+    RedisModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: '12h',
+          expiresIn: '1h',
         },
       }),
     }),
@@ -37,6 +40,7 @@ import { JwtKakaoStrategy } from './strategies/jwt-social-kakao.strategy';
     JwtRefreshStrategy,
     JwtKakaoStrategy,
     UserService,
+    RedisService,
   ],
   exports: [TypeOrmModule.forFeature([User])],
 })

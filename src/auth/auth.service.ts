@@ -11,15 +11,11 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { SignInDto } from './dtos/sign-in.dto';
 import { JwtService } from '@nestjs/jwt';
-import { Request } from 'express';
 import { UserService } from '../user/user.service';
 import { UserStatus } from '../enums/user-status.enum';
 import { hashPassword } from '../helpers/password.helper';
-import passport from 'passport';
-
-interface CustomRequest extends Request {
-    session: any;
-}
+import { CacheKey, CacheTTL } from '@nestjs/cache-manager';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class AuthService {
@@ -29,7 +25,54 @@ export class AuthService {
         private readonly userService: UserService,
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
+        private readonly redisService: RedisService,
     ) {}
+
+    async refreshToken(userId: number) {
+        const refreshToken = await this.getRefreshTokenFromRedis(userId);
+
+        if (!refreshToken) {
+            throw new UnauthorizedException(
+                '리프레시 토큰이 유효하지 않습니다.',
+            );
+        }
+
+        const newAccessToken = this.generateAccessToken(userId);
+        const newRefreshToken = await this.generateRefreshToken(userId);
+        return { newAccessToken, newRefreshToken };
+    }
+
+    async setRefreshToken(userId: number, token: string) {
+        return await this.saveRefreshTokenToRedis(userId, token);
+    }
+
+    private generateAccessToken(userId: number): string {
+        const accessToken = this.jwtService.sign({ id: userId });
+        return accessToken;
+    }
+
+    private async generateRefreshToken(userId: number): Promise<string> {
+        const newRefreshToken = this.jwtService.sign(
+            { id: userId },
+            {
+                secret: process.env.REFRESH_SECRET,
+                expiresIn: '7d',
+            },
+        );
+        await this.saveRefreshTokenToRedis(userId, newRefreshToken);
+        return newRefreshToken;
+    }
+
+    async saveRefreshTokenToRedis(
+        userId: number,
+        refreshToken: string,
+    ): Promise<void> {
+        return await this.redisService.setRefreshToken(userId, refreshToken);
+    }
+
+    async getRefreshTokenFromRedis(userId: number): Promise<string | null> {
+        return await this.redisService.getRefreshToken(userId);
+    }
 
     async signUp({ email, password, passwordConfirm, name }: SignUpDto) {
         const isPasswordMatched = password === passwordConfirm;
@@ -50,6 +93,7 @@ export class AuthService {
             'PASSWORD_HASH_ROUNDS',
         );
         const hashedPassword = bcrypt.hashSync(password, hashRounds);
+
         const user = await this.userRepository.save({
             email,
             password: hashedPassword,
@@ -64,33 +108,23 @@ export class AuthService {
         const accessToken = this.jwtService.sign(payload, {
             secret: process.env.JWT_SECRET,
         });
-        const refreshToken = this.jwtService.sign(payload, {
-            secret: process.env.REFRESH_SECRET,
-            expiresIn: '7d',
-        });
-        this.userRepository.update(id, { refreshToken });
+        const refreshToken = await this.generateRefreshToken(id);
+        // Database update removed, as refreshToken is stored only in Redis
+
         return { accessToken, refreshToken };
     }
 
+    //사실상 쿠키를 지우는게 로그아웃인데 필요한지 모르겠음
     async signOut(id: number) {
         console.log('id=', id);
-        const { refreshToken } = await this.userRepository.findOne({
-            where: { id },
-        });
 
-        console.log('refreshToken', refreshToken);
-        this.userRepository.update(id, { refreshToken: '' });
-        console.log(this.userRepository.findOne({ where: { id } }));
-    }
+        // 리프레시 토큰을 제거하려면 다음과 같이 Redis 또는 다른 저장소에서 제거
+        await this.redisService.deleteRefreshToken(id);
 
-    async refreshToken(userId: number, token: string) {
-        await this.validate(userId, token);
-        return this.signIn(userId);
-    }
+        // 사용자 업데이트를 위한 코드 -> 로그인/회원가입할때 리프레시토큰 다시 생성해서 필요없음
+        // this.userRepository.update(id, { refreshToken: '' });
 
-    private generateAccessToken(userId: number): string {
-        const accessToken = this.jwtService.sign({ id: userId });
-        return accessToken;
+        console.log(await this.userRepository.findOne({ where: { id } }));
     }
 
     async validateUser({ email, password }: SignInDto) {
@@ -110,31 +144,6 @@ export class AuthService {
         return { id: user.id };
     }
 
-    async validaterefreshToken(
-        userId: number,
-        refreshToken: string,
-    ): Promise<User | null> {
-        const user = await this.userRepository.findOne({
-            where: { id: userId, refreshToken },
-        });
-        console.log('validaterefreshToken user=', user);
-        console.log('validaterefreshToken userId=', userId);
-        console.log('validaterefreshToken refreshToken=', refreshToken);
-        return user || null;
-    }
-
-    async validate(userId: number, refreshToken: string) {
-        const user = await this.validaterefreshToken(userId, refreshToken);
-        console.log('validate user=', user);
-        console.log('validate userId=', userId);
-        console.log('validate refreshToken=', refreshToken);
-        if (!user) {
-            throw new UnauthorizedException();
-        }
-
-        return user;
-    }
-
     async updateUserToInactive(email: string): Promise<void> {
         await this.userRepository.update(
             { email },
@@ -142,8 +151,8 @@ export class AuthService {
         );
     }
 
-    async validateUserStatus(userId: number, refreshToken: string) {
-        const user = await this.validaterefreshToken(userId, refreshToken);
+    async validateUserStatus(userId: number) {
+        const user = await this.userService.findOneById(userId);
 
         if (!user) {
             throw new UnauthorizedException();
@@ -160,9 +169,9 @@ export class AuthService {
 
     async resetPassword(email: string, newPassword: string): Promise<void> {
         const hashedPassword = hashPassword(newPassword);
-
         await this.updatePassword(email, hashedPassword);
     }
+
     async updatePassword(email: string, newPassword: string): Promise<void> {
         const user = await this.userService.findOneByEmail(email);
 
@@ -173,21 +182,23 @@ export class AuthService {
     }
 
     async OAuthLogin({ req, res }) {
-        // 1. 회원조회
-        let user = await this.userService.findOneByEmail(req.user.email); //user를 찾아서
+        let user = await this.userService.findOneByEmail(req.user.email);
 
-        // 2, 회원가입이 안되어있다면? 자동회원가입
         if (!user) {
             await this.userRepository.create({ ...req.user });
-        } //user가 없으면 하나 만들고, 있으면 이 if문에 들어오지 않을거기때문에 이러나 저러나 user는 존재하는게 됨.
+        }
 
-        // 3. 회원가입이 되어있다면? 로그인(AT, RT를 생성해서 브라우저에 전송)한다
         this.setRefreshToken(user.id, res);
         res.redirect('리다이렉트할 url주소');
     }
 
-    async setRefreshToken(userId: number, token: string) {
-        await this.validate(userId, token);
-        return this.signIn(userId);
+    // 이메일에서 수락버튼시 사용하는 token으로 수락 유효기간(3일)에 맞게 해둠
+    generateAccessEmailToken(userId: number): string {
+        const payload = { userId };
+        const accessToken = this.jwtService.sign(payload, {
+            secret: process.env.JWT_SECRET,
+            expiresIn: '3d',
+        });
+        return accessToken;
     }
 }
