@@ -7,7 +7,6 @@ const logDir = __dirname + '/../../logs'; // log 파일을 관리할 폴더
 
 const config = {
   levels: {
-    // 숫자가 낮을 수록 우선순위가 높습니다.
     error: 0,
     debug: 1,
     warn: 2,
@@ -18,7 +17,6 @@ const config = {
     custom: 7,
   },
   colors: {
-    // 각각의 레벨에 대한 색상을 지정해줍니다.
     error: 'red',
     debug: 'blue',
     warn: 'yellow',
@@ -45,8 +43,6 @@ const dailyOptions = (level) => {
   };
 };
 
-// rfc5424를 따르는 winston만의 log level
-// error: 0, warn: 1, info: 2, http: 3, verbose: 4, debug: 5, silly: 6
 export const winstonLogger = WinstonModule.createLogger({
   transports: [
     new winston.transports.Console({

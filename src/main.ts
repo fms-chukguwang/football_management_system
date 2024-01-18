@@ -9,9 +9,12 @@ import { winstonLogger } from './configs/winston.config';
 import { LoggingService } from './logging/logging.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    logger: winstonLogger,
-  });
+  const app = await NestFactory.create(
+    AppModule,
+    //   {
+    //   logger: winstonLogger,
+    // }
+  );
 
   // .env 파일을 현재 환경에 로드
   dotenv.config();

@@ -103,6 +103,7 @@ export class AuthService {
     });
     const refreshToken = await this.generateRefreshToken(id);
     // Database update removed, as refreshToken is stored only in Redis
+
     return { accessToken, refreshToken };
   }
 

@@ -24,6 +24,9 @@ import { LoggingModule } from './logging/logging.module';
 import * as mongoose from 'mongoose';
 import { LoggingService } from './logging/logging.service';
 import { MatchModule } from './match/match.module';
+import { AdminModule } from './admin/admin.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { LogInterceptor } from './common/interceptors/log.interceptor';
 import { ProfileController } from './profile/profile.controller';
 import { ProfileService } from './profile/profile.service';
 import { ProfileModule } from './profile/profile.module';
@@ -44,10 +47,17 @@ import { ProfileModule } from './profile/profile.module';
     ChatsModule,
     CommonModule,
     LoggingModule,
+    AdminModule,
     ProfileModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LogInterceptor,
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
