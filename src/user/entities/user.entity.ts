@@ -1,5 +1,6 @@
 import { Exclude } from 'class-transformer';
 import {
+  IsBoolean,
   IsDate,
   IsEmail,
   IsEnum,
@@ -30,10 +31,6 @@ import { Message } from 'src/chats/messages/entities/messages.entity';
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
-
-  @Inject()
-  private readonly redisService: RedisService;
-
 
   /**
    * 이메일
@@ -80,18 +77,21 @@ export class User {
   @Column({ type: 'enum', enum: UserRole, default: UserRole.User })
   role: UserRole;
 
-  @Column({ nullable: true }) 
-  refreshToken: string;
+/**
+ * is_admin
+ * @example false
+ */
+ @IsBoolean()
+ @Column({ default: false })
+ isAdmin: boolean;
 
-  // async saveRefreshTokenToRedis() {
-  //   const client = await this.redisService.getClient();
-  //   await client.set(`refreshToken:${this.id}`, this.refreshToken);
-  // }
-
-  // async getRefreshTokenFromRedis() {
-  //   const client = await this.redisService.getClient();
-  //   return client.get(`refreshToken:${this.id}`);
-  // }
+  /**
+   * is_social_login_user
+   * @example false
+   */
+  @IsBoolean()
+  @Column({ default: false})
+  isSocialLoginUser: boolean;
 
   /**
    * 상태

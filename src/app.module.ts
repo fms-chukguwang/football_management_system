@@ -24,6 +24,9 @@ import { LoggingModule } from './logging/logging.module';
 import * as mongoose from 'mongoose';
 import { LoggingService } from './logging/logging.service';
 import { MatchModule } from './match/match.module';
+import { ProfileController } from './profile/profile.controller';
+import { ProfileService } from './profile/profile.service';
+import { ProfileModule } from './profile/profile.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -41,6 +44,7 @@ import { MatchModule } from './match/match.module';
     ChatsModule,
     CommonModule,
     LoggingModule,
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],

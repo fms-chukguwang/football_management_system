@@ -31,4 +31,7 @@ export class RedisService {
   async getRefreshToken(userId: number): Promise<string | null> {
     return await this.redisClient.get(`refreshToken:${userId}`);
   }
+  async deleteRefreshToken(userId: number): Promise<void> {
+   await this.redisClient.del(`refreshToken:${userId}`);
+  }
 }
