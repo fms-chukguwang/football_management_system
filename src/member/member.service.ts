@@ -167,12 +167,13 @@ export class MemberService {
      * @returns
      */
     async updateStaffJoinDate(memberId: number, teamId: number, dto: UpdateMemberInfoDto) {
-        const findMember = this.findMember(memberId, teamId);
+        console.log(memberId, teamId);
+        const findMember = await this.findMember(memberId, teamId);
 
         if (!findMember) {
             throw new BadRequestException('존재하지 않은 팀원입니다.');
         }
-
+        console.log(`업데이트`, findMember);
         const updatedMember = await this.memberRepository.update(
             { id: memberId },
             { joinDate: dto.joinDate },
@@ -181,6 +182,13 @@ export class MemberService {
         return updatedMember;
     }
 
+    /**
+     * 자기 입단일 수정하기
+     * @param memberId
+     * @param teamId
+     * @param dto
+     * @returns
+     */
     async updateMemberJoinDate(memberId: number, teamId: number, dto: UpdateMemberInfoDto) {
         const member = await this.findMemberForUserId(memberId, teamId);
 

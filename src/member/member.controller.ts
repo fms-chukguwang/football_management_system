@@ -8,6 +8,7 @@ import {
     HttpStatus,
     Patch,
     Req,
+    ParseIntPipe,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -70,8 +71,8 @@ export class MemberController {
     @Patch('/team/:teamId/member/:memberId/join-date')
     async updateStaffJoinDate(
         @Body() updateDto: UpdateMemberInfoDto,
-        @Param('memberId') memberId: number,
-        @Param('teamId') teamId: number,
+        @Param('memberId', ParseIntPipe) memberId: number,
+        @Param('teamId', ParseIntPipe) teamId: number,
     ) {
         const updateJoinDate = await this.memberService.updateStaffJoinDate(
             memberId,
