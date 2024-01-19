@@ -92,24 +92,4 @@ export class ProfileController {
     };
   }
 
-  /**
-   * 프로필 삭제 -> 유저 탈퇴?
-   * @param req
-   * @returns
-   */
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Delete(':teamId/:profileId')
-  async deleteMe(
-    @Param('teamId') teamId: number,
-    @Param('memberId') memberId: number,
-  ) {
-    const data = await this.profileService.deleteId(memberId);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: '프로필 삭제에 성공했습니다.',
-      data,
-    };
-  }
 }
