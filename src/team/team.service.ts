@@ -1,20 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateTeamDto } from './dtos/create-team.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { TeamModel } from './entities/team.entity';
-import { Repository, Transaction } from 'typeorm';
-import {
-    DUPLICATE_TEAM_NAME,
-    EXIST_CREATOR,
-} from './validation-message/team-exception.message';
 import { AwsService } from 'src/aws/aws.service';
 import { LocationService } from 'src/location/location.service';
 import { MemberService } from 'src/member/member.service';
-import {
-    Transactional,
-    runOnTransactionCommit,
-    runOnTransactionRollback,
-} from 'typeorm-transactional-cls-hooked';
+import { Repository } from 'typeorm';
+import { CreateTeamDto } from './dtos/create-team.dto';
+import { TeamModel } from './entities/team.entity';
+import { DUPLICATE_TEAM_NAME, EXIST_CREATOR } from './validation-message/team-exception.message';
+import { UpdateTeamDto } from './dtos/update-team.dto';
 
 @Injectable()
 export class TeamService {
@@ -34,19 +27,9 @@ export class TeamService {
      * @returns
      */
     //@Transactional()
-    async createTeam(
-        createTeamDto: CreateTeamDto,
-        userId: number,
-        file: Express.Multer.File,
-    ) {
-        const existCreator = await this.teamRepository.exists({
-            where: {
-                creator: {
-                    id: userId,
-                },
-            },
-        });
-        if (existCreator) {
+    async createTeam(createTeamDto: CreateTeamDto, userId: number, file: Express.Multer.File) {
+        const existMember = await this.memberService.existMember(userId);
+        if (existMember) {
             throw new BadRequestException(EXIST_CREATOR);
         }
 
@@ -59,12 +42,9 @@ export class TeamService {
             throw new BadRequestException(DUPLICATE_TEAM_NAME);
         }
 
-        const extractLocation = this.locationService.extractAddress(
-            createTeamDto.address,
-        );
+        const extractLocation = this.locationService.extractAddress(createTeamDto.address);
 
-        let findLocation =
-            await this.locationService.findOneLocation(extractLocation);
+        let findLocation = await this.locationService.findOneLocation(extractLocation);
         if (!findLocation) {
             findLocation = await this.locationService.registerLocation(
                 createTeamDto.address,
@@ -85,10 +65,7 @@ export class TeamService {
             });
 
             const savedTeam = await this.teamRepository.save(result);
-            await this.memberService.registerCreaterMember(
-                savedTeam.id,
-                userId,
-            );
+            await this.memberService.registerCreaterMember(savedTeam.id, userId);
 
             return savedTeam;
         } catch (err) {
@@ -115,5 +92,36 @@ export class TeamService {
                 },
             },
         });
+    }
+
+    /**
+     * 팀 목록조회
+     */
+    getTeam() {
+        return this.teamRepository.find({});
+    }
+
+    /**
+     * 팀 수정하기
+     * @param teamId
+     * @param dto
+     * @param file
+     * @returns
+     */
+    async updateTeam(teamId: number, dto: UpdateTeamDto, file: Express.Multer.File) {
+        try {
+            if (file) {
+                console.log('저장전 : ', dto['imageUrl']);
+                dto['logoUrl'] = await this.awsService.uploadFile(file);
+            }
+
+            await this.teamRepository.update(
+                { id: teamId },
+                {
+                    ...dto,
+                },
+            );
+        } catch (err) {}
+        return console.log('업데이트 성공');
     }
 }

@@ -1,9 +1,14 @@
-import { IsBoolean, IsNumber } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsBoolean, IsDate, IsOptional } from 'class-validator';
 
 export class UpdateMemberInfoDto {
-    @IsNumber()
-    userId: number;
-
     @IsBoolean()
-    isStaff: boolean;
+    @IsOptional()
+    @ApiProperty()
+    isStaff?: boolean;
+
+    @IsDate()
+    @IsOptional()
+    @ApiProperty()
+    joinDate?: Date;
 }
