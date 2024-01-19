@@ -44,7 +44,7 @@ export class TeamController {
             file,
         );
 
-        return { status: HttpStatus.OK, success: true };
+        return { status: HttpStatus.OK, success: true, data };
     }
 
     @Get(':teamId')

@@ -39,14 +39,8 @@ export class TeamService {
         userId: number,
         file: Express.Multer.File,
     ) {
-        const existCreator = await this.teamRepository.exists({
-            where: {
-                creator: {
-                    id: userId,
-                },
-            },
-        });
-        if (existCreator) {
+        const existMember = await this.memberService.existMember(userId);
+        if (existMember) {
             throw new BadRequestException(EXIST_CREATOR);
         }
 

@@ -144,8 +144,8 @@ export class User {
     })
     team: TeamModel;
 
-    @OneToOne(() => Member, (member) => member.user)
-    member: Member;
+    @OneToMany(() => Member, (member) => member.user)
+    member: Member[];
     @Column()
     deletedAt: Date;
 
