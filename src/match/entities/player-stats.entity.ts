@@ -9,6 +9,7 @@ import {
     UpdateDateColumn,
   } from 'typeorm';
 import { Match } from './match.entity';
+import { Member } from 'src/member/entities/member.entity';
   
   @Entity('player_statistics')
   export class PlayerStats {
@@ -19,6 +20,10 @@ import { Match } from './match.entity';
     @ManyToOne(() => Match)
     @JoinColumn({ name: 'match_id' })
     match: Match;
+
+    @ManyToOne(() => Member,(member) => member.playerstats)
+    @JoinColumn({ name: 'member_id' })
+    member: Member;
 
     @Column({ type: 'int', nullable: false })
     team_id: number;
