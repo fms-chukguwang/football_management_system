@@ -78,12 +78,12 @@ export class UserService {
     const user = await this.userRepository.findOneBy({ id });
 
     if (!user) {
-      throw new NotFoundException('사용자를 찾을 수 없습니다.');
+      throw new NotFoundException(`User with ID ${user} not found`);
     }
 
-    // 사용자 삭제
-    await this.userRepository.remove(user);
-
-    return user;
+    // Soft delete 처리
+    user.deletedAt = new Date();
+    await this.userRepository.save(user);
+  
   }
 }
