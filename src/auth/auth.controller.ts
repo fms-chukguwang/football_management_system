@@ -28,6 +28,7 @@ import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { UserService } from '../user/user.service';
 import { PasswordResetUserDto } from './dtos/password-reset-user.dto';
 import { Response } from 'express';
+import axios from 'axios';
 
 interface IOAuthUser {
   user: {
@@ -50,15 +51,43 @@ export class AuthController {
    * @param req
    * @returns
    */
-  @Get('/kakao/callback')
-  async getKakaoInfo(@Query() code: string) {
-    console.log(code);
-    return {
-      statusCode: HttpStatus.CREATED,
-      message: '카카오 로그인에 성공했습니다.',
-      code,
-    };
+   @Get('/kakao/callback')
+  async getKakaoInfo(@Query('code') code: string, @Res() res: Response) {
+    try {
+      const tokenResponse = await axios.post(
+        'https://kauth.kakao.com/oauth/token',
+        {
+          grant_type: 'authorization_code',
+          client_id: process.env.KAKAO_API_KEY,
+          redirect_uri: process.env.KAKAO_CALLBACK_URL,
+          code: code,
+        },
+      );
+      const accessToken = tokenResponse.data.access_token;
+      const userInfoResponse = await axios.get(
+        'https://kapi.kakao.com/v2/user/me',
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+      const userData: IOAuthUser = userInfoResponse.data;
+
+      return {
+        statusCode: HttpStatus.CREATED,
+        message: '카카오 로그인에 성공했습니다.',
+        data: userData,
+      };
+    } catch (error) {
+      console.error('Kakao login error:', error);
+      return {
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: '카카오 로그인 중 오류가 발생했습니다.',
+      };
+    }
   }
+
 
   /**
    * 카카오로그인

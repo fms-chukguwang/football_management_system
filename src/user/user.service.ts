@@ -82,8 +82,6 @@ export class UserService {
     }
 
     // Soft delete 처리
-    user.deletedAt = new Date();
-    await this.userRepository.save(user);
-  
+    await this.userRepository.softDelete(user);
   }
 }
