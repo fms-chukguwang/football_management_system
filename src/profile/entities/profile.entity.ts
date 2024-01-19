@@ -19,9 +19,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Factory } from 'nestjs-seeder';
-import { hashPassword } from '../../helpers/password.helper';
-import { MemberRole } from 'src/enums/member-role.enum';
 import { Position } from 'src/user/types/position.type';
 
 @Entity('profile')

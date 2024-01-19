@@ -1,12 +1,12 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, CreateDateColumn } from 'typeorm';
 import { BaseModel } from 'src/common/entities/base.entity';
 import { TeamModel } from 'src/team/entities/team.entity';
 import { User } from 'src/user/entities/user.entity';
+import { date } from 'joi';
 
 @Entity('members')
 export class Member extends BaseModel {
-    @OneToOne(() => User, (user) => user.member)
-    @JoinColumn()
+    @ManyToOne(() => User, (user) => user.member)
     user: User;
 
     @ManyToOne(() => TeamModel, (team) => team.members, {
@@ -19,4 +19,9 @@ export class Member extends BaseModel {
         default: false,
     })
     isStaff: boolean;
+
+    @Column({
+        type: 'date',
+    })
+    joinDate: Date;
 }
