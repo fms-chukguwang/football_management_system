@@ -13,8 +13,8 @@ import { Server, Socket } from 'socket.io';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { ChatsService } from './chats.service';
 import { EnterChatDto } from './dto/enter-chat.dto';
-import { CreateMessagesDto } from './messages/dto/create-message.dto';
-import { ChatMessagesService } from './messages/messages.service';
+import { CreateMessagesDto } from '../messages/dto/create-message.dto';
+import { ChatMessagesService } from '../messages/messages.service';
 import {
   UseFilters,
   UseGuards,

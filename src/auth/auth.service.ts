@@ -181,15 +181,38 @@ export class AuthService {
         }
     }
 
-    async OAuthLogin({ req, res }) {
-        let user = await this.userService.findOneByEmail(req.user.email);
-
-        if (!user) {
-            await this.userRepository.create({ ...req.user });
+    async OAuthLogin(req, res) {
+        console.log("req.user=",req.user);
+        if (!req.user || !req.user.email) {
+            // 유효한 사용자 정보가 없는 경우에 대한 예외 처리
+            return res
+                .status(400)
+                .json({ message: 'Invalid user information' });
         }
 
-        this.setRefreshToken(user.id, res);
-        res.redirect('리다이렉트할 url주소');
+        const user = await this.userRepository.findOne({
+            where: { email: req.user.email },
+        });
+        console.log("user=",user);
+        if (user) {
+            const { newAccessToken, newRefreshToken } = await this.refreshToken(
+                user.id,
+            );
+            return res.json({
+                accessToken: newAccessToken,
+                refreshToken: newRefreshToken,
+            });
+        }
+        const savedUser = await this.userRepository.save({
+            email: req.user.email,
+            name: req.user.name,
+            is_social_login_user: true,
+        });
+        console.log("saved user=",savedUser);
+        // 신규 사용자에 대한 처리
+        this.setRefreshToken(savedUser.id, res);
+
+        return res.status(201).json(savedUser);
     }
 
     // 이메일에서 수락버튼시 사용하는 token으로 수락 유효기간(3일)에 맞게 해둠

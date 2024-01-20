@@ -1,13 +1,15 @@
-import { Column, Entity, ManyToOne, CreateDateColumn, OneToMany } from 'typeorm';
-import { BaseModel } from 'src/common/entities/base.entity';
-import { TeamModel } from 'src/team/entities/team.entity';
-import { User } from 'src/user/entities/user.entity';
-import { date } from 'joi';
-import { PlayerStats } from 'src/match/entities/player-stats.entity';
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { BaseModel } from '../../common/entities/base.entity';
+import { TeamModel } from '../../team/entities/team.entity';
+import { User } from '../../user/entities/user.entity';
 
 @Entity('members')
 export class Member extends BaseModel {
-    @ManyToOne(() => User, (user) => user.member)
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @OneToOne(() => User, (user) => user.member)
+    @JoinColumn()
     user: User;
 
     @ManyToOne(() => TeamModel, (team) => team.members, {
