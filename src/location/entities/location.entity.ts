@@ -2,6 +2,7 @@ import { IsNumber, IsString } from 'class-validator';
 import { BaseModel } from 'src/common/entities/base.entity';
 import { Column, Entity, OneToMany } from 'typeorm';
 import { TeamModel } from '../../team/entities/team.entity';
+import { SoccerField } from 'src/match/entities/soccer-field.entity';
 
 @Entity('location')
 export class LocationModel extends BaseModel {
@@ -46,4 +47,7 @@ export class LocationModel extends BaseModel {
 
     @OneToMany(() => TeamModel, (team) => team.location)
     team: TeamModel[];
+
+    @OneToMany(() => SoccerField, (soccerfield) => soccerfield.locationfield)
+    soccerfield: SoccerField[];
 }

@@ -20,8 +20,8 @@ import { createPlayerStatsDto } from './dtos/player-stats.dto';
 import { PlayerStats } from './entities/player-stats.entity';
 import { TeamStats } from './entities/team-stats.entity';
 import { TeamModel } from 'src/team/entities/team.entity';
-import { TeamService } from 'src/team/team.service';
 import { Member } from 'src/member/entities/member.entity';
+import { SoccerField } from './entities/soccer-field.entity';
 
 @Injectable()
 export class MatchService {
@@ -47,6 +47,9 @@ export class MatchService {
 
         @InjectRepository(TeamStats)
         private teamStatsRepository: Repository<TeamStats>,
+
+        @InjectRepository(SoccerField)
+        private soccerFieldRepository: Repository<SoccerField>,
 
         private emailService: EmailService,
         private authService: AuthService,
@@ -535,7 +538,7 @@ export class MatchService {
      * @param  userId
      * @returns
      */
-    private async verifyTeamCreator(userId:number) {
+    async verifyTeamCreator(userId:number) {
 
         const creator = await this.teamRepository
             .createQueryBuilder('team')
@@ -545,12 +548,25 @@ export class MatchService {
                 { userId },
             )
             .getMany();
+        
 
         if (!creator[0]) {
             throw new BadRequestException('구단주가 아닙니다.');
         }
 
-        return creator;
+        console.log(`creator : ${creator}`);
+
+        const user = await this.getUserInfo(userId);
+
+        // creator 배열의 각 요소에 user.email 추가
+        const updatedCreator = creator.map(item => ({
+            ...item,
+            email: user.email,
+            user_id: user.id
+        }));
+
+        return updatedCreator;
+        //return updatedCreator;
     }
 
     /**
@@ -722,6 +738,22 @@ export class MatchService {
         })
     }
 
+    /**
+     * 경기장 전체 조회
+     * @returns
+     */
+    async findAllSoccerField() {
+        const soccerField = await this.soccerFieldRepository.find({
+
+        });
+
+        if(!soccerField){
+            throw new NotFoundException('등록된 경기장 목록이 없습니다.');
+        }
+
+        return soccerField;
+    }
+
     async isMatchDetail(matchId: number,teamId:number) {
         const teamMatches = await this.matchResultRepository.findOne({
             where: { match_id:matchId, team_id:teamId }
@@ -765,6 +797,14 @@ export class MatchService {
         }
 
         return teamStats;
+    }
+
+    private async getUserInfo(userId: number) {
+        const user = await this.userRepository.findOne({
+            where: { id: userId }
+        });
+    
+        return user;
     }
 
     async verifyReservedMatch(date: string,time:string) {
