@@ -1,73 +1,60 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+프로젝트 소개
+축구왕 - 대용량 트래픽 관리를 위한 Football Management System (FMS) ⚽🔥
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+FMS는 사용자들에게 다음과 같은 가치를 제공합니다
+1. 종합적인 팀 관리 및 소통:
+팀 등록 및 관리를 통해 팀원들의 정보와 역할을 효과적으로 관리
+팀 내부 채팅 기능을 통해 팀원들 간의 소통 강화
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+2. 경기 기록 및 통계 관리:
+경기 일정 및 결과를 효과적으로 기록하고 관리
+선수들의 통계를 기록하여 팀의 성과를 분석하고 개인 선수의 성장을 추적
 
-## Description
+3. 실시간 업데이트 및 소셜 기능:
+경기 진행 상황을 실시간으로 업데이트하여 사용자들에게 실제 경기같은 경험 제공
+팀 내부 채팅 및 소셜 기능을 통해 팀원들 간의 소셜 활동 촉진
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+4. 토너먼트 대회:
+토너먼트 대회 등록, 수정, 삭제를 통해 사용자들은 원하는 대회에 참여하거나 진행 가능
+​
+실행 방법
 
-## Installation
-
-```bash
-$ npm install
+```sh
+npm install
+colima start
+docker-compose up
+npm run start:dev
 ```
 
-## Running the app
+목차
+시연 영상
+기술적 의사결정
+트러블슈팅
+서비스 아키텍처
+프로젝트 구조
+설계
+지원하는 브라우저
+팀원 소개
 
-```bash
-# development
-$ npm run start
 
-# watch mode
-$ npm run start:dev
+시연 영상
 
-# production mode
-$ npm run start:prod
-```
+기술적 의사결정
 
-## Test
+트러블슈팅
 
-```bash
-# unit tests
-$ npm run test
+서비스 아키텍처
 
-# e2e tests
-$ npm run test:e2e
+프로젝트 구조
+Back-End (Nest.js)
+Front-End (React):https://github.com/HoyeongJeon/fms_react
 
-# test coverage
-$ npm run test:cov
-```
+설계
+ERD:
+API:
+스웨거 링크:
 
-## Support
+지원하는 브라우저
+Chrome	Edge	Safari
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+팀원 소개

@@ -14,10 +14,10 @@ export class JwtKakaoStrategy extends PassportStrategy(Strategy, 'kakao') {
 
   async validate(accessToken: string, refreshToken: string, profile: any) {
     // 사용자 정보만 반환
+    console.log("profile=",profile);
     return {
       name: profile.displayName,
-      email: profile._json.kakao_account.email,
-      password: profile.id,
+      email: profile._json.kakao_account.email
     };
   }
 }
