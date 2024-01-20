@@ -1,9 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Member } from './entities/member.entity';
 import { Repository } from 'typeorm';
 import { UpdateMemberInfoDto } from './dtos/update-member-info-dto';
 import { UserService } from 'src/user/user.service';
+import { TeamService } from 'src/team/team.service';
 
 @Injectable()
 export class MemberService {
@@ -11,6 +12,8 @@ export class MemberService {
         @InjectRepository(Member)
         private readonly memberRepository: Repository<Member>,
         private readonly userService: UserService,
+        @Inject(forwardRef(() => TeamService))
+        private readonly teamService: TeamService,
     ) {}
 
     /**
@@ -167,13 +170,12 @@ export class MemberService {
      * @returns
      */
     async updateStaffJoinDate(memberId: number, teamId: number, dto: UpdateMemberInfoDto) {
-        console.log(memberId, teamId);
         const findMember = await this.findMember(memberId, teamId);
 
         if (!findMember) {
             throw new BadRequestException('존재하지 않은 팀원입니다.');
         }
-        console.log(`업데이트`, findMember);
+
         const updatedMember = await this.memberRepository.update(
             { id: memberId },
             { joinDate: dto.joinDate },
@@ -202,5 +204,17 @@ export class MemberService {
         );
 
         return updatedMember;
+    }
+
+    async sendJoiningEmail(userId: number, teamId: number) {
+        /**
+         * 팀 신청시 이메일전송
+         * 1) 사용자가 팀 가입 버튼을 클릭시 요청함
+         * 2) 팀 id가 있어야함 + userId
+         * 3) 팀 id로 구단주를 검색후 구단주의 이메일을 가져온다.
+         * 4) 팀 장에게 요청한 사용자에 대하여 담아서 수락이메일을 보낸다.
+         */
+        const findTeam = await this.teamService.getTeamDetail(teamId);
+        console.log(findTeam);
     }
 }
