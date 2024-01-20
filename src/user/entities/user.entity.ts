@@ -30,6 +30,8 @@ import { Inject } from '@nestjs/common';
 import { RedisService } from 'nestjs-redis';
 import { Chats } from '../../chats/entities/chats.entity';
 import { Message } from '../../messages/entities/messages.entity';
+import { Profile } from 'src/profile/entities/profile.entity';
+import { profile } from 'console';
 
 @Entity('users')
 export class User {
@@ -144,8 +146,12 @@ export class User {
     })
     team: TeamModel;
 
+    @OneToOne(() => Profile, (profile) => profile.user)
+    profile: Profile;
+
     @OneToMany(() => Member, (member) => member.user)
     member: Member[];
+
     @Column()
     deletedAt: Date;
 
