@@ -4,6 +4,7 @@ import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn
 import { TeamModel } from '../../team/entities/team.entity';
 import { Factory } from 'nestjs-seeder';
 import { Profile } from 'src/profile/entities/profile.entity';
+import { SoccerField } from 'src/match/entities/soccer-field.entity';
 
 @Entity('location')
 export class LocationModel extends BaseModel {
@@ -59,4 +60,7 @@ export class LocationModel extends BaseModel {
     @OneToOne(() => Profile, (profile) => profile.location)
     @JoinColumn()
     profile: Profile;
+
+    @OneToMany(() => SoccerField, (soccerfield) => soccerfield.locationfield)
+    soccerfield: SoccerField[];
 }

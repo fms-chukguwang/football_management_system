@@ -15,14 +15,11 @@ import { PlayerStats } from './entities/player-stats.entity';
 import { RedisService } from 'src/redis/redis.service';
 import { TeamStats } from './entities/team-stats.entity';
 import { TeamModel } from 'src/team/entities/team.entity';
-import { TeamService } from 'src/team/team.service';
-import { AwsService } from 'src/aws/aws.service';
-import { LocationService } from 'src/location/location.service';
-import { MemberService } from 'src/member/member.service';
 import { Member } from 'src/member/entities/member.entity';
+import { SoccerField } from './entities/soccer-field.entity';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([Match,MatchResult,User,Member,TeamModel,PlayerStats,TeamStats,EmailVerification]),AuthModule],
+  imports:[TypeOrmModule.forFeature([Match,MatchResult,User,Member,SoccerField,TeamModel,PlayerStats,TeamStats,EmailVerification]),AuthModule],
   controllers: [MatchController],
   providers: [MatchService,EmailService,AuthService,JwtService,UserService,RedisService]
 })
