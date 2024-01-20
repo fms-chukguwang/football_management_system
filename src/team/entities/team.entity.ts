@@ -5,23 +5,29 @@ import {
     ManyToOne,
     OneToMany,
     OneToOne,
+    PrimaryGeneratedColumn,
 } from 'typeorm';
 import { IsBoolean, IsEnum, IsString } from 'class-validator';
 import { stringValidationMessage } from '../validation-message/string-validation.message';
-import { BaseModel } from 'src/common/entities/base.entity';
+import { BaseModel } from '../../common/entities/base.entity';
 import { LocationModel } from '../../location/entities/location.entity';
-import { User } from 'src/user/entities/user.entity';
-import { Gender } from 'src/enums/gender.enum';
+import { User } from '../../user/entities/user.entity';
+import { Gender } from '../../enums/gender.enum';
 import { Transform } from 'class-transformer';
-import { Member } from 'src/member/entities/member.entity';
-import { Match } from 'src/match/entities/match.entity';
+import { Member } from '../../member/entities/member.entity';
+import { Factory } from 'nestjs-seeder';
+
 
 @Entity('team')
 export class TeamModel extends BaseModel {
+    @PrimaryGeneratedColumn()
+    id: number;
+
     /**
      * 팀명
      * @example '태풍fc'
      */
+     @Factory((faker) => faker.lorem.words(3))
     @Column({
         unique: true,
     })
@@ -34,6 +40,7 @@ export class TeamModel extends BaseModel {
      * 팀 설명
      * @example '수원시 권선구에서 활동하는 태풍FC입니다.'
      */
+     @Factory((faker) => faker.lorem.paragraph())
     @Column()
     @IsString({
         message: stringValidationMessage,
@@ -43,6 +50,7 @@ export class TeamModel extends BaseModel {
     /**
      * 팀 로고 url
      */
+     @Factory((faker) => faker.lorem.words(1))
     @Column({
         name: 'logo_url',
     })
@@ -62,7 +70,7 @@ export class TeamModel extends BaseModel {
      * 팀 성별
      */
     @IsEnum(Gender)
-    @Column({ type: 'enum', enum: Gender })
+    @Column({ default: 'Mixed' })
     gender: Gender;
 
     /**

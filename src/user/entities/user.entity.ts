@@ -24,12 +24,12 @@ import {
 import { UserRole } from '../types/user-role.type';
 import { Factory } from 'nestjs-seeder';
 import { hashPassword } from '../../helpers/password.helper';
-import { TeamModel } from 'src/team/entities/team.entity';
-import { Member } from 'src/member/entities/member.entity';
+import { TeamModel } from '../../team/entities/team.entity';
+import { Member } from '../../member/entities/member.entity';
 import { Inject } from '@nestjs/common';
 import { RedisService } from 'nestjs-redis';
-import { Chats } from 'src/chats/entities/chats.entity';
-import { Message } from 'src/chats/messages/entities/messages.entity';
+import { Chats } from '../../chats/entities/chats.entity';
+import { Message } from '../../messages/entities/messages.entity';
 
 @Entity('users')
 export class User {
@@ -66,7 +66,7 @@ export class User {
      * 닉네임
      * @example "홍길동"
      */
-    @Factory((faker) => faker.person.firstName())
+    @Factory((faker) => faker.person.fullName())
     @IsNotEmpty({ message: '이름을 입력해 주세요.' })
     @IsString()
     @Column()
@@ -93,7 +93,6 @@ export class User {
      * 역할
      * @example "Collaborator"
      */
-
     @IsEnum(UserRole)
     @Column({ type: 'enum', enum: UserRole, default: UserRole.User })
     role: UserRole;
@@ -106,13 +105,13 @@ export class User {
     @Column({ default: 'Active' })
     status: UserStatus;
 
-    @Column({ nullable: true })
-    refreshToken: string;
     /**
      * is_admin
      * @example false
      */
+
     @IsBoolean()
+    @Factory((faker) => faker.datatype.boolean())
     @Column({ default: false })
     isAdmin: boolean;
 
@@ -121,6 +120,7 @@ export class User {
      * @example false
      */
     @IsBoolean()
+    @Factory((faker) => faker.datatype.boolean())
     @Column({ default: false })
     isSocialLoginUser: boolean;
 
