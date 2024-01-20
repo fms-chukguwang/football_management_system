@@ -1,7 +1,7 @@
-import { BaseModel } from 'src/common/entities/base.entity';
-import { User } from 'src/user/entities/user.entity';
-import { Entity, ManyToMany, OneToMany } from 'typeorm';
-import { Message } from '../messages/entities/messages.entity';
+import { BaseModel } from '../../common/entities/base.entity';
+import { User } from '../../user/entities/user.entity';
+import { Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Message } from '../../messages/entities/messages.entity';
 
 /**
  * 하나의 팀은 하나의 채팅방을 가질 수 있음. (1:1)
@@ -9,6 +9,9 @@ import { Message } from '../messages/entities/messages.entity';
  */
 @Entity('chats')
 export class Chats extends BaseModel {
+  @PrimaryGeneratedColumn()
+  id: number;
+  
   @ManyToMany(() => User, (user) => user.chats)
   users: User[];
 
