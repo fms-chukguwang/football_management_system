@@ -1,8 +1,9 @@
 import { IsNumber, IsString } from 'class-validator';
 import { BaseModel } from '../../common/entities/base.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { TeamModel } from '../../team/entities/team.entity';
 import { Factory } from 'nestjs-seeder';
+import { Profile } from 'src/profile/entities/profile.entity';
 
 @Entity('location')
 export class LocationModel extends BaseModel {
@@ -54,4 +55,8 @@ export class LocationModel extends BaseModel {
 
     @OneToMany(() => TeamModel, (team) => team.location)
     team: TeamModel[];
+
+    @OneToOne(() => Profile, (profile) => profile.location)
+    @JoinColumn()
+    profile: Profile;
 }
