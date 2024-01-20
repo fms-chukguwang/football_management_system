@@ -17,9 +17,17 @@ export class Member extends BaseModel {
     })
     team: TeamModel;
 
+    @OneToMany(() => PlayerStats, (playerstats) => playerstats.member)
+    playerstats: PlayerStats[];
+
     @Column({
         name: 'is_staff',
         default: false,
     })
     isStaff: boolean;
+
+    @Column({
+        type: 'date',
+    })
+    joinDate: Date;
 }
