@@ -20,48 +20,45 @@ import { Match } from './match.entity';
     @ManyToOne(() => Match,(match) => match.matchresult, {onDelete: 'CASCADE'})
     @JoinColumn({ name: 'match_id' })
     match: Match;
-  
-    @Column({ type: 'date', nullable: false })
-    date: string;
-  
-    @Column({ type: 'time', nullable: false })
-    time: string;
 
     @Column({ type: 'int', nullable: false })
     match_id: number;
 
     @Column({ type: 'int', nullable: false })
-    owner_id: number;
-  
-    @Column({ type: 'int', nullable: false })
-    soccer_field_id: number;
-  
-    @Column({ type: 'int', nullable: false })
     team_id: number;
 
-    @Column({ type: 'int', nullable: false })
-    win: number;
+    @Column({ type: 'json', nullable: true })
+    goals: { playerId: number; count: number }[];
 
     @Column({ type: 'int', nullable: false })
-    lose: number;
+    corner_kick: number;
+
+    @Column({ type: 'json', nullable: true })
+    red_cards: { playerId: number; count: number }[]; 
+    
+    @Column({ type: 'json', nullable: true })
+    yellow_cards: { playerId: number; count: number }[];
+
+    @Column({ type: 'json', nullable: true })
+    substitions: { inPlayerId: number; outPlayerId: number }[];
+
+    @Column({ type: 'json', nullable: true })
+    saves: { playerId: number; count: number }[];
+
+    @Column({ type: 'json', nullable: true })
+    assists: { playerId: number; count: number }[];
+
+    @Column({ type: 'int', nullable: false })
+    passes: number;
 
     @Column({ type: 'boolean', nullable: false })
-    draw: boolean;
+    clean_sheet: boolean;
 
     @Column({ type: 'int', nullable: false })
-    red_cards: number;   
-    
-    @Column({ type: 'int', nullable: false })
-    yellow_cards: number;
+    penalty_kick: number;
 
     @Column({ type: 'int', nullable: false })
-    substitions: number;
-
-    @Column({ type: 'int', nullable: false })
-    save: number;
-
-    @Column({ type: 'int', nullable: false })
-    intercept: number;
+    free_kick: number;
   
     @CreateDateColumn()
     created_at: Date;
