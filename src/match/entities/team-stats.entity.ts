@@ -21,8 +21,8 @@ import {
     @Column({ type: 'int', nullable: false })
     loses: number;
 
-    @Column({ type: 'boolean', nullable: false })
-    draws: boolean;
+    @Column({ type: 'int', nullable: false })
+    draws: number;
 
     @Column({ type: 'int', nullable: false })
     total_games: number;
