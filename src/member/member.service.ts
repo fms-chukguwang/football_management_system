@@ -1,10 +1,18 @@
-import { BadRequestException, Inject, Injectable, forwardRef } from '@nestjs/common';
+import {
+    BadRequestException,
+    Inject,
+    Injectable,
+    NotFoundException,
+    forwardRef,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Member } from './entities/member.entity';
 import { Repository } from 'typeorm';
 import { UpdateMemberInfoDto } from './dtos/update-member-info-dto';
 import { UserService } from 'src/user/user.service';
 import { TeamService } from 'src/team/team.service';
+import { EmailService } from 'src/email/email.service';
+import { SendJoiningEmailDto } from './dtos/send-joining-email.dto';
 
 @Injectable()
 export class MemberService {
@@ -14,6 +22,7 @@ export class MemberService {
         private readonly userService: UserService,
         @Inject(forwardRef(() => TeamService))
         private readonly teamService: TeamService,
+        private readonly eamilService: EmailService,
     ) {}
 
     /**
@@ -207,14 +216,24 @@ export class MemberService {
     }
 
     async sendJoiningEmail(userId: number, teamId: number) {
-        /**
-         * 팀 신청시 이메일전송
-         * 1) 사용자가 팀 가입 버튼을 클릭시 요청함
-         * 2) 팀 id가 있어야함 + userId
-         * 3) 팀 id로 구단주를 검색후 구단주의 이메일을 가져온다.
-         * 4) 팀 장에게 요청한 사용자에 대하여 담아서 수락이메일을 보낸다.
-         */
         const findTeam = await this.teamService.getTeamDetail(teamId);
-        console.log(findTeam);
+
+        if (!findTeam) {
+            throw new NotFoundException('요청하신 팀이 존재하지 않습니다.');
+        }
+
+        const reqUser = await this.userService.findOneById(userId);
+        /**
+         * 요청할때 정보
+         * 요청자의 아이디 , email , 이름
+         */
+        const reqeustEmail: SendJoiningEmailDto = {
+            id: reqUser.id,
+            email: reqUser.email,
+            name: reqUser.name,
+        };
+
+        //await this.eamilService.sendTeamJoinEmail(reqeustEmail, findTeam);
+        await this.eamilService.sendTeamJoinEmail(reqeustEmail, findTeam);
     }
 }
