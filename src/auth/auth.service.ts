@@ -181,15 +181,17 @@ export class AuthService {
         }
     }
 
-    async OAuthLogin({ req, res }) {
-        let user = await this.userService.findOneByEmail(req.user.email);
+    async OAuthLogin(req, res) {
+        console.log(req);
+        const user = await this.userRepository.findOne({
+            where: { email: req.user.email },
+        });
 
         if (!user) {
-            await this.userRepository.create({ ...req.user });
+            await this.userRepository.create(req.user);
         }
-
+        console.log(user);
         this.setRefreshToken(user.id, res);
-        res.redirect('리다이렉트할 url주소');
     }
 
     // 이메일에서 수락버튼시 사용하는 token으로 수락 유효기간(3일)에 맞게 해둠

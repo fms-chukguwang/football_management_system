@@ -12,6 +12,7 @@ import {
   Get,
   Query,
   UseInterceptors,
+  Redirect,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignUpDto } from './dtos/sign-up.dto';
@@ -51,42 +52,13 @@ export class AuthController {
    * @param req
    * @returns
    */
-   @Get('/kakao/callback')
-  async getKakaoInfo(@Query('code') code: string, @Res() res: Response) {
-    try {
-      const tokenResponse = await axios.post(
-        'https://kauth.kakao.com/oauth/token',
-        {
-          grant_type: 'authorization_code',
-          client_id: process.env.KAKAO_API_KEY,
-          redirect_uri: process.env.KAKAO_CALLBACK_URL,
-          code: code,
-        },
-      );
-      const accessToken = tokenResponse.data.access_token;
-      const userInfoResponse = await axios.get(
-        'https://kapi.kakao.com/v2/user/me',
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
-      const userData: IOAuthUser = userInfoResponse.data;
+@Get('/kakao/callback')
+@UseGuards(AuthGuard('kakao'))
+async getKakaoInfo(@Query('code') code: string, @Req() req, @Res() res: Response) {
+ this.authService.OAuthLogin(req,res);
 
-      return {
-        statusCode: HttpStatus.CREATED,
-        message: '카카오 로그인에 성공했습니다.',
-        data: userData,
-      };
-    } catch (error) {
-      console.error('Kakao login error:', error);
-      return {
-        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: '카카오 로그인 중 오류가 발생했습니다.',
-      };
-    }
-  }
+}
+
 
 
   /**
@@ -94,10 +66,10 @@ export class AuthController {
    * @param req
    * @returns
    */
-  @Get('/kakao')
+   @Get('kakao')
+   @UseGuards(AuthGuard('kakao'))
   async loginWithKakao(@Res() res: Response) {
-    const url = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${process.env.KAKAO_API_KEY}&redirect_uri=${process.env.KAKAO_CALLBACK_URL}`;
-    res.redirect(url);
+
   }
 
   /**
