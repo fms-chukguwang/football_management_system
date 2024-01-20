@@ -40,7 +40,7 @@ export class UserService {
     const user = await this.userRepository.findOneBy({ email });
 
     if (!user) {
-      throw new NotFoundException(`임메일을 찾을수 없습니다`);
+      throw new NotFoundException(`이메일을 찾을수 없습니다`);
     }
 
     return user;
