@@ -146,11 +146,11 @@ export class User {
     })
     team: TeamModel;
 
-    @OneToOne(() => Member, (member) => member.user)
-    member: Member;
-
     @OneToOne(() => Profile, (profile) => profile.user)
     profile: Profile;
+
+    @OneToMany(() => Member, (member) => member.user)
+    member: Member[];
 
     @Column()
     deletedAt: Date;

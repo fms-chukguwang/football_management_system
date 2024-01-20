@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TeamService } from './team.service';
 import { TeamController } from './team.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -12,8 +12,9 @@ import { MemberModule } from 'src/member/member.module';
         TypeOrmModule.forFeature([TeamModel]),
         AwsModule,
         LocationModule,
-        MemberModule,
+        forwardRef(() => MemberModule),
     ],
+    exports: [TeamService],
     controllers: [TeamController],
     providers: [TeamService],
 })
