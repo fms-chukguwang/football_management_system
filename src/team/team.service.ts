@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AwsService } from 'src/aws/aws.service';
 import { LocationService } from 'src/location/location.service';
@@ -16,6 +16,7 @@ export class TeamService {
         private readonly teamRepository: Repository<TeamModel>,
         private readonly awsService: AwsService,
         private readonly locationService: LocationService,
+        @Inject(forwardRef(() => MemberService))
         private readonly memberService: MemberService,
     ) {}
 
@@ -88,6 +89,8 @@ export class TeamService {
             },
             select: {
                 creator: {
+                    id: true,
+                    email: true,
                     name: true,
                 },
             },
