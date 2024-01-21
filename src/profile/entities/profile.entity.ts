@@ -10,6 +10,8 @@ import {
 import { UserStatus } from '../../enums/user-status.enum';
 import { Gender } from '../../enums/gender.enum';
 import {
+  BeforeInsert,
+    BeforeUpdate,
     Column,
     CreateDateColumn,
     Entity,
@@ -124,6 +126,19 @@ export class Profile {
      * 선수 이름
      * @example "김메시"
      */
+     @IsString()
+     @Column()
+     name: string;
+
+
+     @BeforeInsert()
+     @BeforeUpdate()
+     async generateUserName() {
+       if (this.user) {
+         // Profile에 연결된 User가 존재하면 User의 이름을 가져와서 user_name 속성에 할당
+         this.name = this.user.name;
+       }
+     }
 
     @CreateDateColumn()
     createdAt: Date;
