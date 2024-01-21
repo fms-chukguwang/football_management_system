@@ -1,7 +1,8 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { BaseModel } from '../../common/entities/base.entity';
 import { TeamModel } from '../../team/entities/team.entity';
 import { User } from '../../user/entities/user.entity';
+import { PlayerStats } from 'src/match/entities/player-stats.entity';
 
 @Entity('members')
 export class Member extends BaseModel {
