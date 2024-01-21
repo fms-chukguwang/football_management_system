@@ -6,6 +6,7 @@ import { MemberController } from './member.controller';
 import { MemberService } from './member.service';
 import { UserModule } from 'src/user/user.module';
 import { TeamModule } from 'src/team/team.module';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
     imports: [
@@ -13,6 +14,7 @@ import { TeamModule } from 'src/team/team.module';
         AuthModule,
         UserModule,
         forwardRef(() => TeamModule),
+        EmailModule,
     ],
     controllers: [MemberController],
     providers: [MemberService],

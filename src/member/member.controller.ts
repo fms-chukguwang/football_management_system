@@ -9,6 +9,7 @@ import {
     Patch,
     Req,
     ParseIntPipe,
+    Get,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -136,6 +137,11 @@ export class MemberController {
         };
     }
 
+    /**
+     * 구단 입단시 이메일로 요청하기
+     * @param req
+     * @param teamId
+     */
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @Post('/team/:teamId')
@@ -151,5 +157,42 @@ export class MemberController {
          * 4) 팀 장에게 요청한 사용자에 대하여 담아서 수락이메일을 보낸다.
          *
          */
+    }
+
+    /**
+     * 회원 수락 api
+     * @param teamId
+     * @param userId
+     * @returns
+     */
+    @ApiBearerAuth()
+    @Post('/team/:teamId/user/:userId/approve')
+    async approveMember(@Param('teamId') teamId: number, @Param('userId') userId: number) {
+        const result = await this.memberService.registerMember(teamId, userId);
+        return `
+        <html>
+            <head>
+                <title>회원 수락</title>
+            </head>
+            <body>
+                <h1>회원 수락 처리 완료</h1>
+                <p>${result}</p>
+            </body>
+        </html>
+    `;
+    }
+
+    /**
+     * 회원 거절 api
+     * @param teamId
+     * @param userId
+     * @returns
+     */
+    @ApiBearerAuth()
+    @Post('/team/:teamId/user/:userId/reject')
+    async rejectMember(@Param('teamId') teamId: number, @Param('userId') userId: number) {
+        const result = await this.memberService.rejectJoiningEamil(teamId, userId);
+        return `거절 처리되었습니다.
+    `;
     }
 }
