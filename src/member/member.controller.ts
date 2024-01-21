@@ -159,10 +159,40 @@ export class MemberController {
          */
     }
 
+    /**
+     * 회원 수락 api
+     * @param teamId
+     * @param userId
+     * @returns
+     */
     @ApiBearerAuth()
-    @Post('/team/:teamId/test/:userId')
+    @Post('/team/:teamId/user/:userId/approve')
     async approveMember(@Param('teamId') teamId: number, @Param('userId') userId: number) {
-        await this.memberService.registerMember(teamId, userId);
-        return '수락 완료되엇씁니다.';
+        const result = await this.memberService.registerMember(teamId, userId);
+        return `
+        <html>
+            <head>
+                <title>회원 수락</title>
+            </head>
+            <body>
+                <h1>회원 수락 처리 완료</h1>
+                <p>${result}</p>
+            </body>
+        </html>
+    `;
+    }
+
+    /**
+     * 회원 거절 api
+     * @param teamId
+     * @param userId
+     * @returns
+     */
+    @ApiBearerAuth()
+    @Post('/team/:teamId/user/:userId/reject')
+    async rejectMember(@Param('teamId') teamId: number, @Param('userId') userId: number) {
+        const result = await this.memberService.rejectJoiningEamil(teamId, userId);
+        return `거절 처리되었습니다.
+    `;
     }
 }

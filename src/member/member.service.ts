@@ -215,6 +215,12 @@ export class MemberService {
         return updatedMember;
     }
 
+    /**
+     * 구단에게 입단 요청하기
+     * @param userId
+     * @param teamId
+     * @returns
+     */
     async sendJoiningEmail(userId: number, teamId: number) {
         const findTeam = await this.teamService.getTeamDetail(teamId);
 
@@ -233,7 +239,17 @@ export class MemberService {
             name: reqUser.name,
         };
 
-        //await this.eamilService.sendTeamJoinEmail(reqeustEmail, findTeam);
-        await this.eamilService.sendTeamJoinEmail(reqeustEmail, findTeam);
+        const sendResult = await this.eamilService.sendTeamJoinEmail(reqeustEmail, findTeam);
+
+        return sendResult;
+    }
+
+    async rejectJoiningEamil(teamId: number, userId: number) {
+        const findTeam = await this.teamService.getTeamDetail(teamId);
+        const findUser = await this.userService.findOneById(userId);
+
+        const rejectResult = this.eamilService.sendTeamRejectEmail(findTeam.name, findUser);
+
+        return rejectResult;
     }
 }

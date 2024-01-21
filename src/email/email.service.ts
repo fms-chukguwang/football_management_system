@@ -1,14 +1,16 @@
-import { HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
-import { randomBytes } from 'crypto';
-import { promisify } from 'util';
-import { Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EmailVerification } from '../email/entities/email.entity';
-import { AuthService } from '../auth/auth.service';
+import { randomBytes } from 'crypto';
+import * as nodemailer from 'nodemailer';
 import { EmailRequest } from 'src/match/dtos/email-request.dto';
 import { SendJoiningEmailDto } from 'src/member/dtos/send-joining-email.dto';
 import { TeamModel } from 'src/team/entities/team.entity';
+import { User } from 'src/user/entities/user.entity';
+import { Repository } from 'typeorm';
+import { promisify } from 'util';
+import { AuthService } from '../auth/auth.service';
+import { EmailVerification } from '../email/entities/email.entity';
+import { joinTeamHtml, rejectTeamHtml } from './html/email.html';
 
 const randomBytesAsync = promisify(randomBytes);
 
@@ -255,27 +257,40 @@ export class EmailService {
         return `${year}-${formatNumber(month)}-${formatNumber(date)} ${formatNumber(hours)}:${formatNumber(minutes)}:${seconds}`;
     }
 
+    /**
+     * 구단에게 입단 요청하기
+     * @param from
+     * @param recipient
+     */
     async sendTeamJoinEmail(from: SendJoiningEmailDto, recipient: TeamModel) {
-        const htmlContent = `
-          <p>안녕하세요, ${recipient.creator.name} 님</p>
-          <p>${from.name} 회원님이 ${recipient.name} 구단에 입단 신청을 했습니다.</p>
-          <p>수락하시겠습니까?</p>
-
-          <form action="http://localhost:3001/api/team/${recipient.id}/test/${from.id}" method="POST">
-          <button style="background-color: #4CAF50; color: white; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; border-radius: 5px; cursor: pointer;">수락</button>
-          <button style="background-color: #4CAF50; color: white; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; border-radius: 5px; cursor: pointer;">거절</button>
-          </from>
-        `;
-
         const mailOptions = {
             from: process.env.EMAIL_USER, // 발신자 이메일
             to: recipient.creator.email,
             subject: `${from.name}님의 구단 입단 신청입니다.`,
-            html: htmlContent, // HTML 형식의 메일 내용
+            html: joinTeamHtml(from, recipient), // HTML 형식의 메일 내용
         };
 
         try {
             const info = await this.transporter.sendMail(mailOptions);
+            console.log('메일 전송 성공');
+            return info;
+        } catch (error) {
+            console.error('Error sending email:', error);
+        }
+    }
+
+    async sendTeamRejectEmail(temaName: string, user: User) {
+        const mailOptions = {
+            from: process.env.EMAIL_USER, // 발신자 이메일
+            to: user.email,
+            subject: `${temaName} 구단 입단신청이 거절되었습니다.`,
+            html: rejectTeamHtml(temaName, user), // HTML 형식의 메일 내용
+        };
+
+        try {
+            const info = await this.transporter.sendMail(mailOptions);
+            console.log('메일 전송 성공');
+            return info;
         } catch (error) {
             console.error('Error sending email:', error);
         }
