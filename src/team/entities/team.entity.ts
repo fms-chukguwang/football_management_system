@@ -16,6 +16,7 @@ import { Gender } from '../../enums/gender.enum';
 import { Transform } from 'class-transformer';
 import { Member } from '../../member/entities/member.entity';
 import { Factory } from 'nestjs-seeder';
+import { Match } from 'src/match/entities/match.entity';
 
 
 @Entity('team')
