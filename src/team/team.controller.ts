@@ -3,6 +3,7 @@ import {
     Controller,
     Get,
     HttpStatus,
+    NotFoundException,
     Param,
     Post,
     Req,
@@ -47,8 +48,26 @@ export class TeamController {
         return { status: HttpStatus.OK, success: true };
     }
 
+     /**
+     * 팀 상세조회
+     * @param req
+     */
     @Get(':teamId')
     getTeamDetail(@Param('teamId') teamId: number) {
         return this.teamService.getTeamDetail(teamId);
     }
+
+     /**
+     * 팀 전체조회
+     * @param req
+     */
+      @Get()
+      async getEveryTeams() {
+        const teams = await this.teamService.getTeams();
+        if (!teams) {
+          throw new NotFoundException('팀을 찾을 수 없습니다.');
+        }
+    
+        return teams;
+      }
 }

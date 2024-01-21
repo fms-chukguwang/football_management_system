@@ -150,7 +150,9 @@ export class User {
     member: Member;
 
     @OneToOne(() => Profile, (profile) => profile.user)
+    @JoinColumn()
     profile: Profile;
+    
 
     @Column()
     deletedAt: Date;

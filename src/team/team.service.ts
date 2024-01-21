@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+    BadRequestException,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { CreateTeamDto } from './dtos/create-team.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TeamModel } from './entities/team.entity';
@@ -116,4 +120,12 @@ export class TeamService {
             },
         });
     }
+
+    /**
+     * 팀 전체조회
+     * @returns
+     */
+     async getTeams(): Promise<TeamModel[]> {
+        return this.teamRepository.find();
+      }
 }

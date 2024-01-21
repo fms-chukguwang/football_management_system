@@ -1,87 +1,45 @@
-import { IsString, IsEmail, IsOptional, IsEnum } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber } from 'class-validator';
 import { Gender } from 'src/enums/gender.enum';
 import { Position } from 'src/user/types/position.type';
 
 export class RegisterProfileInfoDto {
-  /**
-   * 이름
-   * @example "김메시"
-   */
-
-  @IsString()
-  @IsOptional()
-  name: string;
-
-    /**
+ /**
    * 포지션
-   * @example "우측 윙어"
+   * @example "Center Back"
    */
-     @IsEnum(Position)
-     @IsOptional()
-     preferred_position: Position;
-
-     
-  /**
-   * 실력
-   * @example "9"
-   */
-  @IsOptional()
-  skill_level: number;
+  @IsEnum(Position, { message: 'Please provide a valid position value' })
+  @IsNotEmpty({ message: 'Preferred position is required' })
+  preferredPosition: Position;
 
   /**
    * 몸무게
-   * @example "59"
+   * @example 59
    */
-  @IsOptional()
+  @IsNumber()
+  @IsNotEmpty({ message: 'Please provide weight' })
   weight: number;
 
   /**
    * 키
-   * @example "159"
+   * @example 159
    */
-  @IsOptional()
+  @IsNumber()
+  @IsNotEmpty({ message: 'Please provide height' })
   height: number;
 
   /**
-   * 사진 url
-   * @example "사진url"
-   */
-  @IsOptional()
-  @IsString()
-  imageUrl: string;
-
-  /**
    * 나이
-   * @example "18"
+   * @example 18
    */
-  @IsOptional()
+  @IsNumber()
+  @IsNotEmpty({ message: 'Please provide age' })
   age: number;
-
-  /**
-   * 휴대폰 번호
-   * @example "010-000-0000"
-   */
-  @IsString()
-  @IsOptional()
-  @IsString()
-  phone: string;
-
-  /**
-   * 생년월일
-   * @example "7001010"
-   */
-  @IsOptional()
-  birthdate: Date;
 
   /**
    * 성별
    * @example "Male"
    */
-  @IsOptional()
+  @IsEnum(Gender, { message: 'Please provide a valid gender value' })
+  @IsNotEmpty({ message: 'Please provide gender' })
   gender: Gender;
-
-  /**
-   * 위치
-   * @example "Location_id"
-   */
 }
