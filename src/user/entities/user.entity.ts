@@ -147,7 +147,9 @@ export class User {
     team: TeamModel;
 
     @OneToOne(() => Profile, (profile) => profile.user)
+    @JoinColumn()
     profile: Profile;
+    
 
     @OneToMany(() => Member, (member) => member.user)
     member: Member[];

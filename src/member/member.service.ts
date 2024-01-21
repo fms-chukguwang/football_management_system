@@ -25,6 +25,28 @@ export class MemberService {
         private readonly eamilService: EmailService,
     ) {}
 
+    async findAllPlayers() {
+        const Players = await this.memberRepository.find({
+            relations: ['user', 'user.profile', 'team'], 
+          });
+        if (!Players) {
+            throw new NotFoundException('선수를 찾을 수 없습니다.');
+        }
+
+        return Players;
+    }
+
+    async findOneById(id: number) {
+        const Player = await this.memberRepository.findOneBy({ id });
+        console.log('Player=', Player);
+
+        if (!Player) {
+            throw new NotFoundException('선수를 찾을 수 없습니다.');
+        }
+
+        return Player;
+    }
+
     /**
      * 멤버 팀에 추가하기
      * @param userId

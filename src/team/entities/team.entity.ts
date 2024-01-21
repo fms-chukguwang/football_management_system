@@ -75,7 +75,7 @@ export class TeamModel extends BaseModel {
     gender: Gender;
 
     /**
-     * 팀 구장
+     * 팀 활동범위
      */
     @ManyToOne(() => LocationModel, (location) => location.team, {
         cascade: true,

@@ -35,36 +35,36 @@ export class Profile {
 
     /**
      * 실력
-     * @example "9"
+     * @example 9
      */
     @Column({ nullable: true })
-    skill_level: number;
+    skillLevel: number;
 
     /**
      * 몸무게
-     * @example "59"
+     * @example 59
      */
     @Column({ nullable: true })
     weight: number;
 
     /**
      * 키
-     * @example "159"
+     * @example 159
      */
     @Column({ nullable: true })
     height: number;
 
     /**
-     * 포지션
-     * @example "우측 윙어"
-     */
+   * 포지션
+   * @example "Attacking Midfielder"
+   */
     @IsEnum(Position)
     @Column({
         type: 'enum',
         enum: Position,
         default: Position.AttackingMidfielder,
     })
-    preferred_position: Position;
+    preferredPosition: Position;
 
     /**
      * 사진 url
@@ -76,7 +76,7 @@ export class Profile {
 
     /**
      * 나이
-     * @example "18"
+     * @example 18
      */
     @Column({ nullable: true })
     age: number;
@@ -116,21 +116,22 @@ export class Profile {
 
     /**
      * 유저 아이디
-     * @example "1"
+     * @example 1
      */
-    @OneToOne(() => User, (user) => user.profile)
-    @JoinColumn()
-    user: User;
+     @OneToOne(() => User, (user) => user.profile)
+     @JoinColumn()
+     user: User;
 
     /**
      * 선수 이름
      * @example "김메시"
      */
-    @IsString()
-    @Column({ nullable: true })
-    name: string;
+     @IsString()
+     @Column()
+     name: string;
 
-    @BeforeInsert()
+
+     @BeforeInsert()
      @BeforeUpdate()
      async generateUserName() {
        if (this.user) {
@@ -145,6 +146,6 @@ export class Profile {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @Column()
+    @Column({ type: 'timestamp', nullable: true, default: null })
     deletedAt: Date;
 }
