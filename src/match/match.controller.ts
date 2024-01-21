@@ -14,7 +14,10 @@ import { createPlayerStatsDto } from './dtos/player-stats.dto';
 @ApiTags('예약')
 @Controller('match')
 export class MatchController {
-    constructor(private readonly matchService: MatchService) {}
+    constructor(
+        private readonly matchService: MatchService
+        
+        ) {}
 
     /**
      * 예약 생성 요청
@@ -50,6 +53,47 @@ export class MatchController {
           statusCode: HttpStatus.CREATED,
           success: true,
           data,
+        };
+    }
+
+    /**
+     * 구단주 검증
+     * @param req
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get('/creator')
+    async verifyTeamCreator(@Request() req) {
+        const userId = req.user.id;
+
+        console.log(`userId: ${userId}`);
+
+        const data = await this.matchService.verifyTeamCreator(userId);
+    
+        return {
+            statusCode: HttpStatus.OK,
+            success: true,
+            data
+        };
+    }
+
+    /**
+     * 경기장 조회
+     * @param req
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get('/field')
+    async findAllSoccerField() {
+
+        const data = await this.matchService.findAllSoccerField();
+    
+        return {
+            statusCode: HttpStatus.OK,
+            success: true,
+            data
         };
     }
 

@@ -3,6 +3,8 @@
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
+    JoinColumn,
+    ManyToOne,
     OneToMany,
     OneToOne,
     PrimaryGeneratedColumn,
@@ -10,6 +12,7 @@
   } from 'typeorm';
 import { MatchResult } from './match-result.entity';
 import { PlayerStats } from './player-stats.entity';
+import { TeamModel } from 'src/team/entities/team.entity';
   
   @Entity('matches')
   export class Match {
@@ -23,6 +26,14 @@ import { PlayerStats } from './player-stats.entity';
     // Match와 PlayerStats 간의 1대N 관계를 설정
     @OneToMany(() => PlayerStats, (playerstats) => playerstats.match)
     playerstats: PlayerStats;
+
+    @ManyToOne(() => TeamModel,(team) => team.homeMatch)
+    @JoinColumn({ name: 'home_team_id' })
+    hometeam: TeamModel;
+
+    @ManyToOne(() => TeamModel,(team) => team.awayMatch)
+    @JoinColumn({ name: 'away_team_id' })
+    awayteam: TeamModel;
 
     @Column({ type: 'int', nullable: false })
     owner_id: number;

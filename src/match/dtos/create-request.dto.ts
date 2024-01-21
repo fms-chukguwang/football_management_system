@@ -20,7 +20,7 @@ export class createRequestDto {
 
     /**
      * 홈팀
-     * @example 15
+     * @example 1
      */
     @IsNumber()
     @IsNotEmpty({ message: '홈팀을 입력해주세요.' })
@@ -28,7 +28,7 @@ export class createRequestDto {
 
     /**
      * 어웨이팀
-     * @example 12
+     * @example 2
      */
     @IsNumber()
     @IsNotEmpty({ message: '어웨이팀을 입력해주세요.' })
