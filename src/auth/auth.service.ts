@@ -42,10 +42,6 @@ export class AuthService {
         return { newAccessToken, newRefreshToken };
     }
 
-    async setRefreshToken(userId: number, token: string) {
-        return await this.saveRefreshTokenToRedis(userId, token);
-    }
-
     private generateAccessToken(userId: number): string {
         const accessToken = this.jwtService.sign({ id: userId });
         return accessToken;
@@ -59,16 +55,10 @@ export class AuthService {
                 expiresIn: '7d',
             },
         );
-        await this.saveRefreshTokenToRedis(userId, newRefreshToken);
+        await this.redisService.setRefreshToken(userId, newRefreshToken);
         return newRefreshToken;
     }
 
-    async saveRefreshTokenToRedis(
-        userId: number,
-        refreshToken: string,
-    ): Promise<void> {
-        return await this.redisService.setRefreshToken(userId, refreshToken);
-    }
 
     async getRefreshTokenFromRedis(userId: number): Promise<string | null> {
         return await this.redisService.getRefreshToken(userId);
@@ -181,39 +171,42 @@ export class AuthService {
         }
     }
 
-    async OAuthLogin(req, res) {
-        console.log("req.user=",req.user);
+    async OAuthLogin(req) {
         if (!req.user || !req.user.email) {
             // 유효한 사용자 정보가 없는 경우에 대한 예외 처리
-            return res
-                .status(400)
-                .json({ message: 'Invalid user information' });
+            return false;
         }
-
+    
         const user = await this.userRepository.findOne({
             where: { email: req.user.email },
         });
-        console.log("user=",user);
+        console.log("user=", user);
+    
         if (user) {
             const { newAccessToken, newRefreshToken } = await this.refreshToken(
                 user.id,
             );
-            return res.json({
-                accessToken: newAccessToken,
-                refreshToken: newRefreshToken,
-            });
+    
+            // 리다이렉션 true
+            return true;
         }
+    
         const savedUser = await this.userRepository.save({
             email: req.user.email,
             name: req.user.name,
             is_social_login_user: true,
         });
-        console.log("saved user=",savedUser);
-        // 신규 사용자에 대한 처리
-        this.setRefreshToken(savedUser.id, res);
-
-        return res.status(201).json(savedUser);
+        console.log("saved user=", savedUser);
+    
+        // 신규 사용자에 대한 처리 
+        const refreshToken = await this.generateRefreshToken(savedUser.id); 
+        this.redisService.setRefreshToken(savedUser.id, refreshToken );
+    
+        // 신규 사용자인 경우 리다이렉션을 하지 않도록 false 반환
+        return false;
     }
+    
+    
 
     // 이메일에서 수락버튼시 사용하는 token으로 수락 유효기간(3일)에 맞게 해둠
     generateAccessEmailToken(userId: number): string {

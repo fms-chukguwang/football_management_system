@@ -82,6 +82,6 @@ export class UserService {
     }
 
     // Soft delete 처리
-    await this.userRepository.softDelete(user);
+    return await this.userRepository.softDelete({ id });
   }
 }

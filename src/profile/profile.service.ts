@@ -1,6 +1,7 @@
 import {
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile } from './entities/profile.entity';
@@ -50,34 +51,21 @@ export class ProfileService {
   }
 
   async registerProfile(
-    userId: number,
+    id: number,
     registerProfileInfoDto: RegisterProfileInfoDto,
-  ): Promise<Profile> {
-    try {
-      const user = await this.userRepository.findOne({ where: { id: userId }, relations: ['profile'] });
-
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-
-      if (!user.profile) {
-        user.profile = new Profile();
-      }
-      user.profile.name = user.name;
-      user.profile.preferredPosition = registerProfileInfoDto.preferredPosition;
-      user.profile.weight = registerProfileInfoDto.weight;
-      user.profile.height = registerProfileInfoDto.height;
-      user.profile.age = registerProfileInfoDto.age;
-      user.profile.gender = registerProfileInfoDto.gender;
-
-      const registeredProfile = await this.profileRepository.save(user.profile);
-      console.log(registeredProfile);
-      return registeredProfile;
-    } catch (error) {
-      console.error('Error updating profile info:', error.message);
-      throw new Error('Failed to update profile info');
+): Promise<Profile> {
+    const existingUser = await this.userRepository.findOneBy({ id });
+    if (!existingUser) {
+        throw new UnauthorizedException('로그인을 해주세요');
     }
-  }
+
+    const profile = await this.profileRepository.save({
+        ...registerProfileInfoDto,
+        user: existingUser,
+    });
+    return profile;
+
+}
 
   async updateProfileInfo(
     userId: number,
