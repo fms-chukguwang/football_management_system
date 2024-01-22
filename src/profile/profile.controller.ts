@@ -45,15 +45,9 @@ export class ProfileController {
      */
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @Post()
-    async registerprofile(
-        @Request() req,
-        @Body() registerProfileInfoDto: RegisterProfileInfoDto,
-    ) {
-        const data = await this.profileService.registerProfile(
-            req.user.id,
-            registerProfileInfoDto,
-        );
+    @Post(':userId/register')
+    async registerprofile(@Request() req, @Body() registerProfileInfoDto: RegisterProfileInfoDto) {
+        const data = await this.profileService.registerProfile(req.user.id, registerProfileInfoDto);
 
         return {
             statusCode: HttpStatus.OK,
@@ -71,14 +65,8 @@ export class ProfileController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @Put(':teamId/:profileId')
-    async updateprofileInfo(
-        @Request() req,
-        @Body() updateProfileInfoDto: UpdateProfileInfoDto,
-    ) {
-        const data = await this.profileService.updateProfileInfo(
-            req.user.id,
-            updateProfileInfoDto,
-        );
+    async updateprofileInfo(@Request() req, @Body() updateProfileInfoDto: UpdateProfileInfoDto) {
+        const data = await this.profileService.updateProfileInfo(req.user.id, updateProfileInfoDto);
 
         return {
             statusCode: HttpStatus.OK,
