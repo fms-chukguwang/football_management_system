@@ -1,6 +1,6 @@
 import { BadRequestException, HttpException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, DataSource, Repository } from 'typeorm';
+import { Brackets, DataSource, Not, Repository, getRepository } from 'typeorm';
 import { createMatchDto } from './dtos/create-match.dto';
 import { Match } from './entities/match.entity';
 import { updateMatchDto } from './dtos/update-match.dto';
@@ -87,7 +87,7 @@ export class MatchService {
             awayTeamId:createrequestDto.awayTeamId,
             fieldId:createrequestDto.fieldId,
             senderName: `${homeCreator[0].name} 구단주`,
-            url: `http://localhost:3000/api/match/book/accept`,
+            url: `http://localhost:3001/api/match/book/accept`,
             chk: 'create',
             token:token
         };
@@ -193,7 +193,7 @@ export class MatchService {
             awayTeamId:0,
             fieldId:0,
             senderName: `${homeCreator[0].name} 구단주`,
-            url: `http://localhost:3000/api/match/${matchId}/update`,
+            url: `http://localhost:3001/api/match/${matchId}/update`,
             chk: 'update',
             token:token
         };
@@ -271,7 +271,7 @@ export class MatchService {
             awayTeamId:0,
             fieldId:0,
             senderName: `${homeCreator[0].name} 구단주`,
-            url: `http://localhost:3000/api/match/${matchId}/delete`,
+            url: `http://localhost:3001/api/match/${matchId}/delete`,
             chk: 'delete',
             token:token
         };
@@ -542,7 +542,7 @@ export class MatchService {
 
         const creator = await this.teamRepository
             .createQueryBuilder('team')
-            .select(['team.id', 'team.creator_id','team.name','team.location_id'])
+            .select(['team.id', 'team.creator_id','team.name','team.logoUrl','team.location_id'])
             .where(
                 'team.creator_id=:userId',
                 { userId },
@@ -745,6 +745,17 @@ export class MatchService {
     async findAllSoccerField() {
         const soccerField = await this.soccerFieldRepository.find({
 
+            relations: {
+                locationfield: true,
+            },
+            select: {
+                locationfield: {
+                    address: true,
+                    state: true,
+                    city: true,
+                    district: true,
+                },
+            },
         });
 
         if(!soccerField){
@@ -752,6 +763,62 @@ export class MatchService {
         }
 
         return soccerField;
+    }
+
+    /**
+     * 예약 가능 시간 조회
+     * @param  date
+     * @returns
+     */
+    async findAvailableTimes(date: string,locationId:number) {
+        const matches = await this.matchRepository.find({
+            where: { date },
+        });
+    
+        const times = ['10:00:00', '12:00:00', '14:00:00', '16:00:00', '18:00:00', '20:00:00'];
+        const availableTimes = times.map(time => {
+            const isBooked = matches.some(match => match.time === time && match.soccer_field_id===locationId);
+            return {
+                time,
+                status: isBooked ? '예약 불가' : '예약 가능'
+            };
+        });
+    
+        return availableTimes;
+    }
+
+    /**
+     * 구단주 전체 명단 조회
+     * @returns
+     */
+    async getTeamOwners(userId:number) {
+
+        const teamOwners = await this.teamRepository.find({
+
+            relations: {
+                creator: true,
+            },
+            select: {
+                creator: {
+                    id: true,
+                    email: true,
+                    name: true
+                },
+            },
+
+            where: {
+                creator: {
+                    id: Not(userId) 
+                }
+            },
+
+        });
+
+        if (!teamOwners) {
+            throw new BadRequestException('구단주 명단이 없습니다.');
+        }
+
+        return teamOwners;
     }
 
     async isMatchDetail(matchId: number,teamId:number) {

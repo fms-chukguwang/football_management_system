@@ -23,4 +23,19 @@ export class SoccerField extends BaseModel {
 
     @Column({ type: 'varchar', nullable: true })
     field_name: string;
+
+    @Column({ type: 'varchar', nullable: true })
+    image_url: string;
+
+    @Column({ type: 'varchar', nullable: true })
+    district: string;
+
+    @Column({ type: 'varchar', nullable: true })
+    phone_number: string;
+
+    @Column({ type: 'double', nullable: true })
+    x_coord: number;
+
+    @Column({ type: 'double', nullable: true })
+    y_coord: number;
 }
