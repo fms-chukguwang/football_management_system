@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile } from './entities/profile.entity';
-import { Repository } from 'typeorm';
+import { QueryRunner, Repository } from 'typeorm';
 import { RegisterProfileInfoDto } from './dtos/register-profile-info';
 import { User } from 'src/user/entities/user.entity';
 import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
@@ -46,37 +46,55 @@ export class ProfileService {
         return profile;
     }
 
+    getProfileRepository(qr?: QueryRunner) {
+        return qr ? qr.manager.getRepository<Profile>(Profile) : this.profileRepository;
+    }
+
+    getUserRepository(qr?: QueryRunner) {
+        return qr ? qr.manager.getRepository<User>(User) : this.userRepository;
+    }
+
     async registerProfile(
         userId: number,
         registerProfileInfoDto: RegisterProfileInfoDto,
+        qr?: QueryRunner,
     ): Promise<Profile> {
-        try {
-            const user = await this.userRepository.findOne({
-                where: { id: userId },
-                relations: ['profile'],
-            });
+        const profileRepository = this.getProfileRepository(qr);
+        const userRepository = this.getUserRepository(qr);
 
-            if (!user) {
-                throw new NotFoundException('User not found');
-            }
+        console.log('registerProfileInfoDto');
+        console.log(registerProfileInfoDto);
 
-            if (!user.profile) {
-                user.profile = new Profile();
-            }
-            user.profile.name = user.name;
-            user.profile.preferredPosition = registerProfileInfoDto.preferredPosition;
-            user.profile.weight = registerProfileInfoDto.weight;
-            user.profile.height = registerProfileInfoDto.height;
-            user.profile.age = registerProfileInfoDto.age;
-            user.profile.gender = registerProfileInfoDto.gender;
+        const user = await this.userRepository.findOne({
+            where: { id: userId },
+            relations: ['profile'],
+        });
 
-            const registeredProfile = await this.profileRepository.save(user.profile);
-            await this.userRepository.save({ ...user, profile: registeredProfile });
-            return registeredProfile;
-        } catch (error) {
-            console.error('Error updating profile info:', error.message);
-            throw new Error('Failed to update profile info');
+        if (!user) {
+            throw new NotFoundException('User not found');
         }
+
+        if (!user.profile) {
+            user.profile = new Profile();
+        }
+
+        // user.profile.name = user.name;
+        // user.profile.preferredPosition = registerProfileInfoDto.preferredPosition;
+        // user.profile.weight = registerProfileInfoDto.weight;
+        // user.profile.height = registerProfileInfoDto.height;
+        // user.profile.age = registerProfileInfoDto.age;
+        // user.profile.gender = registerProfileInfoDto.gender;
+        // user.profile.user = user;
+
+        const registeredProfile = await profileRepository.save({
+            ...registerProfileInfoDto,
+            name: user.name,
+            user,
+        });
+        // const registeredProfile = await profileRepository.save(user.profile);
+        // throw new Error('Method not implemented.');
+        await userRepository.save({ ...user, profile: registeredProfile });
+        return registeredProfile;
     }
 
     async updateProfileInfo(
