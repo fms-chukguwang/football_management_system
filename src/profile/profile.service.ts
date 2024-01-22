@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile } from './entities/profile.entity';
 import { QueryRunner, Repository } from 'typeorm';
