@@ -12,6 +12,7 @@ import { UserStatus } from '../../enums/user-status.enum';
 import {
     Column,
     CreateDateColumn,
+    DeleteDateColumn,
     Entity,
     JoinColumn,
     JoinTable,
@@ -26,7 +27,7 @@ import { Factory } from 'nestjs-seeder';
 import { hashPassword } from '../../helpers/password.helper';
 import { TeamModel } from '../../team/entities/team.entity';
 import { Member } from '../../member/entities/member.entity';
-import { Inject } from '@nestjs/common';
+import { Delete, Inject } from '@nestjs/common';
 import { RedisService } from 'nestjs-redis';
 import { Chats } from '../../chats/entities/chats.entity';
 import { Message } from '../../messages/entities/messages.entity';
@@ -146,15 +147,16 @@ export class User {
     })
     team: TeamModel;
 
-    @OneToOne(() => Member, (member) => member.user)
-    member: Member;
-
     @OneToOne(() => Profile, (profile) => profile.user)
     @JoinColumn()
     profile: Profile;
-    
 
-    @Column()
+    @OneToMany(() => Member, (member) => member.user)
+    member: Member[];
+
+    @DeleteDateColumn({
+        nullable: true,
+    })
     deletedAt: Date;
 
     @ManyToMany(() => Chats, (chat) => chat.users)

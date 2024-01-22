@@ -1,133 +1,129 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsArray, IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+
+export class userCountDto {
+
+  @IsNotEmpty({ message: '선수를 입력해주세요.' })
+  playerId: number;
+
+  @IsNotEmpty({ message: '횟수 입력해주세요.' })
+  count: number;
+}
+
+export class substitionsDto {
+
+  @IsNotEmpty({ message: '교체 투입선수를 입력해주세요.' })
+  inPlayerId: number;
+
+  @IsNotEmpty({ message: '교체후 들어간 선수 입력해주세요.' })
+  outPlayerId: number;
+
+}
+
 
 export class createMatchResultDto {
 
+    /**
+     * 골
+     * @example [{playerId:1,count:2},{playerId:2,count:1}]
+     */
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => userCountDto)
+    @IsOptional()
+    goals: userCountDto[];
 
     /**
-     * 홈팀 승점
-     * @example 3
+     * 코너킥
+     * @example 5
      */
     @IsNumber()
-    @IsNotEmpty({ message: '홈팀 승점을 입력해주세요.' }) 
-    homeWin: number;
+    @IsOptional()
+    @Transform(({ value }) => value ?? 0)
+    cornerKick: number;
 
     /**
-     * 홈팀 실점
-     * @example 1
+     * 레드카드
+     * @example []
+     */
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => userCountDto)
+    @IsOptional()
+    redCards: userCountDto[];
+
+    /**
+     * 옐로우카드
+     * @example [{playerId:3,count:1}]
+     */
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => userCountDto)
+    @IsOptional()
+    yellowCards: userCountDto[];
+
+    /**
+     * 교체
+     * @example [{playerId:2,count:1}]
+     */
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => substitionsDto)
+    @IsOptional()
+    substitions: substitionsDto[];
+
+    /**
+     * 선방
+     * @example [{playerId:3,count:1}]
+     */
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => userCountDto)
+    @IsOptional()
+    saves: userCountDto[];
+
+    /**
+     * 어시스트
+     * @example [{playerId:3,count:2},{playerId:2,count:1}]
+     */
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => userCountDto)
+    @IsOptional()
+    assists: userCountDto[];
+
+    /**
+     * 패스
+     * @example 150
      */
     @IsNumber()
-    @IsNotEmpty({ message: '홈팀 실점을 입력해주세요.' })
-    homeLose: number;
-
+    @IsOptional()
+    @Transform(({ value }) => value ?? 0)
+    passes: number;
+    
     /**
-     * 홈팀 무승부 여부
+     * 클린시트
      * @example false
      */
     @IsBoolean()
-    @IsNotEmpty({ message: '홈팀 무승부 여부를 입력해주세요.' })
-    homeDraw: boolean;
+    @IsNotEmpty({ message: '클린시트 여부를 입력해주세요.' })
+    cleanSheet: boolean;
 
     /**
-     * 홈팀 레드카드 수
+     * 패널티킥 
      * @example 0
      */
     @IsNumber()
-    @IsNotEmpty({ message: '홈팀 레드카드 수를 입력해주세요.' })
-    homeRedCards: number;
+    @IsOptional()
+    @Transform(({ value }) => value ?? 0)
+    penaltyKick: number;
 
     /**
-     * 홈팀 옐로우카드 수
-     * @example 1
+     * 프리킥
+     * @example 6
      */
     @IsNumber()
-    @IsNotEmpty({ message: '홈팀 옐로우카드 수를 입력해주세요.' })
-    homeYellowCards: number;
-
-    /**
-     * 홈팀 교체 수
-     * @example 3
-     */
-    @IsNumber()
-    @IsNotEmpty({ message: '홈팀 교체 수를 입력해주세요.' })
-    homeSubstitions: number;
-
-    /**
-     * 홈팀 선방 수
-     * @example 4
-     */
-    @IsNumber()
-    @IsNotEmpty({ message: '홈팀 선방 수를 입력해주세요.' })
-    homeSave: number;
-
-    /**
-     * 홈팀 가로채기 수
-     * @example 7
-     */
-    @IsNumber()
-    @IsNotEmpty({ message: '홈팀 가로채기 수를 입력해주세요.' })
-    homeIntercept: number;
-
-    /**
-     * 어웨이팀 승점
-     * @example 1
-     */
-    @IsNumber()
-    @IsNotEmpty({ message: '어웨이팀 승점을 입력해주세요.' }) 
-    awayWin: number;
-
-    /**
-     * 어웨이팀 실점
-     * @example 3
-     */
-    @IsNumber()
-    @IsNotEmpty({ message: '어웨이팀 실점을 입력해주세요.' })
-    awayLose: number;
-
-    /**
-     * 어웨이팀 무승부 여부
-     * @example false
-     */
-    @IsBoolean()
-    @IsNotEmpty({ message: '어웨이팀 무승부 여부를 입력해주세요.' })
-    awayDraw: boolean;
-
-    /**
-     * 어웨이팀 레드카드 수
-     * @example 0
-     */
-    @IsNumber()
-    @IsNotEmpty({ message: '어웨이팀 레드카드 수를 입력해주세요.' })
-    awayRedCards: number;
-
-    /**
-     * 어웨이팀 옐로우카드 수
-     * @example 0
-     */
-    @IsNumber()
-    @IsNotEmpty({ message: '어웨이팀 옐로우카드 수를 입력해주세요.' })
-    awayYellowCards: number;
-
-    /**
-     * 어웨이팀 교체 수
-     * @example 1
-     */
-    @IsNumber()
-    @IsNotEmpty({ message: '어웨이팀 교체 수를 입력해주세요.' })
-    awaySubstitions: number;
-
-    /**
-     * 어웨이팀 선방 수
-     * @example 4
-     */
-    @IsNumber()
-    @IsNotEmpty({ message: '어웨이팀 선방 수를 입력해주세요.' })
-    awaySave: number;
-
-    /**
-     * 어웨이팀 가로채기 수
-     * @example 7
-     */
-    @IsNumber()
-    @IsNotEmpty({ message: '어웨이팀 가로채기 수를 입력해주세요.' })
-    awayIntercept: number;
+    @IsOptional()
+    @Transform(({ value }) => value ?? 0)
+    freeKick: number;
   }

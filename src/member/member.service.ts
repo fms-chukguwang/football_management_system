@@ -1,21 +1,28 @@
 import {
     BadRequestException,
+    Inject,
     Injectable,
     NotFoundException,
-    UnauthorizedException,
+    forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { compare } from 'bcrypt';
 import { Member } from './entities/member.entity';
 import { Repository } from 'typeorm';
-import { RegisterMemberInfoDto } from './dtos/register-member-info';
 import { UpdateMemberInfoDto } from './dtos/update-member-info-dto';
+import { UserService } from 'src/user/user.service';
+import { TeamService } from 'src/team/team.service';
+import { EmailService } from 'src/email/email.service';
+import { SendJoiningEmailDto } from './dtos/send-joining-email.dto';
 
 @Injectable()
 export class MemberService {
     constructor(
         @InjectRepository(Member)
         private readonly memberRepository: Repository<Member>,
+        private readonly userService: UserService,
+        @Inject(forwardRef(() => TeamService))
+        private readonly teamService: TeamService,
+        private readonly eamilService: EmailService,
     ) {}
 
     async findAllPlayers() {
@@ -46,31 +53,12 @@ export class MemberService {
      * @param teamId
      * @returns
      */
-    async registerMember(
-        currentLoginUserId: number,
-        teamId: number,
-        userId: number,
-    ): Promise<Member> {
-        const findCurrentLoginMember = await this.findMember(
-            currentLoginUserId,
-            teamId,
-        );
-        if (!findCurrentLoginMember) {
-            throw new UnauthorizedException(
-                '해당 인원은 팀에 속해있지 않기때문에 팀원을 추가할수없습니다.',
-            );
-        }
-        if (!findCurrentLoginMember.isStaff) {
-            throw new UnauthorizedException(
-                '스태프만 팀원을 추가할수 있습니다.',
-            );
-        }
+    async registerMember(teamId: number, userId: number): Promise<Member> {
+        const user = await this.userService.findOneById(userId);
+        const existMember = await this.findMemberForUserId(user.id);
 
-        const existMember = await this.existMember(userId);
         if (existMember) {
-            throw new BadRequestException(
-                '해당 인원은 이미 팀에 참가하고 있습니다.',
-            );
+            throw new BadRequestException('해당 인원은 이미 팀에 참가하고 있습니다.');
         }
 
         const registerMember = await this.memberRepository.save({
@@ -91,7 +79,27 @@ export class MemberService {
      * @param teamId
      * @returns
      */
-    async findMember(userId: number, teamId: number): Promise<Member | null> {
+    async findMember(memberId: number, teamId: number): Promise<Member | null> {
+        return await this.memberRepository.findOne({
+            where: {
+                id: memberId,
+                team: {
+                    id: teamId,
+                },
+            },
+            relations: {
+                team: true,
+            },
+        });
+    }
+
+    /**
+     * 유저Id로 멤버찾기
+     * @param userId
+     * @param teamId
+     * @returns
+     */
+    async findMemberForUserId(userId: number, teamId?: number): Promise<Member | null> {
         return await this.memberRepository.findOne({
             where: {
                 user: {
@@ -112,12 +120,10 @@ export class MemberService {
      * @param userId
      * @returns
      */
-    async existMember(userId: number) {
+    async existMember(memberId: number) {
         return await this.memberRepository.exists({
             where: {
-                user: {
-                    id: userId,
-                },
+                id: memberId,
             },
         });
     }
@@ -129,27 +135,9 @@ export class MemberService {
      * @param userId
      * @returns
      */
-    async deleteMember(
-        currentLoginUserId: number,
-        teamId: number,
-        userId: number,
-    ) {
-        const findCurrentLoginMember = await this.findMember(
-            currentLoginUserId,
-            teamId,
-        );
-        if (!findCurrentLoginMember) {
-            throw new UnauthorizedException(
-                '해당 인원은 팀에 속해있지 않기때문에 팀원을 추가할수없습니다.',
-            );
-        }
-        if (!findCurrentLoginMember.isStaff) {
-            throw new UnauthorizedException(
-                '스태프만 팀원을 삭제할수 있습니다.',
-            );
-        }
-
+    async deleteMember(teamId: number, userId: number) {
         const findMember = await this.findMember(userId, teamId);
+
         if (!findMember) {
             throw new BadRequestException('존재하지 않은 팀원입니다.');
         }
@@ -157,7 +145,7 @@ export class MemberService {
             throw new BadRequestException('teamId가 일치하지 않습니다.');
         }
 
-        await this.memberRepository.delete({
+        await this.memberRepository.softDelete({
             id: findMember.id,
         });
 
@@ -170,27 +158,10 @@ export class MemberService {
      * @param currentLoginUserId
      * @param dto
      */
-    async updateIsStaff(
-        teamId: number,
-        currentLoginUserId: number,
-        dto: UpdateMemberInfoDto,
-    ) {
-        const findCurrentLoginMember = await this.findMember(
-            currentLoginUserId,
-            teamId,
-        );
-        if (!findCurrentLoginMember) {
-            throw new UnauthorizedException(
-                '해당 인원은 팀에 속해있지 않기때문에 팀원을 업데이트 할수가 없습니다.',
-            );
-        }
-        if (!findCurrentLoginMember.isStaff) {
-            throw new UnauthorizedException(
-                '스태프만 팀원의 권한을 부여할수 있습니다.',
-            );
-        }
-
-        const findMember = await this.findMember(dto.userId, teamId);
+    async updateIsStaff(teamId: number, memberId: number, dto: UpdateMemberInfoDto) {
+        const findMember = await this.findMember(memberId, teamId);
+        console.log(memberId, teamId);
+        console.log(findMember);
         if (!findMember) {
             throw new BadRequestException('해당 팀원이 존재하지 않습니다.');
         }
@@ -220,5 +191,87 @@ export class MemberService {
             },
             isStaff: true,
         });
+    }
+
+    /**
+     * 입단일 수정(스태프용)
+     * @param memberId
+     * @param teamId
+     * @param dto
+     * @returns
+     */
+    async updateStaffJoinDate(memberId: number, teamId: number, dto: UpdateMemberInfoDto) {
+        const findMember = await this.findMember(memberId, teamId);
+
+        if (!findMember) {
+            throw new BadRequestException('존재하지 않은 팀원입니다.');
+        }
+
+        const updatedMember = await this.memberRepository.update(
+            { id: memberId },
+            { joinDate: dto.joinDate },
+        );
+
+        return updatedMember;
+    }
+
+    /**
+     * 자기 입단일 수정하기
+     * @param memberId
+     * @param teamId
+     * @param dto
+     * @returns
+     */
+    async updateMemberJoinDate(memberId: number, teamId: number, dto: UpdateMemberInfoDto) {
+        const member = await this.findMemberForUserId(memberId, teamId);
+
+        if (!member) {
+            throw new BadRequestException('해당 팀에 해당 멤버가 존재하지 않습니다.');
+        }
+
+        const updatedMember = await this.memberRepository.update(
+            { id: member.id },
+            { joinDate: dto.joinDate },
+        );
+
+        return updatedMember;
+    }
+
+    /**
+     * 구단에게 입단 요청하기
+     * @param userId
+     * @param teamId
+     * @returns
+     */
+    async sendJoiningEmail(userId: number, teamId: number) {
+        const findTeam = await this.teamService.getTeamDetail(teamId);
+
+        if (!findTeam) {
+            throw new NotFoundException('요청하신 팀이 존재하지 않습니다.');
+        }
+
+        const reqUser = await this.userService.findOneById(userId);
+        /**
+         * 요청할때 정보
+         * 요청자의 아이디 , email , 이름
+         */
+        const reqeustEmail: SendJoiningEmailDto = {
+            id: reqUser.id,
+            email: reqUser.email,
+            name: reqUser.name,
+        };
+
+        const sendResult = await this.eamilService.sendTeamJoinEmail(reqeustEmail, findTeam);
+
+        return sendResult;
+    }
+
+    async rejectJoiningEamil(teamId: number, userId: number) {
+        const findTeam = await this.teamService.getTeamDetail(teamId);
+        const findUser = await this.userService.findOneById(userId);
+
+        const rejectResult = this.eamilService.sendTeamRejectEmail(findTeam.name, findUser);
+
+        return rejectResult;
     }
 }

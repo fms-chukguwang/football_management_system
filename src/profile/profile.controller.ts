@@ -9,6 +9,7 @@ import {
     UseGuards,
     Request,
     HttpStatus,
+    UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -16,6 +17,9 @@ import { ProfileService } from './profile.service';
 import { request } from 'express';
 import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
 import { RegisterProfileInfoDto } from './dtos/register-profile-info';
+import { QueryRunner } from 'typeorm';
+import { TransactionInterceptor } from 'src/common/interceptors/transaction.interceptor';
+import { qr } from 'src/common/decorators/qr.decorator';
 @ApiTags('프로필')
 @Controller('profile')
 export class ProfileController {
@@ -45,14 +49,17 @@ export class ProfileController {
      */
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @Post()
+    @UseInterceptors(TransactionInterceptor)
+    @Post(':userId/register')
     async registerprofile(
         @Request() req,
         @Body() registerProfileInfoDto: RegisterProfileInfoDto,
+        @qr() qr?: QueryRunner,
     ) {
         const data = await this.profileService.registerProfile(
             req.user.id,
             registerProfileInfoDto,
+            qr,
         );
 
         return {
@@ -71,14 +78,8 @@ export class ProfileController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @Put(':teamId/:profileId')
-    async updateprofileInfo(
-        @Request() req,
-        @Body() updateProfileInfoDto: UpdateProfileInfoDto,
-    ) {
-        const data = await this.profileService.updateProfileInfo(
-            req.user.id,
-            updateProfileInfoDto,
-        );
+    async updateprofileInfo(@Request() req, @Body() updateProfileInfoDto: UpdateProfileInfoDto) {
+        const data = await this.profileService.updateProfileInfo(req.user.id, updateProfileInfoDto);
 
         return {
             statusCode: HttpStatus.OK,

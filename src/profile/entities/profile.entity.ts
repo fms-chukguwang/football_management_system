@@ -10,7 +10,7 @@ import {
 import { UserStatus } from '../../enums/user-status.enum';
 import { Gender } from '../../enums/gender.enum';
 import {
-  BeforeInsert,
+    BeforeInsert,
     BeforeUpdate,
     Column,
     CreateDateColumn,
