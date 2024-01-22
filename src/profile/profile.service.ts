@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile } from './entities/profile.entity';
 import { Repository } from 'typeorm';
@@ -12,141 +9,139 @@ import { LocationModel } from 'src/location/entities/location.entity';
 
 @Injectable()
 export class ProfileService {
-  constructor(
-    @InjectRepository(Profile)
-    private readonly profileRepository: Repository<Profile>,
-    @InjectRepository(User) 
-    private readonly userRepository: Repository<User>,
-  ) {}
+    constructor(
+        @InjectRepository(Profile)
+        private readonly profileRepository: Repository<Profile>,
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>,
+    ) {}
 
-  async findAllProfiles() {
-    const profiles = await this.profileRepository.find();
+    async findAllProfiles() {
+        const profiles = await this.profileRepository.find();
 
-    if (!profiles || profiles.length === 0) {
-      throw new NotFoundException('프로필을 찾을 수 없습니다.');
-    }
-
-    return profiles;
-  }
-
-  async findOneById(id: number) {
-    const profile = await this.profileRepository.findOne({where:{id}});
-
-    if (!profile) {
-      throw new NotFoundException('프로필을 찾을 수 없습니다.');
-    }
-
-    return profile;
-  }
-
-  async findOneByName(name: string): Promise<Profile | null> {
-    const profile = await this.profileRepository.findOne({ where: { name } });
-
-    if (!profile) {
-      throw new NotFoundException(`이름을 찾을 수 없습니다.`);
-    }
-
-    return profile;
-  }
-
-  async registerProfile(
-    userId: number,
-    registerProfileInfoDto: RegisterProfileInfoDto,
-  ): Promise<Profile> {
-    try {
-      const user = await this.userRepository.findOne({ where: { id: userId }, relations: ['profile'] });
-
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-
-      if (!user.profile) {
-        user.profile = new Profile();
-      }
-      user.profile.name = user.name;
-      user.profile.preferredPosition = registerProfileInfoDto.preferredPosition;
-      user.profile.weight = registerProfileInfoDto.weight;
-      user.profile.height = registerProfileInfoDto.height;
-      user.profile.age = registerProfileInfoDto.age;
-      user.profile.gender = registerProfileInfoDto.gender;
-
-      const registeredProfile = await this.profileRepository.save(user.profile);
-      console.log(registeredProfile);
-      return registeredProfile;
-    } catch (error) {
-      console.error('Error updating profile info:', error.message);
-      throw new Error('Failed to update profile info');
-    }
-  }
-
-  async updateProfileInfo(
-    userId: number,
-    updateProfileInfoDto: UpdateProfileInfoDto,
-  ): Promise<Profile> {
-    try {
-      console.log('Update Profile Info - UserId:', userId);
-      console.log('Update Profile Info DTO:', updateProfileInfoDto);
-  
-      // Fetch the user along with the profile
-      const user = await this.userRepository.findOne({
-        where: { id: userId },
-        relations: ['profile'],
-      });
-  
-      console.log('User:', user);
-  
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-  
-      // Ensure the profile is loaded
-      if (!user.profile) {
-        // Load the profile separately
-        user.profile = await this.profileRepository.findOne({
-          where: { user: { id: userId } },
-        });
-  
-        if (!user.profile) {
-          throw new NotFoundException('Profile not found');
+        if (!profiles || profiles.length === 0) {
+            throw new NotFoundException('프로필을 찾을 수 없습니다.');
         }
-      }
-  
-      console.log('User Profile:', user.profile);
-  
-      // Update profile fields
-      user.profile.preferredPosition = updateProfileInfoDto.preferredPosition;
-      user.profile.weight = updateProfileInfoDto.weight;
-      user.profile.height = updateProfileInfoDto.height;
-      user.profile.age = updateProfileInfoDto.age;
-      user.profile.gender = updateProfileInfoDto.gender;
-  
-      // Save the updated profile
-      const updatedProfile = await this.profileRepository.save(user.profile);
-  
-      console.log('Updated Profile:', updatedProfile);
-  
-      return updatedProfile;
-    } catch (error) {
-      console.error('Error updating profile info:', error.message);
-      throw new Error('Failed to update profile info');
-    }
-  }
-  
-  
-  
 
-  async deleteProfile(id: number) {
-    const profile = await this.profileRepository.findOne({where:{id}});
-
-    if (!profile) {
-      throw new NotFoundException('프로필을 찾을 수 없습니다.');
+        return profiles;
     }
 
-    // 프로필 삭제
-    await this.profileRepository.remove(profile);
+    async findOneById(id: number) {
+        const profile = await this.profileRepository.findOne({ where: { id } });
 
-    return profile;
-  }
+        if (!profile) {
+            throw new NotFoundException('프로필을 찾을 수 없습니다.');
+        }
 
+        return profile;
+    }
 
+    async findOneByName(name: string): Promise<Profile | null> {
+        const profile = await this.profileRepository.findOne({ where: { name } });
+
+        if (!profile) {
+            throw new NotFoundException(`이름을 찾을 수 없습니다.`);
+        }
+
+        return profile;
+    }
+
+    async registerProfile(
+        userId: number,
+        registerProfileInfoDto: RegisterProfileInfoDto,
+    ): Promise<Profile> {
+        try {
+            const user = await this.userRepository.findOne({
+                where: { id: userId },
+                relations: ['profile'],
+            });
+
+            if (!user) {
+                throw new NotFoundException('User not found');
+            }
+
+            if (!user.profile) {
+                user.profile = new Profile();
+            }
+            user.profile.name = user.name;
+            user.profile.preferredPosition = registerProfileInfoDto.preferredPosition;
+            user.profile.weight = registerProfileInfoDto.weight;
+            user.profile.height = registerProfileInfoDto.height;
+            user.profile.age = registerProfileInfoDto.age;
+            user.profile.gender = registerProfileInfoDto.gender;
+
+            const registeredProfile = await this.profileRepository.save(user.profile);
+            await this.userRepository.save({ ...user, profile: registeredProfile });
+            return registeredProfile;
+        } catch (error) {
+            console.error('Error updating profile info:', error.message);
+            throw new Error('Failed to update profile info');
+        }
+    }
+
+    async updateProfileInfo(
+        userId: number,
+        updateProfileInfoDto: UpdateProfileInfoDto,
+    ): Promise<Profile> {
+        try {
+            console.log('Update Profile Info - UserId:', userId);
+            console.log('Update Profile Info DTO:', updateProfileInfoDto);
+
+            // Fetch the user along with the profile
+            const user = await this.userRepository.findOne({
+                where: { id: userId },
+                relations: ['profile'],
+            });
+
+            console.log('User:', user);
+
+            if (!user) {
+                throw new NotFoundException('User not found');
+            }
+
+            // Ensure the profile is loaded
+            if (!user.profile) {
+                // Load the profile separately
+                user.profile = await this.profileRepository.findOne({
+                    where: { user: { id: userId } },
+                });
+
+                if (!user.profile) {
+                    throw new NotFoundException('Profile not found');
+                }
+            }
+
+            console.log('User Profile:', user.profile);
+
+            // Update profile fields
+            user.profile.preferredPosition = updateProfileInfoDto.preferredPosition;
+            user.profile.weight = updateProfileInfoDto.weight;
+            user.profile.height = updateProfileInfoDto.height;
+            user.profile.age = updateProfileInfoDto.age;
+            user.profile.gender = updateProfileInfoDto.gender;
+
+            // Save the updated profile
+            const updatedProfile = await this.profileRepository.save(user.profile);
+
+            console.log('Updated Profile:', updatedProfile);
+
+            return updatedProfile;
+        } catch (error) {
+            console.error('Error updating profile info:', error.message);
+            throw new Error('Failed to update profile info');
+        }
+    }
+
+    async deleteProfile(id: number) {
+        const profile = await this.profileRepository.findOne({ where: { id } });
+
+        if (!profile) {
+            throw new NotFoundException('프로필을 찾을 수 없습니다.');
+        }
+
+        // 프로필 삭제
+        await this.profileRepository.remove(profile);
+
+        return profile;
+    }
 }

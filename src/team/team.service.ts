@@ -1,4 +1,3 @@
-import { CreateTeamDto } from './dtos/create-team.dto';
 import { BadRequestException, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AwsService } from 'src/aws/aws.service';
@@ -102,11 +101,11 @@ export class TeamService {
      * 팀 전체조회
      * @returns
      */
-     async getTeams(): Promise<TeamModel[]> {
+    async getTeams(): Promise<TeamModel[]> {
         return this.teamRepository.find();
-      }
-  
-  /**
+    }
+
+    /**
      * 팀 목록조회
      * @returns
      */
