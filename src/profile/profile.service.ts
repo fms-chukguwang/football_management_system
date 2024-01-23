@@ -137,14 +137,17 @@ export class ProfileService {
             console.log('User Profile:', user.profile);
 
             // Update profile fields
-            user.profile.preferredPosition = updateProfileInfoDto.preferredPosition;
-            user.profile.weight = updateProfileInfoDto.weight;
-            user.profile.height = updateProfileInfoDto.height;
-            user.profile.age = updateProfileInfoDto.age;
-            user.profile.gender = updateProfileInfoDto.gender;
+            // user.profile.preferredPosition = updateProfileInfoDto.preferredPosition;
+            // user.profile.weight = updateProfileInfoDto.weight;
+            // user.profile.height = updateProfileInfoDto.height;
+            // user.profile.age = updateProfileInfoDto.age;
+            // user.profile.gender = updateProfileInfoDto.gender;
 
             // Save the updated profile
-            const updatedProfile = await this.profileRepository.save(user.profile);
+            const updatedProfile = await this.profileRepository.save({
+                ...user.profile,
+                ...updateProfileInfoDto,
+            });
 
             console.log('Updated Profile:', updatedProfile);
 

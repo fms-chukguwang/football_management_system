@@ -77,7 +77,7 @@ export class ProfileController {
      */
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @Put(':teamId/:profileId')
+    @Put(':profileId')
     async updateprofileInfo(@Request() req, @Body() updateProfileInfoDto: UpdateProfileInfoDto) {
         const data = await this.profileService.updateProfileInfo(req.user.id, updateProfileInfoDto);
 
