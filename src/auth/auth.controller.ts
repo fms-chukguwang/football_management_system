@@ -48,28 +48,24 @@ export class AuthController {
         private readonly userService: UserService,
     ) {}
 
-/**
- * 카카오로그인  CODE_REDIRECT_URI
- * @param req
- * @returns
- */
- @Get('/kakao/callback')
- @UseGuards(AuthGuard('kakao'))
- async getKakaoInfo(
-     @Query('code') code: string,
-     @Req() req,
-     @Res() res: Response,
- ) {
-     // OAuthLogin 메서드 호출 후 리다이렉션 여부를 받아옴
-     const shouldRedirect = await this.authService.OAuthLogin(req);
- 
-     // 리다이렉션 여부에 따라 처리
-     if (shouldRedirect) {
-         return res.redirect("http://localhost:3001/kakaoSuccess");
-     } else {
-         return res.json({ message: 'Success' });
-     }
- }
+    /**
+     * 카카오로그인  CODE_REDIRECT_URI
+     * @param req
+     * @returns
+     */
+    @Get('/kakao/callback')
+    @UseGuards(AuthGuard('kakao'))
+    async getKakaoInfo(@Query('code') code: string, @Req() req, @Res() res: Response) {
+        // OAuthLogin 메서드 호출 후 리다이렉션 여부를 받아옴
+        const shouldRedirect = await this.authService.OAuthLogin(req);
+
+        // 리다이렉션 여부에 따라 처리
+        if (shouldRedirect) {
+            return res.redirect('http://localhost:3001/kakaoSuccess');
+        } else {
+            return res.redirect('http://localhost:3001/login');;
+        }
+    }
 
     /**
      * 카카오로그인
@@ -197,9 +193,7 @@ export class AuthController {
      */
     @HttpCode(HttpStatus.OK)
     @Post('/send-password-reset-email')
-    async sendPasswordResetEmail(
-        @Body() passwordResetUserDto: PasswordResetUserDto,
-    ) {
+    async sendPasswordResetEmail(@Body() passwordResetUserDto: PasswordResetUserDto) {
         const { email } = passwordResetUserDto;
 
         // 이메일 중복 체크
@@ -236,10 +230,7 @@ export class AuthController {
     async verifyCode(@Body() verifyCodeDto: VerifyCodeDto) {
         const { email, verificationCode } = verifyCodeDto;
 
-        const verificationResult = await this.emailService.verifyCode(
-            email,
-            verificationCode,
-        );
+        const verificationResult = await this.emailService.verifyCode(email, verificationCode);
 
         if (verificationResult) {
             return {
@@ -264,10 +255,7 @@ export class AuthController {
     async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
         const { email, newPassword, verificationCode } = resetPasswordDto;
 
-        const verificationResult = await this.emailService.verifyCode(
-            email,
-            verificationCode,
-        );
+        const verificationResult = await this.emailService.verifyCode(email, verificationCode);
 
         if (verificationResult) {
             await this.authService.resetPassword(email, newPassword);

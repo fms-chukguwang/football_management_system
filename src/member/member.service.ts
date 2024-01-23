@@ -26,25 +26,26 @@ export class MemberService {
     ) {}
 
     async findAllPlayers() {
-        const Players = await this.memberRepository.find({
-            relations: ['user', 'user.profile', 'team'], 
+        const players = await this.memberRepository.find({
+            relations: {user: true, team:true}, 
           });
-        if (!Players) {
+          console.log("players=",players);
+        if (!players) {
             throw new NotFoundException('선수를 찾을 수 없습니다.');
         }
 
-        return Players;
+        return players;
     }
 
     async findOneById(id: number) {
-        const Player = await this.memberRepository.findOneBy({ id });
-        console.log('Player=', Player);
+        const player = await this.memberRepository.findOneBy({ id });
+        console.log('Player=', player);
 
-        if (!Player) {
+        if (!player) {
             throw new NotFoundException('선수를 찾을 수 없습니다.');
         }
 
-        return Player;
+        return player;
     }
 
     /**

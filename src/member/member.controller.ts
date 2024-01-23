@@ -18,7 +18,7 @@ import { UpdateMemberInfoDto } from './dtos/update-member-info-dto';
 import { IsStaffGuard } from './guard/is-staff.guard';
 
 @ApiTags('선수')
-@Controller()
+@Controller('')
 export class MemberController {
     constructor(private readonly memberService: MemberService) {}
 
@@ -41,6 +41,21 @@ export class MemberController {
             success: true,
         };
     }
+
+      /**
+     *전체 멤버 가져오기
+     * @returns
+     */
+     @Get('members')
+     async findAllMembers() {
+         const members = await this.memberService.findAllPlayers();
+        console.log("members=",members);
+         return {
+             statusCode: HttpStatus.OK,
+             data: members,
+             success: true,
+         };
+     }
 
     /**
      * 멤버 추방하기

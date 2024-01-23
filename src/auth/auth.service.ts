@@ -29,7 +29,7 @@ export class AuthService {
     ) {}
 
     async refreshToken(userId: number) {
-        const refreshToken = await this.getRefreshTokenFromRedis(userId);
+        const refreshToken = await this.redisService.getRefreshToken(userId);
 
         if (!refreshToken) {
             throw new UnauthorizedException(
@@ -57,11 +57,6 @@ export class AuthService {
         );
         await this.redisService.setRefreshToken(userId, newRefreshToken);
         return newRefreshToken;
-    }
-
-
-    async getRefreshTokenFromRedis(userId: number): Promise<string | null> {
-        return await this.redisService.getRefreshToken(userId);
     }
 
     async signUp({ email, password, passwordConfirm, name }: SignUpDto) {
@@ -202,8 +197,7 @@ export class AuthService {
         const refreshToken = await this.generateRefreshToken(savedUser.id); 
         this.redisService.setRefreshToken(savedUser.id, refreshToken );
     
-        // 신규 사용자인 경우 리다이렉션을 하지 않도록 false 반환
-        return false;
+        return true;
     }
     
     

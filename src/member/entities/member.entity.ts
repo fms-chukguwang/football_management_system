@@ -11,7 +11,7 @@ export class Member extends BaseModel {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @OneToOne(() => User, (user) => user.member)
+    @ManyToOne(() => User, (user) => user.member)
     @JoinColumn()
     user: User;
 
