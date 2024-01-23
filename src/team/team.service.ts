@@ -3,10 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AwsService } from 'src/aws/aws.service';
 import { LocationService } from 'src/location/location.service';
 import { MemberService } from 'src/member/member.service';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreateTeamDto } from './dtos/create-team.dto';
 import { TeamModel } from './entities/team.entity';
-import { DUPLICATE_TEAM_NAME, EXIST_CREATOR } from './validation-message/team-exception.message';
+import {
+    DUPLICATE_TEAM_NAME,
+    EMPTY_USER,
+    EXIST_CREATOR,
+} from './validation-message/team-exception.message';
 import { UpdateTeamDto } from './dtos/update-team.dto';
 
 @Injectable()
@@ -18,6 +22,7 @@ export class TeamService {
         private readonly locationService: LocationService,
         @Inject(forwardRef(() => MemberService))
         private readonly memberService: MemberService,
+        private readonly dataSource: DataSource,
     ) {}
 
     /**
@@ -29,36 +34,52 @@ export class TeamService {
      */
     //@Transactional()
     async createTeam(createTeamDto: CreateTeamDto, userId: number, file: Express.Multer.File) {
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+
         const existMember = await this.memberService.existMember(userId);
-        if (existMember) {
+        if (!existMember) {
+            throw new BadRequestException(EMPTY_USER);
+        }
+
+        const existTeam = await this.teamRepository.findOne({
+            where: {
+                creator: {
+                    id: userId,
+                },
+            },
+        });
+        if (existTeam) {
             throw new BadRequestException(EXIST_CREATOR);
         }
 
-        const existTeam = await this.teamRepository.exists({
+        const existTeamName = await this.teamRepository.exists({
             where: {
                 name: createTeamDto.name,
             },
         });
-        if (existTeam) {
+        if (existTeamName) {
             throw new BadRequestException(DUPLICATE_TEAM_NAME);
         }
 
-        const extractLocation = this.locationService.extractAddress(createTeamDto.address);
-
-        let findLocation = await this.locationService.findOneLocation(extractLocation);
-        if (!findLocation) {
-            findLocation = await this.locationService.registerLocation(
-                createTeamDto.address,
-                extractLocation,
-            );
-        }
-
         try {
-            const imageUrl = await this.awsService.uploadFile(file);
+            await queryRunner.startTransaction();
+
+            const extractLocation = this.locationService.extractAddress(createTeamDto.address);
+
+            let findLocation = await this.locationService.findOneLocation(extractLocation);
+            if (!findLocation) {
+                findLocation = await this.locationService.registerLocation(
+                    createTeamDto.address,
+                    extractLocation,
+                );
+            }
+
+            const imageUUID = await this.awsService.uploadFile(file);
 
             const result = this.teamRepository.create({
                 ...createTeamDto,
-                logoUrl: imageUrl,
+                imageUUID: imageUUID,
                 location: {
                     id: findLocation.id,
                 },
@@ -68,9 +89,14 @@ export class TeamService {
             const savedTeam = await this.teamRepository.save(result);
             await this.memberService.registerCreaterMember(savedTeam.id, userId);
 
+            await queryRunner.commitTransaction();
+
             return savedTeam;
         } catch (err) {
             console.log(err);
+            await queryRunner.rollbackTransaction();
+        } finally {
+            await queryRunner.release();
         }
     }
 
@@ -124,7 +150,7 @@ export class TeamService {
         try {
             if (file) {
                 console.log('저장전 : ', dto['imageUrl']);
-                dto['logoUrl'] = await this.awsService.uploadFile(file);
+                dto['imageUUID'] = await this.awsService.uploadFile(file);
             }
 
             await this.teamRepository.update(

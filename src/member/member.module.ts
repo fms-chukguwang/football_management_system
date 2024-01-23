@@ -7,6 +7,7 @@ import { MemberService } from './member.service';
 import { UserModule } from 'src/user/user.module';
 import { TeamModule } from 'src/team/team.module';
 import { EmailModule } from 'src/email/email.module';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
     imports: [
@@ -15,6 +16,7 @@ import { EmailModule } from 'src/email/email.module';
         UserModule,
         forwardRef(() => TeamModule),
         EmailModule,
+        RedisModule,
     ],
     controllers: [MemberController],
     providers: [MemberService],

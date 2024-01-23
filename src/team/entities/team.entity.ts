@@ -18,7 +18,6 @@ import { Member } from '../../member/entities/member.entity';
 import { Factory } from 'nestjs-seeder';
 import { Match } from 'src/match/entities/match.entity';
 
-
 @Entity('team')
 export class TeamModel extends BaseModel {
     @PrimaryGeneratedColumn()
@@ -28,7 +27,7 @@ export class TeamModel extends BaseModel {
      * 팀명
      * @example '태풍fc'
      */
-     @Factory((faker) => faker.lorem.words(3))
+    @Factory((faker) => faker.lorem.words(3))
     @Column({
         unique: true,
     })
@@ -41,7 +40,7 @@ export class TeamModel extends BaseModel {
      * 팀 설명
      * @example '수원시 권선구에서 활동하는 태풍FC입니다.'
      */
-     @Factory((faker) => faker.lorem.paragraph())
+    @Factory((faker) => faker.lorem.paragraph())
     @Column()
     @IsString({
         message: stringValidationMessage,
@@ -51,11 +50,11 @@ export class TeamModel extends BaseModel {
     /**
      * 팀 로고 url
      */
-     @Factory((faker) => faker.lorem.words(1))
+    @Factory((faker) => faker.lorem.words(1))
     @Column({
-        name: 'logo_url',
+        name: 'image_uuid',
     })
-    logoUrl: string;
+    imageUUID: string;
 
     /**
      * 혼성 여부

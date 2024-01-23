@@ -1,6 +1,13 @@
-
 import { Profile } from 'src/profile/entities/profile.entity';
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    OneToMany,
+    OneToOne,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
 import { BaseModel } from '../../common/entities/base.entity';
 import { TeamModel } from '../../team/entities/team.entity';
 import { User } from '../../user/entities/user.entity';
@@ -15,10 +22,9 @@ export class Member extends BaseModel {
     @JoinColumn()
     user: User;
 
-    @OneToOne(() => Profile, (profile) => profile.user) 
+    @OneToOne(() => Profile, (profile) => profile.user)
     @JoinColumn()
     profile: Profile;
-
 
     @ManyToOne(() => TeamModel, (team) => team.members, {
         onDelete: 'CASCADE',
