@@ -124,7 +124,16 @@ export class TeamService {
     }
 
     /**
+     * 팀 전체조회
+     * @returns
+     */
+    async getTeams(): Promise<TeamModel[]> {
+        return this.teamRepository.find();
+    }
+
+    /**
      * 팀 목록조회
+     * @returns
      */
     getTeam() {
         return this.teamRepository.find({});

@@ -49,11 +49,7 @@ export class MatchController {
     
         const data = await this.matchService.createMatch(creatematchDto);
     
-        return {
-          statusCode: HttpStatus.CREATED,
-          success: true,
-          data,
-        };
+        return "경기 예약 되었습니다.";
     }
 
     /**
@@ -127,10 +123,7 @@ export class MatchController {
     
         await this.matchService.updateMatch(matchId,updatematchDto);
     
-        return {
-          statusCode: HttpStatus.OK,
-          success: true
-        };
+        return "경기 일정 수정 되었습니다.";
     }
 
     /**
@@ -163,10 +156,7 @@ export class MatchController {
     
         await this.matchService.deleteMatch(deletematchDto,matchId);
     
-        return {
-          statusCode: HttpStatus.OK,
-          success: true
-        };
+        return "경기 일정 삭제 되었습니다.";
     }
 
     /**
@@ -218,6 +208,45 @@ export class MatchController {
     async findTeamMatches(@Param('teamId') teamId: number) {
 
         const data = await this.matchService.findTeamMatches(teamId);
+    
+        return {
+            statusCode: HttpStatus.OK,
+            success: true,
+            data
+        };
+    }
+
+    /**
+     * 구단주 전체 명단 조회
+     * @param req
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get('owners')
+    async getTeamOwners(@Request() req) {
+        const userId = req.user.id;
+
+        const data = await this.matchService.getTeamOwners(userId);
+    
+        return {
+            statusCode: HttpStatus.OK,
+            success: true,
+            data
+        };
+    }
+
+    /**
+     * 예약 가능 시간 조회
+     * @param req
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get('timeslots/:selectDate/:locationId')
+    async findAvailableTimes(@Param('selectDate') selectDate: string,@Param('locationId') locationId: number) {
+
+        const data = await this.matchService.findAvailableTimes(selectDate,locationId);
     
         return {
             statusCode: HttpStatus.OK,

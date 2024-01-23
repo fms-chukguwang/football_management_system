@@ -3,6 +3,7 @@ import {
     Controller,
     Get,
     HttpStatus,
+    NotFoundException,
     Param,
     Patch,
     Post,
@@ -44,15 +45,28 @@ export class TeamController {
         return { status: HttpStatus.OK, success: true, data };
     }
 
-    /**
+     /**
      * 팀 상세조회
-     * @param teamId
-     * @returns
+     * @param req
      */
     @Get(':teamId')
     getTeamDetail(@Param('teamId') teamId: number) {
         return this.teamService.getTeamDetail(teamId);
     }
+
+     /**
+     * 팀 전체조회
+     * @param req
+     */
+      @Get()
+      async getEveryTeams() {
+        const teams = await this.teamService.getTeams();
+        if (!teams) {
+          throw new NotFoundException('팀을 찾을 수 없습니다.');
+        }
+    
+        return teams;
+      }
 
     /**
      * 팀 목록 조회
@@ -74,4 +88,5 @@ export class TeamController {
     ) {
         await this.teamService.updateTeam(teamId, updateTeamDto, file);
     }
+
 }
