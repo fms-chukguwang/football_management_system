@@ -369,9 +369,9 @@ export class MatchService {
             saves:creatematchResultDto.saves,
             assists:creatematchResultDto.assists,
             passes:creatematchResultDto.passes,
-            clean_sheet:creatematchResultDto.cleanSheet,
             penalty_kick:creatematchResultDto.penaltyKick,
-            free_kick:creatematchResultDto.freeKick
+            free_kick:creatematchResultDto.freeKick,
+            clean_sheet: false // 기본적으로 false로 설정
         });
 
         if (!matchResult) {
@@ -388,13 +388,13 @@ export class MatchService {
         await queryRunner.startTransaction();
 
         try{
-            
-            await queryRunner.manager.save('match_results', matchResult);
-
+            console.log(`matchResultCount:${matchResultCount}`);
             // 한 팀이 등록한 상태라면 팀 스탯 생성
             if(matchResultCount===1){
 
                 const teamStats = await this.createTeamStats(matchResult);
+
+                console.log(`home:${teamStats.home_score} away:${teamStats.away_score}`);
 
                 // 홈팀 스탯 생성
                 const gethomeTeamStats = await this.teamTotalGames(match.home_team_id);
@@ -429,9 +429,49 @@ export class MatchService {
                     total_games: awayTotalGames
                 });
 
+                console.log(`homeCreator[0].id ${homeCreator[0].id}`);
+                console.log(`match.home_team_id ${match.home_team_id}`);
+                console.log(`match.away_team_id ${match.away_team_id}`);
+
+                // 마지막 입력한 팀 득점이 0인 경우 (상대팀 클린시트)
+                if (homeCreator[0].id === match.home_team_id && creatematchResultDto.goals.length===0) {
+                    console.log('home chk '+teamStats.home_score);
+                    console.log('home matchId '+matchId);
+                    console.log('away_team_id '+match.away_team_id);
+                    await queryRunner.manager.update('match_results', 
+                        { match_id: matchId, team_id: match.away_team_id },
+                        { clean_sheet: true }
+                    );
+                }
+
+                // 마지막 입력한 팀 득점이 0인 경우 (상대팀 클린시트)
+                if (homeCreator[0].id === match.away_team_id && creatematchResultDto.goals.length===0) {
+                    console.log('home chk2 '+teamStats.home_score);
+                    console.log('home matchId2 '+matchId);
+                    console.log('away_team_id2 '+match.away_team_id);
+                    await queryRunner.manager.update('match_results', 
+                        { match_id: matchId, team_id: match.home_team_id },
+                        { clean_sheet: true }
+                    );
+                }
+
+                // 상대팀 득점이 0인 경우 (마지막 입력한 팀 클린시트)
+                if (homeCreator[0].id === match.home_team_id && teamStats.away_score === 0) {
+                    console.log('away chk '+teamStats.away_score);
+                    matchResult.clean_sheet = true;
+                }
+
+                // 상대 득점이 0인 경우 (마지막 입력한 팀 클린시트)
+                if (homeCreator[0].id === match.away_team_id && teamStats.home_score === 0) {
+                    console.log('away chk '+teamStats.away_score);
+                    matchResult.clean_sheet = true;
+                }
+
                 await queryRunner.manager.save('team_statistics', homeTeamResult);
                 await queryRunner.manager.save('team_statistics', awayTeamResult);
             }
+
+            await queryRunner.manager.save('match_results', matchResult);
 
             await queryRunner.commitTransaction();
 
@@ -625,8 +665,7 @@ export class MatchService {
 
     /**
      * 경기 후 팀 스탯 생성
-     * @param  matchId
-     * @param  teamId
+     * @param  matchResult
      * @returns
      */
     async createTeamStats(matchResult:any) {
@@ -687,9 +726,11 @@ export class MatchService {
             home_win,
             home_lose,
             home_draw,
+            home_score,
             away_win,
             away_lose,
-            away_draw
+            away_draw,
+            away_score
         };
     }
 
@@ -718,7 +759,7 @@ export class MatchService {
 
         // 옐로우카드 멤버 체크
         creatematchResultDto.yellowCards.forEach((x)=>{
-            this.isTeamMember(teamId,x.playerId);
+            this.isTeamMember(teamId,x);
         })
 
         // 교체 멤버 체크
@@ -838,11 +879,7 @@ export class MatchService {
         .getOne();
 
         if(!member){
-            const user = await this.userRepository.findOne({
-                where: { id: memberId },
-            });
-
-            throw new NotFoundException(`${user.name}님은 해당 팀의 멤버가 아닙니다.`);
+            throw new NotFoundException('팀의 멤버가 아닙니다.');
         }
 
         return member;
