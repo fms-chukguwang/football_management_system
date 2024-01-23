@@ -3,6 +3,7 @@ import {
     Inject,
     Injectable,
     NotFoundException,
+    UnauthorizedException,
     forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,6 +14,7 @@ import { UserService } from 'src/user/user.service';
 import { TeamService } from 'src/team/team.service';
 import { EmailService } from 'src/email/email.service';
 import { SendJoiningEmailDto } from './dtos/send-joining-email.dto';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class MemberService {
@@ -23,6 +25,7 @@ export class MemberService {
         @Inject(forwardRef(() => TeamService))
         private readonly teamService: TeamService,
         private readonly eamilService: EmailService,
+        private readonly redisService: RedisService,
     ) {}
 
     /**
@@ -216,7 +219,7 @@ export class MemberService {
     }
 
     /**
-     * 구단에게 입단 요청하기
+     * 구단에게 입단 요청하기(구단주에게 이메일을 보낸다)
      * @param userId
      * @param teamId
      * @returns
@@ -244,6 +247,12 @@ export class MemberService {
         return sendResult;
     }
 
+    /**
+     * 구단 입단 신청 거절 이메일 전송
+     * @param teamId
+     * @param userId
+     * @returns
+     */
     async rejectJoiningEamil(teamId: number, userId: number) {
         const findTeam = await this.teamService.getTeamDetail(teamId);
         const findUser = await this.userService.findOneById(userId);
@@ -251,5 +260,27 @@ export class MemberService {
         const rejectResult = this.eamilService.sendTeamRejectEmail(findTeam.name, findUser);
 
         return rejectResult;
+    }
+
+    /**
+     * 수락전 토큰이 만료되었는지 검증
+     * @param token
+     */
+    async verifyEmailToken(token: string) {
+        const findToken = await this.redisService.getTeamJoinMailToken(token);
+
+        if (!findToken) {
+            throw new UnauthorizedException('토큰이 만료되었습니다.');
+        }
+
+        console.log(`찾기`, findToken);
+    }
+
+    /**
+     * 처리가 완료되었을때 토큰값을 삭제한다.
+     * @param token
+     */
+    async deleteEmailToken(token: string) {
+        await this.redisService.deleteTeamJoinMailToken(token);
     }
 }

@@ -5,7 +5,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { Match } from './entities/match.entity';
 import { EmailService } from 'src/email/email.service';
-import { EmailVerification } from 'src/email/entities/email.entity';
 import { AuthService } from 'src/auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
@@ -17,10 +16,26 @@ import { TeamStats } from './entities/team-stats.entity';
 import { TeamModel } from 'src/team/entities/team.entity';
 import { Member } from 'src/member/entities/member.entity';
 import { SoccerField } from './entities/soccer-field.entity';
+import { EmailVerification } from 'src/email/entities/email.entity';
+import { TeamJoinRequestToken } from 'src/email/entities/team-join-request-token.entity';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([Match,MatchResult,User,Member,SoccerField,TeamModel,PlayerStats,TeamStats,EmailVerification]),AuthModule],
-  controllers: [MatchController],
-  providers: [MatchService,EmailService,AuthService,JwtService,UserService,RedisService]
+    imports: [
+        TypeOrmModule.forFeature([
+            Match,
+            MatchResult,
+            User,
+            Member,
+            SoccerField,
+            TeamModel,
+            PlayerStats,
+            TeamStats,
+            EmailVerification,
+            TeamJoinRequestToken,
+        ]),
+        AuthModule,
+    ],
+    controllers: [MatchController],
+    providers: [MatchService, EmailService, AuthService, JwtService, UserService, RedisService],
 })
 export class MatchModule {}
