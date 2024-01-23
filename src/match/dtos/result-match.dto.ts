@@ -1,5 +1,5 @@
 import { Transform, Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 
 export class userCountDto {
 
@@ -25,7 +25,7 @@ export class createMatchResultDto {
 
     /**
      * 골
-     * @example [{playerId:1,count:2},{playerId:2,count:1}]
+     * @example [{'playerId':1,'count':2},{'playerId':2,'count':1}]
      */
     @IsArray()
     @ValidateNested({ each: true })
@@ -54,17 +54,16 @@ export class createMatchResultDto {
 
     /**
      * 옐로우카드
-     * @example [{playerId:3,count:1}]
+     * @example [1, 2, 3, 4]
      */
     @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => userCountDto)
+    @IsInt({ each: true })
     @IsOptional()
-    yellowCards: userCountDto[];
+    yellowCards: number[];
 
     /**
      * 교체
-     * @example [{playerId:2,count:1}]
+     * @example [{'inPlayerId':2,'outPlayerId':1}]
      */
     @IsArray()
     @ValidateNested({ each: true })
@@ -74,7 +73,7 @@ export class createMatchResultDto {
 
     /**
      * 선방
-     * @example [{playerId:3,count:1}]
+     * @example [{'playerId':3,'count':1}]
      */
     @IsArray()
     @ValidateNested({ each: true })
@@ -84,7 +83,7 @@ export class createMatchResultDto {
 
     /**
      * 어시스트
-     * @example [{playerId:3,count:2},{playerId:2,count:1}]
+     * @example [{'playerId':3,'count':2},{'playerId':2,'count':1}]
      */
     @IsArray()
     @ValidateNested({ each: true })
@@ -100,14 +99,6 @@ export class createMatchResultDto {
     @IsOptional()
     @Transform(({ value }) => value ?? 0)
     passes: number;
-    
-    /**
-     * 클린시트
-     * @example false
-     */
-    @IsBoolean()
-    @IsNotEmpty({ message: '클린시트 여부를 입력해주세요.' })
-    cleanSheet: boolean;
 
     /**
      * 패널티킥 

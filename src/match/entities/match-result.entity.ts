@@ -36,8 +36,8 @@ import { Match } from './match.entity';
     @Column({ type: 'json', nullable: true })
     red_cards: { playerId: number; count: number }[]; 
     
-    @Column({ type: 'json', nullable: true })
-    yellow_cards: { playerId: number; count: number }[];
+    @Column({ type: 'simple-array', nullable: true })
+    yellow_cards: number[];
 
     @Column({ type: 'json', nullable: true })
     substitions: { inPlayerId: number; outPlayerId: number }[];
@@ -51,7 +51,7 @@ import { Match } from './match.entity';
     @Column({ type: 'int', nullable: false })
     passes: number;
 
-    @Column({ type: 'boolean', nullable: false })
+    @Column({ type: 'boolean', default: false })
     clean_sheet: boolean;
 
     @Column({ type: 'int', nullable: false })
