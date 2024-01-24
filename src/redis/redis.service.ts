@@ -7,7 +7,7 @@ import { v4 } from 'uuid';
 export class RedisService {
     private readonly redisClient: IORedis;
     private readonly refreshTokenTTL: number = 1 * 24 * 60 * 60; // 하루
-
+    private readonly kakaoCodeTTL: number = 1 * 60 * 3; // 3분
     constructor(private readonly configService: ConfigService) {
         this.redisClient = new IORedis({
             host: this.configService.get<string>('REDIS_HOST'),
@@ -21,9 +21,29 @@ export class RedisService {
         });
     }
 
+    async kakaoCode(userId: number, kakaoCode: number): Promise<void> {
+        const key = `kakaoCode:${kakaoCode}`;
+        await this.redisClient.set(key, userId);
+        console.log('redis KakaoCode called=', await this.redisClient.get(key));
+        await this.redisClient.expire(key, this.kakaoCodeTTL);
+        console.log('redis kakaoCode expires in = ', this.kakaoCodeTTL);
+    }
+
+
     async setRefreshToken(userId: number, refreshToken: string): Promise<void> {
         await this.redisClient.set(`refreshToken:${userId}`, refreshToken);
         await this.redisClient.expire(`refreshToken:${userId}`, this.refreshTokenTTL);
+<<<<<<< HEAD
+=======
+    }
+
+    async getUserId(kakaoCode: number): Promise<any | null> {
+        const key = `kakaoCode:${kakaoCode}`;
+        const redisValue = await this.redisClient.get(key);
+        console.log('Redis value =', redisValue);
+        console.log('typeof redisValue=', typeof redisValue);
+        return redisValue;
+>>>>>>> 64d43b7c012aeda419197286e6794b049bbe1f41
     }
 
     async getRefreshToken(userId: number): Promise<string | null> {

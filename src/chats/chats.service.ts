@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Chats } from './entities/chats.entity';
 import { Repository } from 'typeorm';
 import { CreateChatDto } from './dto/create-chat.dto';
-import { CommonService } from 'src/common/common.service';
+import { CommonService } from '../common/common.service';
 import { PaginateChatDto } from './dto/paginate-chat.dto';
 
 @Injectable()

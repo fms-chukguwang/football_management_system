@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { Observable, map, observable, tap } from 'rxjs';
 import { LoggerMiddleware } from '../middleware/logger.middleware';
-import { LoggingService } from 'src/logging/logging.service';
+import { LoggingService } from '../../logging/logging.service';
 
 @Injectable()
 export class LogInterceptor implements NestInterceptor {
