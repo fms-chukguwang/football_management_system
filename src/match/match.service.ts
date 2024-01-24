@@ -1,6 +1,6 @@
 import { BadRequestException, HttpException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, DataSource, Not, Repository, getRepository } from 'typeorm';
+import { Brackets, DataSource, Not, Repository, getManager, getRepository } from 'typeorm';
 import { createMatchDto } from './dtos/create-match.dto';
 import { Match } from './entities/match.entity';
 import { updateMatchDto } from './dtos/update-match.dto';
@@ -870,6 +870,85 @@ export class MatchService {
 
         return teamMatches;
     }
+
+    /**
+     * 팀별 일정 조회
+     * @param  teamId
+     * @returns
+     */
+    async getTeamSchedule(teamId: number, userId:number) {
+
+        //팀의 멤버인지 검증
+        await this.isTeamMember(teamId,userId);
+        
+        const rawResults = await this.dataSource.query(`
+        SELECT 
+            f.field_name, 
+            DATE_FORMAT(m.date, '%Y-%m-%d') AS date,
+            t.logo_url,
+            t.name,
+            m.time
+        FROM 
+            final_db2.matches AS m
+            LEFT JOIN final_db2.team AS t ON m.away_team_id = t.id
+            LEFT JOIN final_db2.soccer_fields AS f ON m.soccer_field_id = f.id
+        WHERE 
+            m.home_team_id = ${teamId}
+        
+        UNION
+        
+        SELECT 
+            f.field_name, 
+            DATE_FORMAT(m.date, '%Y-%m-%d') AS date,
+            t.logo_url,
+            t.name,
+            m.time
+        FROM 
+            final_db2.matches AS m
+            LEFT JOIN final_db2.team AS t ON m.home_team_id = t.id
+            LEFT JOIN final_db2.soccer_fields AS f ON m.soccer_field_id = f.id
+        WHERE 
+            m.away_team_id = ${teamId}
+        `);
+    
+        return rawResults;
+    }
+
+    /**
+     * 개인 멤버정보 조회
+     * @returns
+     */
+async getMember(userId:number) {
+
+    const member = await this.memberRepository.findOne({
+
+        relations: {
+            user: true,
+            team: true,
+        },
+        select: {
+            user:{
+                id: true
+            },
+            team:{
+                id:true
+            }
+        },
+
+        where: {
+            user: {
+                id: userId
+            }
+        },
+
+    });
+
+    if (!member) {
+        throw new BadRequestException('멤버 정보가 없습니다.');
+    }
+
+    return member;
+}
 
     async isTeamMember(teamId: number,memberId:number) {
         const member = await this.memberRepository        
