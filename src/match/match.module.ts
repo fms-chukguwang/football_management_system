@@ -17,7 +17,6 @@ import { TeamStats } from './entities/team-stats.entity';
 import { TeamModel } from '../team/entities/team.entity';
 import { Member } from '../member/entities/member.entity';
 import { SoccerField } from './entities/soccer-field.entity';
-import { EmailVerification } from 'src/email/entities/email.entity';
 import { TeamJoinRequestToken } from 'src/email/entities/team-join-request-token.entity';
 import { AwsService } from 'src/aws/aws.service';
 

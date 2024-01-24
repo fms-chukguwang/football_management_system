@@ -9,14 +9,8 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 import { Match } from './match.entity';
-<<<<<<< HEAD
 import { Member } from 'src/member/entities/member.entity';
-=======
-import { Member } from '../../member/entities/member.entity';
-  
-  @Entity('player_statistics')
-  export class PlayerStats {
->>>>>>> 64d43b7c012aeda419197286e6794b049bbe1f41
+
 
 @Entity('player_statistics')
 export class PlayerStats {
