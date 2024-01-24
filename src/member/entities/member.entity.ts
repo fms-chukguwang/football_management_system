@@ -15,10 +15,8 @@ export class Member extends BaseModel {
     @JoinColumn()
     user: User;
 
-    @OneToOne(() => Profile, (profile) => profile.user) 
-    @JoinColumn()
+    @ManyToOne(() => Profile, (profile) => profile.member)
     profile: Profile;
-
 
     @ManyToOne(() => TeamModel, (team) => team.members, {
         onDelete: 'CASCADE',

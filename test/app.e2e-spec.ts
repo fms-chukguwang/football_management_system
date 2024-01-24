@@ -7,6 +7,27 @@ import { SignUpDto } from '../src/auth/dtos/sign-up.dto';
 import { SignInDto } from 'src/auth/dtos/sign-in.dto';
 import { RegisterProfileInfoDto } from 'src/profile/dtos/register-profile-info';
 
+enum Position {
+    Goalkeeper = 'Goalkeeper',
+    CenterBack = 'Center Back',
+    RightBack = 'Right Back',
+    LeftBack = 'Left Back',
+    DefensiveMidfielder = 'Defensive Midfielder',
+    CentralMidfielder = 'Central Midfielder',
+    AttackingMidfielder = 'Attacking Midfielder',
+    Striker = 'Striker',
+    Forward = 'Forward',
+    RightWinger = 'Right Winger',
+    LeftWinger = 'Left Winger',
+  }
+  
+
+function getRandomPosition(): Position {
+  const positions = Object.values(Position);
+  const randomIndex = Math.floor(Math.random() * positions.length);
+  return positions[randomIndex];
+}
+
 let accessToken: string;
 let app: INestApplication;
 let signUpDto: SignUpDto;
@@ -23,7 +44,7 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
         app = moduleFixture.createNestApplication();
 
         await app.init();
-    });
+    }, 10000);
 
     //더미데이터 회원가입
     it('/auth/sign-up (POST)', async () => {
@@ -44,10 +65,10 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
     //프로필 생성
     it('/profile (POST)', async () => {
         const registerPorfileDto = {
-            preferredPosition: 'Center Back',
-            weight: faker.number.int,
-            height: faker.number.int,
-            age: faker.number.int,
+            preferredPosition: getRandomPosition(),
+            weight: faker.number.int({ min: 40, max: 100 }),
+            height: faker.number.int({ min: 150, max: 190 }),
+            age: faker.number.int({ min: 18, max: 50 }),
             gender: 'Male',
         };
 
@@ -120,7 +141,7 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
 //     //프로필 생성2
 //     it('/profile (POST)', async () => {
 //         const registerPorfileDto = {
-//             preferredPosition: 'Center Back',
+//              preferredPosition: getRandomPosition(),
 //             weight: faker.number.int,
 //             height: faker.number.int,
 //             age: faker.number.int,
