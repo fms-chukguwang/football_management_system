@@ -33,8 +33,6 @@ export class RedisService {
     async setRefreshToken(userId: number, refreshToken: string): Promise<void> {
         await this.redisClient.set(`refreshToken:${userId}`, refreshToken);
         await this.redisClient.expire(`refreshToken:${userId}`, this.refreshTokenTTL);
-<<<<<<< HEAD
-=======
     }
 
     async getUserId(kakaoCode: number): Promise<any | null> {
@@ -43,7 +41,6 @@ export class RedisService {
         console.log('Redis value =', redisValue);
         console.log('typeof redisValue=', typeof redisValue);
         return redisValue;
->>>>>>> 64d43b7c012aeda419197286e6794b049bbe1f41
     }
 
     async getRefreshToken(userId: number): Promise<string | null> {
