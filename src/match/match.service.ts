@@ -4,12 +4,12 @@ import { Brackets, DataSource, Not, Repository, getManager, getRepository } from
 import { createMatchDto } from './dtos/create-match.dto';
 import { Match } from './entities/match.entity';
 import { updateMatchDto } from './dtos/update-match.dto';
-import { EmailService } from 'src/email/email.service';
+import { EmailService } from '../email/email.service';
 import { EmailRequest } from './dtos/email-request.dto';
-import { AuthService } from 'src/auth/auth.service';
+import { AuthService } from '../auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { User } from 'src/user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
 import { deleteMatchDto } from './dtos/delete-match.dto';
 import { deleteRequestDto } from './dtos/delete-request.dto';
 import { createRequestDto } from './dtos/create-request.dto';
@@ -19,8 +19,8 @@ import { MatchResult } from './entities/match-result.entity';
 import { createPlayerStatsDto } from './dtos/player-stats.dto';
 import { PlayerStats } from './entities/player-stats.entity';
 import { TeamStats } from './entities/team-stats.entity';
-import { TeamModel } from 'src/team/entities/team.entity';
-import { Member } from 'src/member/entities/member.entity';
+import { TeamModel } from '../team/entities/team.entity';
+import { Member } from '../member/entities/member.entity';
 import { SoccerField } from './entities/soccer-field.entity';
 import { AwsService } from 'src/aws/aws.service';
 

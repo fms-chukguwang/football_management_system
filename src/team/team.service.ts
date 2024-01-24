@@ -1,8 +1,8 @@
 import { BadRequestException, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AwsService } from 'src/aws/aws.service';
-import { LocationService } from 'src/location/location.service';
-import { MemberService } from 'src/member/member.service';
+import { AwsService } from '../aws/aws.service';
+import { LocationService } from '../location/location.service';
+import { MemberService } from '../member/member.service';
 import { DataSource, Repository } from 'typeorm';
 import { CreateTeamDto } from './dtos/create-team.dto';
 import { TeamModel } from './entities/team.entity';

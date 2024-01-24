@@ -10,9 +10,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Member } from './entities/member.entity';
 import { Repository } from 'typeorm';
 import { UpdateMemberInfoDto } from './dtos/update-member-info-dto';
-import { UserService } from 'src/user/user.service';
-import { TeamService } from 'src/team/team.service';
-import { EmailService } from 'src/email/email.service';
+import { UserService } from '../user/user.service';
+import { TeamService } from '../team/team.service';
+import { EmailService } from '../email/email.service';
 import { SendJoiningEmailDto } from './dtos/send-joining-email.dto';
 import { RedisService } from 'src/redis/redis.service';
 

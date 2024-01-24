@@ -2,7 +2,7 @@ import { Body, Controller, Post, UseGuards, Request, HttpStatus, Put, Param, Get
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { MatchService } from './match.service';
 import { createMatchDto } from './dtos/create-match.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { updateMatchDto } from './dtos/update-match.dto';
 import { deleteMatchDto } from './dtos/delete-match.dto';
 import { deleteRequestDto } from './dtos/delete-request.dto';

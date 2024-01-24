@@ -4,9 +4,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Member } from './entities/member.entity';
 import { MemberController } from './member.controller';
 import { MemberService } from './member.service';
-import { UserModule } from 'src/user/user.module';
-import { TeamModule } from 'src/team/team.module';
-import { EmailModule } from 'src/email/email.module';
+import { UserModule } from '../user/user.module';
+import { TeamModule } from '../team/team.module';
+import { EmailModule } from '../email/email.module';
 import { RedisModule } from 'src/redis/redis.module';
 
 @Module({

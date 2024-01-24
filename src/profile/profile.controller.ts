@@ -18,12 +18,37 @@ import { request } from 'express';
 import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
 import { RegisterProfileInfoDto } from './dtos/register-profile-info';
 import { QueryRunner } from 'typeorm';
-import { TransactionInterceptor } from 'src/common/interceptors/transaction.interceptor';
-import { qr } from 'src/common/decorators/qr.decorator';
+import { TransactionInterceptor } from '../common/interceptors/transaction.interceptor';
+import { qr } from '../common/decorators/qr.decorator';
 @ApiTags('프로필')
 @Controller('profile')
 export class ProfileController {
     constructor(private readonly profileService: ProfileService) {}
+/**
+     * 유저 팀이름  조회
+     * @param req
+     * @returns
+     */
+//     @Get('team/:user_id')
+//   async getTeamNameByUserId(@Param('user_id') userId: string) {
+//     const teamName = await this.profileService.getTeamNameByUserId(userId);
+//     return { teamName };
+//   }
+        /**
+     * 전체 프로필 정보 조회
+     * @param req
+     * @returns
+     */
+         @Get('')
+         async findAllProfiles() {
+             const data = await this.profileService.findAllProfiles();
+     
+             return {
+                 statusCode: HttpStatus.OK,
+                 message: '전체 프로필 정보 조회에 성공했습니다.',
+                 data,
+             };
+         }
 
     /**
      * 프로필 정보 조회
@@ -50,7 +75,7 @@ export class ProfileController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @UseInterceptors(TransactionInterceptor)
-    @Post(':userId/register')
+    @Post('')
     async registerprofile(
         @Request() req,
         @Body() registerProfileInfoDto: RegisterProfileInfoDto,

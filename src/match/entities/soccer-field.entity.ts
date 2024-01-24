@@ -1,8 +1,8 @@
 import { IsNumber, IsString } from 'class-validator';
-import { BaseModel } from 'src/common/entities/base.entity';
+import { BaseModel } from '../../common/entities/base.entity';
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { TeamModel } from '../../team/entities/team.entity';
-import { LocationModel } from 'src/location/entities/location.entity';
+import { LocationModel } from '../../location/entities/location.entity';
 
 @Entity('soccer_fields')
 export class SoccerField extends BaseModel {

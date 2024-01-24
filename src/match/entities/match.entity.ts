@@ -12,7 +12,7 @@
   } from 'typeorm';
 import { MatchResult } from './match-result.entity';
 import { PlayerStats } from './player-stats.entity';
-import { TeamModel } from 'src/team/entities/team.entity';
+import { TeamModel } from '../../team/entities/team.entity';
   
   @Entity('matches')
   export class Match {

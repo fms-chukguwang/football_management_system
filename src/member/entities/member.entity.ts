@@ -1,6 +1,6 @@
-import { Profile } from 'src/profile/entities/profile.entity';
+import { Profile } from '../../profile/entities/profile.entity';
 import {
-    Column,
+    Column, CreateDateColumn,
     Entity,
     JoinColumn,
     ManyToOne,
@@ -11,7 +11,7 @@ import {
 import { BaseModel } from '../../common/entities/base.entity';
 import { TeamModel } from '../../team/entities/team.entity';
 import { User } from '../../user/entities/user.entity';
-import { PlayerStats } from 'src/match/entities/player-stats.entity';
+import { PlayerStats } from '../../match/entities/player-stats.entity';
 
 @Entity('members')
 export class Member extends BaseModel {
@@ -22,8 +22,7 @@ export class Member extends BaseModel {
     @JoinColumn()
     user: User;
 
-    @OneToOne(() => Profile, (profile) => profile.user)
-    @JoinColumn()
+    @ManyToOne(() => Profile, (profile) => profile.member)
     profile: Profile;
 
     @ManyToOne(() => TeamModel, (team) => team.members, {
@@ -40,8 +39,9 @@ export class Member extends BaseModel {
     })
     isStaff: boolean;
 
-    @Column({
-        type: 'date',
+    @CreateDateColumn({
+        name: 'join_date',
     })
     joinDate: Date;
+    
 }

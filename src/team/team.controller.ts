@@ -15,8 +15,8 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { IsStaffGuard } from 'src/member/guard/is-staff.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { IsStaffGuard } from '../member/guard/is-staff.guard';
 import { CreateTeamDto } from './dtos/create-team.dto';
 import { UpdateTeamDto } from './dtos/update-team.dto';
 import { TeamService } from './team.service';
