@@ -1,13 +1,5 @@
 import { Profile } from '../../profile/entities/profile.entity';
-import {
-    Column, CreateDateColumn,
-    Entity,
-    JoinColumn,
-    ManyToOne,
-    OneToMany,
-    OneToOne,
-    PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { BaseModel } from '../../common/entities/base.entity';
 import { TeamModel } from '../../team/entities/team.entity';
 import { User } from '../../user/entities/user.entity';
@@ -23,6 +15,7 @@ export class Member extends BaseModel {
     user: User;
 
     @ManyToOne(() => Profile, (profile) => profile.member)
+
     profile: Profile;
 
     @ManyToOne(() => TeamModel, (team) => team.members, {
