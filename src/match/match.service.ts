@@ -22,6 +22,7 @@ import { TeamStats } from './entities/team-stats.entity';
 import { TeamModel } from 'src/team/entities/team.entity';
 import { Member } from 'src/member/entities/member.entity';
 import { SoccerField } from './entities/soccer-field.entity';
+import { AwsService } from 'src/aws/aws.service';
 
 @Injectable()
 export class MatchService {
@@ -55,6 +56,7 @@ export class MatchService {
         private authService: AuthService,
         private jwtService: JwtService,
         private configService: ConfigService,
+        private readonly awsService: AwsService,
         private readonly dataSource: DataSource,
       ) {}
 
@@ -582,7 +584,7 @@ export class MatchService {
 
         const creator = await this.teamRepository
             .createQueryBuilder('team')
-            .select(['team.id', 'team.creator_id','team.name','team.logoUrl','team.location_id'])
+            .select(['team.id', 'team.creator_id','team.name','team.imageUUID','team.location_id'])
             .where(
                 'team.creator_id=:userId',
                 { userId },
@@ -598,10 +600,13 @@ export class MatchService {
 
         const user = await this.getUserInfo(userId);
 
+        const imageUrl = await this.awsService.presignedUrl(creator[0].imageUUID);
+
         // creator 배열의 각 요소에 user.email 추가
         const updatedCreator = creator.map(item => ({
             ...item,
             email: user.email,
+            imageUrl,
             user_id: user.id
         }));
 
@@ -840,6 +845,11 @@ export class MatchService {
                 creator: true,
             },
             select: {
+                id: true,
+                imageUUID:true,
+                name: true,
+                gender: true,
+                description: true,
                 creator: {
                     id: true,
                     email: true,
@@ -855,11 +865,21 @@ export class MatchService {
 
         });
 
-        if (!teamOwners) {
+        if (!teamOwners.length) { // 배열의 길이를 확인하는 것으로 변경
             throw new BadRequestException('구단주 명단이 없습니다.');
         }
+    
+        // 각 팀 소유주의 imageUrl을 가져오기 위한 로직
+        const teamOwnersWithImageUrl = await Promise.all(teamOwners.map(async teamOwner => {
+            let imageUrl = '';
+            if (teamOwner.imageUUID) {
+            imageUrl = await this.awsService.presignedUrl(teamOwner.imageUUID);
+            }
+            // 객체 분해 할당을 사용하여 teamOwner 객체에 imageUrl 추가
+            return { ...teamOwner, imageUrl };
+        }));
 
-        return teamOwners;
+        return teamOwnersWithImageUrl;
     }
 
     async isMatchDetail(matchId: number,teamId:number) {
@@ -885,7 +905,7 @@ export class MatchService {
         SELECT 
             f.field_name, 
             DATE_FORMAT(m.date, '%Y-%m-%d') AS date,
-            t.logo_url,
+            t.image_uuid,
             t.name,
             m.time
         FROM 
@@ -900,7 +920,7 @@ export class MatchService {
         SELECT 
             f.field_name, 
             DATE_FORMAT(m.date, '%Y-%m-%d') AS date,
-            t.logo_url,
+            t.image_uuid,
             t.name,
             m.time
         FROM 
@@ -910,8 +930,17 @@ export class MatchService {
         WHERE 
             m.away_team_id = ${teamId}
         `);
-    
-        return rawResults;
+        
+        const resultsWithImageUrl = await Promise.all(
+            rawResults.map(async (match) => {
+              const imageUrl = match.image_uuid
+                ? await this.awsService.presignedUrl(match.image_uuid)
+                : '';
+              return { ...match, imageUrl };
+            })
+          );
+        
+          return resultsWithImageUrl;
     }
 
     /**
