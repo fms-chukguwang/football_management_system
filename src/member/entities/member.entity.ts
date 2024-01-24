@@ -35,8 +35,8 @@ export class Member extends BaseModel {
     isStaff: boolean;
 
     @CreateDateColumn({
-        type: 'date',
         name: 'join_date',
     })
     joinDate: Date;
+    
 }
