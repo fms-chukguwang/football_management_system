@@ -5,7 +5,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AdminService } from '../admin.service';
-import { UserRole } from '../../user/types/user-role.type';
 import { UserService } from '../../user/user.service';
 
 @Injectable()

@@ -18,15 +18,18 @@ import {
     JoinColumn,
     JoinTable,
     ManyToMany,
+    ManyToOne,
     OneToMany,
     OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { Position } from '../../user/types/position.type';
+
 import { User } from '../../user/entities/user.entity';
 import { Factory } from 'nestjs-seeder';
 import { LocationModel } from '../../location/entities/location.entity';
+import { Position } from '../../enums/position.enum';
+import { Member } from '../../member/entities/member.entity';
 
 @Entity('profile')
 export class Profile {
@@ -140,6 +143,10 @@ export class Profile {
        }
      }
 
+     @ManyToOne(() => Member, (member) => member.profile)
+     @JoinColumn()
+     member: Member;
+     
     @CreateDateColumn()
     createdAt: Date;
 

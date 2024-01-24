@@ -1,6 +1,7 @@
 import { IsEnum, IsNotEmpty, IsNumber } from 'class-validator';
+import { Position } from '../../enums/position.enum';
 import { Gender } from '../../enums/gender.enum';
-import { Position } from '../../user/types/position.type';
+
 
 export class UpdateProfileInfoDto {
  /**

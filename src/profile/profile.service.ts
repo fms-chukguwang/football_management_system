@@ -1,9 +1,4 @@
-
-import {
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile } from './entities/profile.entity';
 import { QueryRunner, Repository } from 'typeorm';
@@ -11,6 +6,7 @@ import { RegisterProfileInfoDto } from './dtos/register-profile-info';
 import { User } from '../user/entities/user.entity';
 import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
 import { LocationModel } from '../location/entities/location.entity';
+import { Member } from '../member/entities/member.entity';
 
 @Injectable()
 export class ProfileService {
@@ -19,16 +15,19 @@ export class ProfileService {
         private readonly profileRepository: Repository<Profile>,
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
+        @InjectRepository(Member)
+        private readonly memberRepository: Repository<Member>,
     ) {}
 
-
-//   async getTeamNameByUserId(userId: string): Promise<string | null> {
-//     const profile = await this.profileRepository.findOne({ where: { user_id: userId } });
-//     return profile ? profile.team_name : null;
-//   }
+    //   async getTeamNameByUserId(userId: string): Promise<string | null> {
+    //     const profile = await this.profileRepository.findOne({ where: { user_id: userId } });
+    //     return profile ? profile.team_name : null;
+    //   }
 
     async findAllProfiles() {
-        const profiles = await this.profileRepository.find();
+        const profiles = await this.profileRepository.find({
+            relations: { user: {member: {team: true}}},
+        });
 
         if (!profiles || profiles.length === 0) {
             throw new NotFoundException('프로필을 찾을 수 없습니다.');
@@ -65,6 +64,10 @@ export class ProfileService {
         return qr ? qr.manager.getRepository<User>(User) : this.userRepository;
     }
 
+    getMemberRepository(qr?: QueryRunner) {
+        return qr ? qr.manager.getRepository<Member>(Member) : this.memberRepository;
+    }
+
     async registerProfile(
         userId: number,
         registerProfileInfoDto: RegisterProfileInfoDto,
@@ -72,12 +75,18 @@ export class ProfileService {
     ): Promise<Profile> {
         const profileRepository = this.getProfileRepository(qr);
         const userRepository = this.getUserRepository(qr);
+        const memberRepository = this.getMemberRepository(qr);
 
         console.log('registerProfileInfoDto');
         console.log(registerProfileInfoDto);
 
         const user = await this.userRepository.findOne({
             where: { id: userId },
+            relations: ['profile'],
+        });
+
+        const member = await this.memberRepository.findOne({
+            where: { user: { id: userId } },
             relations: ['profile'],
         });
 
@@ -89,18 +98,11 @@ export class ProfileService {
             user.profile = new Profile();
         }
 
-        // user.profile.name = user.name;
-        // user.profile.preferredPosition = registerProfileInfoDto.preferredPosition;
-        // user.profile.weight = registerProfileInfoDto.weight;
-        // user.profile.height = registerProfileInfoDto.height;
-        // user.profile.age = registerProfileInfoDto.age;
-        // user.profile.gender = registerProfileInfoDto.gender;
-        // user.profile.user = user;
-
         const registeredProfile = await profileRepository.save({
             ...registerProfileInfoDto,
             name: user.name,
             user,
+            member,
         });
         // const registeredProfile = await profileRepository.save(user.profile);
         // throw new Error('Method not implemented.');

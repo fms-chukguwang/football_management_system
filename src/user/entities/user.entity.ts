@@ -22,7 +22,7 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { UserRole } from '../types/user-role.type';
+
 import { Factory } from 'nestjs-seeder';
 import { hashPassword } from '../../helpers/password.helper';
 import { TeamModel } from '../../team/entities/team.entity';
@@ -33,6 +33,7 @@ import { Chats } from '../../chats/entities/chats.entity';
 import { Message } from '../../messages/entities/messages.entity';
 import { Profile } from '../../profile/entities/profile.entity';
 import { profile } from 'console';
+import { UserRole } from '../../enums/user-role.enum';
 
 @Entity('users')
 export class User {
