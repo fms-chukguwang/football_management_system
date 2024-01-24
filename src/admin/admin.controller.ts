@@ -9,13 +9,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PaginateUserDto } from './dto/paginate-user.dto';
 import { PaginateTeamDto } from './dto/paginate-team.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { IsAdminGuard } from './guards/isAdmin.guard';
 import { Request } from 'express';
-import { UserService } from 'src/user/user.service';
+import { UserService } from '../user/user.service';
 
 /**
  * 확인해야할 권한

@@ -8,9 +8,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Profile } from './entities/profile.entity';
 import { QueryRunner, Repository } from 'typeorm';
 import { RegisterProfileInfoDto } from './dtos/register-profile-info';
-import { User } from 'src/user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
 import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
-import { LocationModel } from 'src/location/entities/location.entity';
+import { LocationModel } from '../location/entities/location.entity';
 
 @Injectable()
 export class ProfileService {
@@ -20,6 +20,12 @@ export class ProfileService {
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
     ) {}
+
+
+//   async getTeamNameByUserId(userId: string): Promise<string | null> {
+//     const profile = await this.profileRepository.findOne({ where: { user_id: userId } });
+//     return profile ? profile.team_name : null;
+//   }
 
     async findAllProfiles() {
         const profiles = await this.profileRepository.find();

@@ -31,7 +31,7 @@ import { Delete, Inject } from '@nestjs/common';
 import { RedisService } from 'nestjs-redis';
 import { Chats } from '../../chats/entities/chats.entity';
 import { Message } from '../../messages/entities/messages.entity';
-import { Profile } from 'src/profile/entities/profile.entity';
+import { Profile } from '../../profile/entities/profile.entity';
 import { profile } from 'console';
 
 @Entity('users')

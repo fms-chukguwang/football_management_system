@@ -9,7 +9,7 @@ import {
     UpdateDateColumn,
   } from 'typeorm';
 import { Match } from './match.entity';
-import { Member } from 'src/member/entities/member.entity';
+import { Member } from '../../member/entities/member.entity';
   
   @Entity('player_statistics')
   export class PlayerStats {

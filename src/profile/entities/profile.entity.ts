@@ -23,10 +23,10 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { Position } from 'src/user/types/position.type';
-import { User } from 'src/user/entities/user.entity';
+import { Position } from '../../user/types/position.type';
+import { User } from '../../user/entities/user.entity';
 import { Factory } from 'nestjs-seeder';
-import { LocationModel } from 'src/location/entities/location.entity';
+import { LocationModel } from '../../location/entities/location.entity';
 
 @Entity('profile')
 export class Profile {

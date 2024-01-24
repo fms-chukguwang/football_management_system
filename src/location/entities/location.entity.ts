@@ -3,8 +3,8 @@ import { BaseModel } from '../../common/entities/base.entity';
 import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { TeamModel } from '../../team/entities/team.entity';
 import { Factory } from 'nestjs-seeder';
-import { Profile } from 'src/profile/entities/profile.entity';
-import { SoccerField } from 'src/match/entities/soccer-field.entity';
+import { Profile } from '../../profile/entities/profile.entity';
+import { SoccerField } from '../../match/entities/soccer-field.entity';
 
 @Entity('location')
 export class LocationModel extends BaseModel {

@@ -21,7 +21,7 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { WsExceptionFilter } from 'src/common/exception-filter/ws.exception-filter';
+import { WsExceptionFilter } from '../common/exception-filter/ws.exception-filter';
 import { SocketBearerTokenGuard } from './guard/ws-bearer-token.guard';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';

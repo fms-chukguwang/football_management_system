@@ -12,8 +12,8 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { UserService } from '../user/user.service';
 import { EmailModule } from '../email/email.module';
 import { JwtKakaoStrategy } from './strategies/jwt-social-kakao.strategy';
-import { RedisModule } from 'src/redis/redis.module';
-import { RedisService } from 'src/redis/redis.service';
+import { RedisModule } from '../redis/redis.module';
+import { RedisService } from '../redis/redis.service';
 
 @Module({
   imports: [

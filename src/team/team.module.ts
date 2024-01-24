@@ -3,9 +3,9 @@ import { TeamService } from './team.service';
 import { TeamController } from './team.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TeamModel } from './entities/team.entity';
-import { AwsModule } from 'src/aws/aws.module';
-import { LocationModule } from 'src/location/location.module';
-import { MemberModule } from 'src/member/member.module';
+import { AwsModule } from '../aws/aws.module';
+import { LocationModule } from '../location/location.module';
+import { MemberModule } from '../member/member.module';
 
 @Module({
     imports: [
