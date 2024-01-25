@@ -53,16 +53,25 @@ export class ProfileController {
     //  }
 
     @Get('')
-    async findAllProfiles(@Query() dto: PaginateProfileDto) {
-        // const data = await this.profileService.findAllProfiles();
-        const data = await this.profileService.paginateMyProfile(dto);
-        return {
-            statusCode: HttpStatus.OK,
-            message: '전체 프로필 정보 조회에 성공했습니다.',
-            data,
-        };
-    }
+  async findAllProfiles(@Query() dto: PaginateProfileDto) {
+      console.log("start");
+    const data = await this.profileService.paginateMyProfile(dto,dto.name);
+    return {
+      statusCode: HttpStatus.OK,
+      message: '전체 프로필 정보 조회에 성공했습니다.',
+      data,
+    };
+  }
 
+//   @Get('search')
+//   async searchProfiles( @Query('name') name: string) {
+//     const data = await this.profileService.searchProfile(name);
+//     return {
+//       statusCode: HttpStatus.OK,
+//       message: '전체 프로필 정보 조회에 성공했습니다.',
+//       data,
+//     };
+//   }
     /**
      * 프로필 정보 조회
      * @param req

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile } from './entities/profile.entity';
-import { QueryRunner, Repository } from 'typeorm';
+import { FindManyOptions, QueryRunner, Repository, ILike, Like } from 'typeorm';
 import { RegisterProfileInfoDto } from './dtos/register-profile-info';
 import { User } from '../user/entities/user.entity';
 import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
@@ -26,16 +26,35 @@ export class ProfileService {
     //     const profile = await this.profileRepository.findOne({ where: { user_id: userId } });
     //     return profile ? profile.team_name : null;
     //   }
-    async paginateMyProfile(dto: PaginateProfileDto) {
-        return await this.commonService.paginate(
-            dto,
-            this.profileRepository,
-            {
-                relations: { user: { member: { team: true } } },
-            },
-            'profile',
-        );
+
+    async paginateMyProfile(dto: PaginateProfileDto, name?: string) {
+        console.log("name=",name);
+        const options: FindManyOptions<Profile> = {
+            relations: { user: { member: { team: true } } },
+        };
+
+        if (name) {
+            options.where = { user: { name: Like(`%${name}%`) } };
+        }
+
+        const data = await this.profileRepository.find(options);
+
+        return await this.commonService.paginate(dto, this.profileRepository, options , 'profile');
     }
+
+    async searchProfile(name?: string) {
+        const options: FindManyOptions<Profile> = {
+          relations: { user: { member: { team: true } } },
+        };
+    
+        if (name) {
+          options.where = { user: { name: Like(`%${name}%`) } };
+        }
+
+        const data = await this.profileRepository.find(options);
+        return data;
+      }
+    
 
     async findAllProfiles() {
         const profiles = await this.profileRepository.find({
