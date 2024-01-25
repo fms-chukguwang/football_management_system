@@ -27,8 +27,17 @@ export class ProfileService {
     //     return profile ? profile.team_name : null;
     //   }
 
-    async paginateMyProfile(dto: PaginateProfileDto, name?: string) {
-        console.log("name=",name);
+    async paginateMyProfile(userId:number, dto: PaginateProfileDto, name?: string) {
+        const user = await this.userRepository.findOne({where: {id: userId}});
+        const profile = await this.profileRepository.findOne({where: {user: {id: userId}}})
+        const member =await this.memberRepository.findOne({where: {user: {id: userId}}})
+        console.log("user=",user);
+        console.log("profile=",profile);
+        console.log("member=",member);
+        if (member.isStaff != true) {
+            return null;
+        }
+
         const options: FindManyOptions<Profile> = {
             relations: { user: { member: { team: true } } },
         };
