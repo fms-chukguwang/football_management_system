@@ -35,8 +35,9 @@ export class Member extends BaseModel {
     isStaff: boolean;
 
     @CreateDateColumn({
-        type: 'date',
-        name: 'join_date',
+        type: 'timestamp',
+        precision: 6,
+        default: () => 'CURRENT_TIMESTAMP(6)',
     })
     joinDate: Date;
 }
