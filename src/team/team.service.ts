@@ -37,11 +37,6 @@ export class TeamService {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
 
-        const existMember = await this.memberService.existMember(userId);
-        if (!existMember) {
-            throw new BadRequestException(EMPTY_USER);
-        }
-
         const existTeam = await this.teamRepository.findOne({
             where: {
                 creator: {
