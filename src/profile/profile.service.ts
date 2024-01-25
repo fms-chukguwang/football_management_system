@@ -8,7 +8,7 @@ import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
 import { LocationModel } from '../location/entities/location.entity';
 import { Member } from '../member/entities/member.entity';
 import { PaginateProfileDto } from './dtos/paginate-profile-dto';
-import { CommonService } from 'src/common/common.service';
+import { CommonService } from '../common/common.service';
 
 @Injectable()
 export class ProfileService {
@@ -27,7 +27,14 @@ export class ProfileService {
     //     return profile ? profile.team_name : null;
     //   }
     async paginateMyProfile(dto: PaginateProfileDto) {
-        return await this.commonService.paginate(dto, this.profileRepository, {}, 'profile');
+        return await this.commonService.paginate(
+            dto,
+            this.profileRepository,
+            {
+                relations: { user: { member: { team: true } } },
+            },
+            'profile',
+        );
     }
 
     async findAllProfiles() {

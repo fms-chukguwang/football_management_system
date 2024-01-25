@@ -7,7 +7,7 @@ import { MemberService } from './member.service';
 import { UserModule } from '../user/user.module';
 import { TeamModule } from '../team/team.module';
 import { EmailModule } from '../email/email.module';
-import { RedisModule } from 'src/redis/redis.module';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
     imports: [

@@ -17,8 +17,8 @@ import { TeamStats } from './entities/team-stats.entity';
 import { TeamModel } from '../team/entities/team.entity';
 import { Member } from '../member/entities/member.entity';
 import { SoccerField } from './entities/soccer-field.entity';
-import { TeamJoinRequestToken } from 'src/email/entities/team-join-request-token.entity';
-import { AwsService } from 'src/aws/aws.service';
+import { TeamJoinRequestToken } from '../email/entities/team-join-request-token.entity';
+import { AwsService } from '../aws/aws.service';
 
 @Module({
     imports: [
@@ -37,6 +37,14 @@ import { AwsService } from 'src/aws/aws.service';
         AuthModule,
     ],
     controllers: [MatchController],
-    providers: [MatchService, EmailService, AuthService, JwtService, UserService, AwsService, RedisService],
+    providers: [
+        MatchService,
+        EmailService,
+        AuthService,
+        JwtService,
+        UserService,
+        AwsService,
+        RedisService,
+    ],
 })
 export class MatchModule {}
