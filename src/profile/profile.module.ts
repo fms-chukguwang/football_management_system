@@ -8,13 +8,15 @@ import { User } from '../user/entities/user.entity';
 import { UserModule } from '../user/user.module'; 
 import { MemberModule } from '../member/member.module';
 import { Member } from '../member/entities/member.entity';
+import { CommonModule } from 'src/common/common.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Profile, Member]),
     AuthModule,
     UserModule, 
-    MemberModule
+    MemberModule,
+    CommonModule
   ],
   controllers: [ProfileController],
   providers: [ProfileService],

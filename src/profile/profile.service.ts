@@ -7,6 +7,8 @@ import { User } from '../user/entities/user.entity';
 import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
 import { LocationModel } from '../location/entities/location.entity';
 import { Member } from '../member/entities/member.entity';
+import { PaginateProfileDto } from './dtos/paginate-profile-dto';
+import { CommonService } from 'src/common/common.service';
 
 @Injectable()
 export class ProfileService {
@@ -17,16 +19,20 @@ export class ProfileService {
         private readonly userRepository: Repository<User>,
         @InjectRepository(Member)
         private readonly memberRepository: Repository<Member>,
+        private readonly commonService: CommonService,
     ) {}
 
     //   async getTeamNameByUserId(userId: string): Promise<string | null> {
     //     const profile = await this.profileRepository.findOne({ where: { user_id: userId } });
     //     return profile ? profile.team_name : null;
     //   }
+    async paginateMyProfile(dto: PaginateProfileDto) {
+        return await this.commonService.paginate(dto, this.profileRepository, {}, 'profile');
+    }
 
     async findAllProfiles() {
         const profiles = await this.profileRepository.find({
-            relations: { user: {member: {team: true}}},
+            relations: { user: { member: { team: true } } },
         });
 
         if (!profiles || profiles.length === 0) {
