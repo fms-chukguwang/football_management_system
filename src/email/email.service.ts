@@ -13,7 +13,7 @@ import { EmailVerification } from '../email/entities/email.entity';
 import { TeamJoinRequestToken } from './entities/team-join-request-token.entity';
 import { joinTeamHtml, rejectTeamHtml } from './html/email.html';
 import { v4 } from 'uuid';
-import { RedisService } from 'src/redis/redis.service';
+import { RedisService } from '../redis/redis.service';
 
 const randomBytesAsync = promisify(randomBytes);
 

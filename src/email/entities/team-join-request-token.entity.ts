@@ -1,4 +1,4 @@
-import { BaseModel } from 'src/common/entities/base.entity';
+import { BaseModel } from '../../common/entities/base.entity';
 import { Column, Entity } from 'typeorm';
 
 @Entity('team_join_request_token')

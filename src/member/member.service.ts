@@ -14,7 +14,7 @@ import { UserService } from '../user/user.service';
 import { TeamService } from '../team/team.service';
 import { EmailService } from '../email/email.service';
 import { SendJoiningEmailDto } from './dtos/send-joining-email.dto';
-import { RedisService } from 'src/redis/redis.service';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class MemberService {
@@ -30,8 +30,8 @@ export class MemberService {
 
     async findAllPlayers() {
         const Players = await this.memberRepository.find({
-            relations: ['user', 'user.profile', 'team'], 
-          });
+            relations: ['user', 'user.profile', 'team'],
+        });
         if (!Players) {
             throw new NotFoundException('선수를 찾을 수 없습니다.');
         }
