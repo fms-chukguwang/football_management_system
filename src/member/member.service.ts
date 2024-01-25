@@ -5,6 +5,7 @@ import {
     NotFoundException,
     UnauthorizedException,
     forwardRef,
+
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Member } from './entities/member.entity';
@@ -74,6 +75,24 @@ export class MemberService {
         });
 
         return registerMember;
+    }
+    
+    //많은 멤버 한번에 추가하기 
+    async registerManyMembers(teamId: number, userIds: number[]): Promise<Member[]> {
+        const users = await Promise.all(userIds.map((userId) => this.userService.findOneById(userId)));
+        const existingMembers = await Promise.all(users.map((user) => this.findMemberForUserId(user.id)));
+
+    
+        const registerMembers = await Promise.all(
+            users.map((user) =>
+                this.memberRepository.save({
+                    user: { id: user.id },
+                    team: { id: teamId },
+                })
+            )
+        );
+    
+        return registerMembers;
     }
 
     /**
