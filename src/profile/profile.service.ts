@@ -27,7 +27,14 @@ export class ProfileService {
     //     return profile ? profile.team_name : null;
     //   }
     async paginateMyProfile(dto: PaginateProfileDto) {
-        return await this.commonService.paginate(dto, this.profileRepository, {}, 'profile');
+        return await this.commonService.paginate(
+            dto,
+            this.profileRepository,
+            {
+                relations: { user: { member: { team: true } } },
+            },
+            'profile',
+        );
     }
 
     async findAllProfiles() {
