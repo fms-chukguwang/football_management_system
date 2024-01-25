@@ -6,6 +6,7 @@ import { TeamModel } from './entities/team.entity';
 import { AwsModule } from '../aws/aws.module';
 import { LocationModule } from '../location/location.module';
 import { MemberModule } from '../member/member.module';
+import { CommonModule } from '../common/common.module';
 
 @Module({
     imports: [
@@ -13,6 +14,7 @@ import { MemberModule } from '../member/member.module';
         AwsModule,
         LocationModule,
         forwardRef(() => MemberModule),
+        CommonModule,
     ],
     exports: [TeamService],
     controllers: [TeamController],

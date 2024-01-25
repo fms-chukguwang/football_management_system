@@ -22,6 +22,7 @@ import { QueryRunner } from 'typeorm';
 import { TransactionInterceptor } from '../common/interceptors/transaction.interceptor';
 import { qr } from '../common/decorators/qr.decorator';
 import { PaginateProfileDto } from './dtos/paginate-profile-dto';
+import { IsStaffGuard } from '../member/guard/is-staff.guard';
 @ApiTags('프로필')
 @Controller('profile')
 export class ProfileController {
@@ -41,21 +42,13 @@ export class ProfileController {
      * @param req
      * @returns
      */
-    //  @Get('')
-    //  async findAllProfiles() {
-    //      const data = await this.profileService.findAllProfiles();
-
-    //      return {
-    //          statusCode: HttpStatus.OK,
-    //          message: '전체 프로필 정보 조회에 성공했습니다.',
-    //          data,
-    //      };
-    //  }
-
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @Get('')
-    async findAllProfiles(@Query() dto: PaginateProfileDto) {
-        // const data = await this.profileService.findAllProfiles();
-        const data = await this.profileService.paginateMyProfile(dto);
+    async findAllProfiles(@Request() req, @Query() dto: PaginateProfileDto) {
+        const userId = req.user.id;
+        console.log("userId=",userId)
+        const data = await this.profileService.paginateMyProfile(userId, dto, dto.name);
         return {
             statusCode: HttpStatus.OK,
             message: '전체 프로필 정보 조회에 성공했습니다.',
@@ -63,6 +56,15 @@ export class ProfileController {
         };
     }
 
+    //   @Get('search')
+    //   async searchProfiles( @Query('name') name: string) {
+    //     const data = await this.profileService.searchProfile(name);
+    //     return {
+    //       statusCode: HttpStatus.OK,
+    //       message: '전체 프로필 정보 조회에 성공했습니다.',
+    //       data,
+    //     };
+    //   }
     /**
      * 프로필 정보 조회
      * @param req
@@ -88,7 +90,7 @@ export class ProfileController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @UseInterceptors(TransactionInterceptor)
-    @Post(':userId/register')
+    @Post('')
     async registerprofile(
         @Request() req,
         @Body() registerProfileInfoDto: RegisterProfileInfoDto,
