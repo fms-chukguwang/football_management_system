@@ -30,6 +30,9 @@ import { ProfileModule } from './profile/profile.module';
 import { TeamModule } from './team/team.module';
 import { LocationModel } from './location/entities/location.entity';
 import { MemberModule } from './member/member.module';
+import { TaskModule } from './task/task.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { JobsModule } from './jobs/jobs.module';
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -50,6 +53,9 @@ import { MemberModule } from './member/member.module';
         TeamModule,
         LocationModel,
         MemberModule,
+        TaskModule,
+        ScheduleModule.forRoot(),
+        JobsModule
     ],
     controllers: [AppController],
     providers: [
