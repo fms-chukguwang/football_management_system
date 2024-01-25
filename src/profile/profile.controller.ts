@@ -10,6 +10,7 @@ import {
     Request,
     HttpStatus,
     UseInterceptors,
+    Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -20,6 +21,7 @@ import { RegisterProfileInfoDto } from './dtos/register-profile-info';
 import { QueryRunner } from 'typeorm';
 import { TransactionInterceptor } from '../common/interceptors/transaction.interceptor';
 import { qr } from '../common/decorators/qr.decorator';
+import { PaginateProfileDto } from './dtos/paginate-profile-dto';
 @ApiTags('프로필')
 @Controller('profile')
 export class ProfileController {
@@ -39,10 +41,21 @@ export class ProfileController {
      * @param req
      * @returns
      */
-         @Get('')
-         async findAllProfiles() {
-             const data = await this.profileService.findAllProfiles();
+        //  @Get('')
+        //  async findAllProfiles() {
+        //      const data = await this.profileService.findAllProfiles();
      
+        //      return {
+        //          statusCode: HttpStatus.OK,
+        //          message: '전체 프로필 정보 조회에 성공했습니다.',
+        //          data,
+        //      };
+        //  }
+
+         @Get('')
+         async findAllProfiles(@Query() dto: PaginateProfileDto) {
+             // const data = await this.profileService.findAllProfiles();
+             const data = await this.profileService.paginateMyProfile(dto);
              return {
                  statusCode: HttpStatus.OK,
                  message: '전체 프로필 정보 조회에 성공했습니다.',
