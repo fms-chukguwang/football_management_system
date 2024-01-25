@@ -88,7 +88,7 @@ export class ProfileController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @UseInterceptors(TransactionInterceptor)
-    @Post(':userId/register')
+    @Post('')
     async registerprofile(
         @Request() req,
         @Body() registerProfileInfoDto: RegisterProfileInfoDto,

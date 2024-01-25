@@ -12,6 +12,8 @@ import {
     EXIST_CREATOR,
 } from './validation-message/team-exception.message';
 import { UpdateTeamDto } from './dtos/update-team.dto';
+import { PaginateTeamDto } from './dtos/paginate-team-dto';
+import { CommonService } from '../common/common.service';
 
 @Injectable()
 export class TeamService {
@@ -23,7 +25,17 @@ export class TeamService {
         @Inject(forwardRef(() => MemberService))
         private readonly memberService: MemberService,
         private readonly dataSource: DataSource,
+        private readonly commonService: CommonService,
     ) {}
+
+    async paginateMyProfile(dto: PaginateTeamDto) {
+        return await this.commonService.paginate(
+            dto,
+            this.teamRepository,
+            {},
+            'team'
+        );
+    }
 
     /**
      * 팀 생성하기
