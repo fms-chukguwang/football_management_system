@@ -198,6 +198,26 @@ export class MatchController {
     }
 
     /**
+     * 팀별 일정 조회
+     * @param req
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get('team/schedule/:teamId')
+    async getTeamSchedule(@Request() req,@Param('teamId') teamId: number) {
+        const userId = req.user.id;
+
+        const data = await this.matchService.getTeamSchedule(teamId,userId);
+    
+        return {
+            statusCode: HttpStatus.OK,
+            success: true,
+            data
+        };
+    }
+
+    /**
      * 팀 경기 일정 조회
      * @param req
      * @returns
@@ -228,6 +248,26 @@ export class MatchController {
         const userId = req.user.id;
 
         const data = await this.matchService.getTeamOwners(userId);
+    
+        return {
+            statusCode: HttpStatus.OK,
+            success: true,
+            data
+        };
+    }
+
+    /**
+     * 개인 멤버정보 조회
+     * @param req
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get('member')
+    async getMember(@Request() req) {
+        const userId = req.user.id;
+
+        const data = await this.matchService.getMember(userId);
     
         return {
             statusCode: HttpStatus.OK,

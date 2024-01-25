@@ -1,6 +1,13 @@
-import { BadRequestException, HttpException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+    BadRequestException,
+    HttpException,
+    Injectable,
+    InternalServerErrorException,
+    NotFoundException,
+    UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, DataSource, Not, Repository, getRepository } from 'typeorm';
+import { Brackets, DataSource, Not, Repository, getManager, getRepository } from 'typeorm';
 import { createMatchDto } from './dtos/create-match.dto';
 import { Match } from './entities/match.entity';
 import { updateMatchDto } from './dtos/update-match.dto';
@@ -22,10 +29,10 @@ import { TeamStats } from './entities/team-stats.entity';
 import { TeamModel } from '../team/entities/team.entity';
 import { Member } from '../member/entities/member.entity';
 import { SoccerField } from './entities/soccer-field.entity';
+import { AwsService } from '../aws/aws.service';
 
 @Injectable()
 export class MatchService {
-
     constructor(
         @InjectRepository(Match)
         private matchRepository: Repository<Match>,
@@ -55,8 +62,9 @@ export class MatchService {
         private authService: AuthService,
         private jwtService: JwtService,
         private configService: ConfigService,
+        private readonly awsService: AwsService,
         private readonly dataSource: DataSource,
-      ) {}
+    ) {}
 
     /**
      * 경기 생성 이메일 요청(상대팀 구단주에게)
@@ -64,10 +72,9 @@ export class MatchService {
      * @param  createrequestDto
      * @returns
      */
-    async requestCreMatch(userId: number, createrequestDto:createRequestDto) {
-
+    async requestCreMatch(userId: number, createrequestDto: createRequestDto) {
         //입력한 일자, 시간 예약 여부 체크
-        await this.verifyReservedMatch(createrequestDto.date,createrequestDto.time);
+        await this.verifyReservedMatch(createrequestDto.date, createrequestDto.time);
 
         const token = this.authService.generateAccessEmailToken(userId);
 
@@ -78,23 +85,23 @@ export class MatchService {
         // EmailRequest 객체 생성 및 초기화
         const emailRequest: EmailRequest = {
             email: awayTeam.creator.email,
-            subject: "경기 일정 생성 요청",
-            clubName: awayTeam.name,   
+            subject: '경기 일정 생성 요청',
+            clubName: awayTeam.name,
             originalSchedule: `${createrequestDto.date} ${createrequestDto.time}`,
             newSchedule: `${createrequestDto.date} ${createrequestDto.time}`,
             reason: '경기 제안',
-            homeTeamId:createrequestDto.homeTeamId,
-            awayTeamId:createrequestDto.awayTeamId,
-            fieldId:createrequestDto.fieldId,
+            homeTeamId: createrequestDto.homeTeamId,
+            awayTeamId: createrequestDto.awayTeamId,
+            fieldId: createrequestDto.fieldId,
             senderName: `${homeCreator[0].name} 구단주`,
             url: `http://localhost:3001/api/match/book/accept`,
             chk: 'create',
-            token:token
+            token: token,
         };
 
         const send = await this.emailService.reqMatchEmail(emailRequest);
 
-        return send ;
+        return send;
     }
 
     /**
@@ -102,16 +109,15 @@ export class MatchService {
      * @param  creatematchDto
      * @returns
      */
-    async createMatch(creatematchDto:createMatchDto) {
-
+    async createMatch(creatematchDto: createMatchDto) {
         const payload = await this.jwtService.verify(creatematchDto.token, {
-            secret: this.configService.get<string>("JWT_SECRET"),
+            secret: this.configService.get<string>('JWT_SECRET'),
         });
         const user = await this.userRepository.findOne({
             where: { id: payload.userId },
         });
 
-        if(!user){
+        if (!user) {
             throw new UnauthorizedException('사용자 정보가 유효하지 않습니다.');
         }
 
@@ -122,25 +128,24 @@ export class MatchService {
         const matchTime = creatematchDto.time;
 
         //입력한 일자, 시간 예약 여부 체크
-        await this.verifyReservedMatch(matchDate,matchTime);
+        await this.verifyReservedMatch(matchDate, matchTime);
 
         const match = this.matchRepository.create({
-                        owner_id:user.id,
-                        date:matchDate,
-                        time:matchTime,
-                        home_team_id:Number(creatematchDto.homeTeamId),
-                        away_team_id:Number(creatematchDto.awayTeamId),
-                        soccer_field_id:Number(creatematchDto.fieldId)
-                    });
+            owner_id: user.id,
+            date: matchDate,
+            time: matchTime,
+            home_team_id: Number(creatematchDto.homeTeamId),
+            away_team_id: Number(creatematchDto.awayTeamId),
+            soccer_field_id: Number(creatematchDto.fieldId),
+        });
 
         if (!match) {
             throw new NotFoundException('경기를 생성할 수 없습니다.');
         }
-        
+
         await this.matchRepository.save(match);
 
         return match;
-    
     }
 
     /**
@@ -150,10 +155,10 @@ export class MatchService {
      */
     async findOneMatch(matchId: number) {
         const match = await this.matchRepository.findOne({
-            where: { id:matchId },
+            where: { id: matchId },
         });
 
-        if(!match){
+        if (!match) {
             throw new NotFoundException('해당 ID의 경기 일정이 없습니다.');
         }
 
@@ -167,40 +172,39 @@ export class MatchService {
      * @param  updaterequestDto
      * @returns
      */
-    async requestUptMatch(userId: number, matchId:number,updaterequestDto:updateRequestDto) {
-
+    async requestUptMatch(userId: number, matchId: number, updaterequestDto: updateRequestDto) {
         const token = this.authService.generateAccessEmailToken(userId);
 
         // 구단주 체크
         const homeCreator = await this.verifyTeamCreator(userId);
 
         //입력한 일자, 시간 예약 여부 체크
-        await this.verifyReservedMatch(updaterequestDto.date,updaterequestDto.time);
+        await this.verifyReservedMatch(updaterequestDto.date, updaterequestDto.time);
 
-        const match = await this.verifyOneMatch(matchId,homeCreator[0].id);
+        const match = await this.verifyOneMatch(matchId, homeCreator[0].id);
 
         const awayTeam = await this.getTeamInfo(match.away_team_id);
 
         // EmailRequest 객체 생성 및 초기화
         const emailRequest: EmailRequest = {
-            email: awayTeam.creator.email, 
-            subject: "경기 일정 수정 요청",
+            email: awayTeam.creator.email,
+            subject: '경기 일정 수정 요청',
             clubName: awayTeam.name,
             originalSchedule: `${match.date} ${match.time}`,
             newSchedule: `${updaterequestDto.date} ${updaterequestDto.time}`,
             reason: updaterequestDto.reason,
-            homeTeamId:0,
-            awayTeamId:0,
-            fieldId:0,
+            homeTeamId: 0,
+            awayTeamId: 0,
+            fieldId: 0,
             senderName: `${homeCreator[0].name} 구단주`,
             url: `http://localhost:3001/api/match/${matchId}/update`,
             chk: 'update',
-            token:token
+            token: token,
         };
 
         const send = await this.emailService.reqMatchEmail(emailRequest);
 
-        return send ;
+        return send;
     }
 
     /**
@@ -209,16 +213,15 @@ export class MatchService {
      * @param  updatematchDto
      * @returns
      */
-    async updateMatch(matchId:number,updatematchDto:updateMatchDto) {
-
+    async updateMatch(matchId: number, updatematchDto: updateMatchDto) {
         const payload = await this.jwtService.verify(updatematchDto.token, {
-            secret: this.configService.get<string>("JWT_SECRET"),
+            secret: this.configService.get<string>('JWT_SECRET'),
         });
         const user = await this.userRepository.findOne({
             where: { id: payload.userId },
         });
 
-        if(!user){
+        if (!user) {
             throw new UnauthorizedException('사용자 정보가 유효하지 않습니다.');
         }
 
@@ -228,15 +231,15 @@ export class MatchService {
         await this.findOneMatch(matchId);
 
         //입력한 일자, 시간 예약 여부 체크
-        await this.verifyReservedMatch(updatematchDto.date,updatematchDto.time);
+        await this.verifyReservedMatch(updatematchDto.date, updatematchDto.time);
 
         const updateMatch = await this.matchRepository.update(
-                        { id: matchId },
-                        {
-                            date: updatematchDto.date,
-                            time: updatematchDto.time,
-                        },
-                    );
+            { id: matchId },
+            {
+                date: updatematchDto.date,
+                time: updatematchDto.time,
+            },
+        );
 
         return updateMatch;
     }
@@ -248,37 +251,36 @@ export class MatchService {
      * @param  deleterequestDto
      * @returns
      */
-    async requestDelMatch(userId: number, matchId:number,deleterequestDto:deleteRequestDto) {
-
+    async requestDelMatch(userId: number, matchId: number, deleterequestDto: deleteRequestDto) {
         const token = this.authService.generateAccessEmailToken(userId);
 
         // 구단주 체크
         const homeCreator = await this.verifyTeamCreator(userId);
 
-        const match = await this.verifyOneMatch(matchId,homeCreator[0].id);
+        const match = await this.verifyOneMatch(matchId, homeCreator[0].id);
 
         const awayTeam = await this.getTeamInfo(match.away_team_id);
 
         // EmailRequest 객체 생성 및 초기화
         const emailRequest: EmailRequest = {
             email: awayTeam.creator.email,
-            subject: "경기 일정 삭제 요청",
+            subject: '경기 일정 삭제 요청',
             clubName: awayTeam.name,
             originalSchedule: `${match.date} ${match.time}`,
             newSchedule: ``,
             reason: deleterequestDto.reason,
-            homeTeamId:0,
-            awayTeamId:0,
-            fieldId:0,
+            homeTeamId: 0,
+            awayTeamId: 0,
+            fieldId: 0,
             senderName: `${homeCreator[0].name} 구단주`,
             url: `http://localhost:3001/api/match/${matchId}/delete`,
             chk: 'delete',
-            token:token
+            token: token,
         };
 
         const send = await this.emailService.reqMatchEmail(emailRequest);
 
-        return send ;
+        return send;
     }
 
     /**
@@ -288,38 +290,35 @@ export class MatchService {
      * @returns
      */
     async deleteMatch(deletematchDto: deleteMatchDto, matchId: number) {
-
         const payload = await this.jwtService.verify(deletematchDto.token, {
-            secret: this.configService.get<string>("JWT_SECRET"),
+            secret: this.configService.get<string>('JWT_SECRET'),
         });
         const user = await this.userRepository.findOne({
             where: { id: payload.userId },
         });
 
-        if(!user){
+        if (!user) {
             throw new UnauthorizedException('사용자 정보가 유효하지 않습니다.');
         }
 
         // 구단주 체크
         const homeCreator = await this.verifyTeamCreator(user.id);
 
-        await this.verifyOneMatch(matchId,homeCreator[0].id);
+        await this.verifyOneMatch(matchId, homeCreator[0].id);
 
         const queryRunner = this.dataSource.createQueryRunner();
 
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
-        try{
-
-            await queryRunner.manager.delete('match_results', { match_id:matchId });
-            await queryRunner.manager.delete('matches', { id:matchId });
+        try {
+            await queryRunner.manager.delete('match_results', { match_id: matchId });
+            await queryRunner.manager.delete('matches', { id: matchId });
 
             await queryRunner.commitTransaction();
 
             return;
-
-        }catch(error){
+        } catch (error) {
             await queryRunner.rollbackTransaction();
             console.log(`error : ${error}`);
             if (error instanceof HttpException) {
@@ -329,7 +328,7 @@ export class MatchService {
                 // 그 외의 예외
                 throw new InternalServerErrorException('서버 에러가 발생했습니다.');
             }
-        }finally{
+        } finally {
             await queryRunner.release();
         }
     }
@@ -341,37 +340,40 @@ export class MatchService {
      * @param  creatematchResultDto
      * @returns
      */
-    async resultMatchCreate(userId: number, matchId:number, creatematchResultDto:createMatchResultDto) {
-
+    async resultMatchCreate(
+        userId: number,
+        matchId: number,
+        creatematchResultDto: createMatchResultDto,
+    ) {
         // 구단주 체크
         const homeCreator = await this.verifyTeamCreator(userId);
 
-        const match = await this.verifyOneMatch(matchId,homeCreator[0].id);
+        const match = await this.verifyOneMatch(matchId, homeCreator[0].id);
 
-        const matchDetail = await this.isMatchDetail(matchId,homeCreator[0].id);
+        const matchDetail = await this.isMatchDetail(matchId, homeCreator[0].id);
 
-        if(matchDetail){
+        if (matchDetail) {
             throw new NotFoundException('이미 경기 결과 등록했습니다.');
         }
 
         // 경기 결과 멤버 체크
-        await this.chkResultMember(userId,matchId,creatematchResultDto);
-        
+        await this.chkResultMember(userId, matchId, creatematchResultDto);
+
         //경기 결과
         const matchResult = this.matchResultRepository.create({
-            match_id:matchId,
-            team_id:homeCreator[0].id,
+            match_id: matchId,
+            team_id: homeCreator[0].id,
             goals: creatematchResultDto.goals,
-            corner_kick:creatematchResultDto.cornerKick,
-            red_cards:creatematchResultDto.redCards,
-            yellow_cards:creatematchResultDto.yellowCards,
-            substitions:creatematchResultDto.substitions,
-            saves:creatematchResultDto.saves,
-            assists:creatematchResultDto.assists,
-            passes:creatematchResultDto.passes,
-            clean_sheet:creatematchResultDto.cleanSheet,
-            penalty_kick:creatematchResultDto.penaltyKick,
-            free_kick:creatematchResultDto.freeKick
+            corner_kick: creatematchResultDto.cornerKick,
+            red_cards: creatematchResultDto.redCards,
+            yellow_cards: creatematchResultDto.yellowCards,
+            substitions: creatematchResultDto.substitions,
+            saves: creatematchResultDto.saves,
+            assists: creatematchResultDto.assists,
+            passes: creatematchResultDto.passes,
+            penalty_kick: creatematchResultDto.penaltyKick,
+            free_kick: creatematchResultDto.freeKick,
+            clean_sheet: false, // 기본적으로 false로 설정
         });
 
         if (!matchResult) {
@@ -380,21 +382,19 @@ export class MatchService {
 
         const matchResultCount = await this.matchResultCount(matchId);
 
-
         // 위 생성한 데이터 저장
         const queryRunner = this.dataSource.createQueryRunner();
 
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
-        try{
-            
-            await queryRunner.manager.save('match_results', matchResult);
-
+        try {
+            console.log(`matchResultCount:${matchResultCount}`);
             // 한 팀이 등록한 상태라면 팀 스탯 생성
-            if(matchResultCount===1){
-
+            if (matchResultCount === 1) {
                 const teamStats = await this.createTeamStats(matchResult);
+
+                console.log(`home:${teamStats.home_score} away:${teamStats.away_score}`);
 
                 // 홈팀 스탯 생성
                 const gethomeTeamStats = await this.teamTotalGames(match.home_team_id);
@@ -406,10 +406,10 @@ export class MatchService {
 
                 const homeTeamResult = this.teamStatsRepository.create({
                     team_id: match.home_team_id,
-                    wins:homeWins,
-                    loses:homeLoses,
-                    draws:homeDraws,
-                    total_games:homeTotalGames
+                    wins: homeWins,
+                    loses: homeLoses,
+                    draws: homeDraws,
+                    total_games: homeTotalGames,
                 });
 
                 // 어웨이팀 스탯 생성
@@ -419,26 +419,71 @@ export class MatchService {
                 const awayLoses = getawayTeamStats.loses + teamStats.away_lose;
                 const awayDraws = getawayTeamStats.wins + teamStats.away_draw;
                 const awayTotalGames = getawayTeamStats.total_games + 1;
-    
-                
+
                 const awayTeamResult = this.teamStatsRepository.create({
-                    team_id:match.away_team_id,
+                    team_id: match.away_team_id,
                     wins: awayWins,
-                    loses:awayLoses,
-                    draws:awayDraws,
-                    total_games: awayTotalGames
+                    loses: awayLoses,
+                    draws: awayDraws,
+                    total_games: awayTotalGames,
                 });
+
+                console.log(`homeCreator[0].id ${homeCreator[0].id}`);
+                console.log(`match.home_team_id ${match.home_team_id}`);
+                console.log(`match.away_team_id ${match.away_team_id}`);
+
+                // 마지막 입력한 팀 득점이 0인 경우 (상대팀 클린시트)
+                if (
+                    homeCreator[0].id === match.home_team_id &&
+                    creatematchResultDto.goals.length === 0
+                ) {
+                    console.log('home chk ' + teamStats.home_score);
+                    console.log('home matchId ' + matchId);
+                    console.log('away_team_id ' + match.away_team_id);
+                    await queryRunner.manager.update(
+                        'match_results',
+                        { match_id: matchId, team_id: match.away_team_id },
+                        { clean_sheet: true },
+                    );
+                }
+
+                // 마지막 입력한 팀 득점이 0인 경우 (상대팀 클린시트)
+                if (
+                    homeCreator[0].id === match.away_team_id &&
+                    creatematchResultDto.goals.length === 0
+                ) {
+                    console.log('home chk2 ' + teamStats.home_score);
+                    console.log('home matchId2 ' + matchId);
+                    console.log('away_team_id2 ' + match.away_team_id);
+                    await queryRunner.manager.update(
+                        'match_results',
+                        { match_id: matchId, team_id: match.home_team_id },
+                        { clean_sheet: true },
+                    );
+                }
+
+                // 상대팀 득점이 0인 경우 (마지막 입력한 팀 클린시트)
+                if (homeCreator[0].id === match.home_team_id && teamStats.away_score === 0) {
+                    console.log('away chk ' + teamStats.away_score);
+                    matchResult.clean_sheet = true;
+                }
+
+                // 상대 득점이 0인 경우 (마지막 입력한 팀 클린시트)
+                if (homeCreator[0].id === match.away_team_id && teamStats.home_score === 0) {
+                    console.log('away chk ' + teamStats.away_score);
+                    matchResult.clean_sheet = true;
+                }
 
                 await queryRunner.manager.save('team_statistics', homeTeamResult);
                 await queryRunner.manager.save('team_statistics', awayTeamResult);
             }
 
+            await queryRunner.manager.save('match_results', matchResult);
+
             await queryRunner.commitTransaction();
 
             return matchResult;
-
-        }catch(error){
-
+        } catch (error) {
             await queryRunner.rollbackTransaction();
             console.log(`error : ${error}`);
             if (error instanceof HttpException) {
@@ -448,8 +493,7 @@ export class MatchService {
                 // 그 외의 예외
                 throw new InternalServerErrorException('서버 에러가 발생했습니다.');
             }
-
-        }finally{
+        } finally {
             await queryRunner.release();
         }
     }
@@ -462,36 +506,40 @@ export class MatchService {
      * @param  createplayerStatsDto
      * @returns
      */
-    async resultPlayerCreate(userId: number, matchId:number, memberId:number, createplayerStatsDto: createPlayerStatsDto) {
-
+    async resultPlayerCreate(
+        userId: number,
+        matchId: number,
+        memberId: number,
+        createplayerStatsDto: createPlayerStatsDto,
+    ) {
         // 구단주 체크
         const homeCreator = await this.verifyTeamCreator(userId);
 
-        const match = await this.verifyOneMatch(matchId,homeCreator[0].id);
+        const match = await this.verifyOneMatch(matchId, homeCreator[0].id);
 
         // 해당팀의 멤버인지 체크
-        await this.isTeamMember(homeCreator[0].id,memberId);
+        await this.isTeamMember(homeCreator[0].id, memberId);
 
         const playerStats = this.playerStatsRepository.create({
-            team_id:homeCreator[0].id,
+            team_id: homeCreator[0].id,
             clean_sheet: createplayerStatsDto.clean_sheet,
             match_id: match.id,
             member_id: memberId,
             assists: createplayerStatsDto.assists,
             goals: createplayerStatsDto.goals,
-            yellow_cards:createplayerStatsDto.yellowCards,
+            yellow_cards: createplayerStatsDto.yellowCards,
             red_cards: createplayerStatsDto.redCards,
             substitutions: createplayerStatsDto.substitions,
             save: createplayerStatsDto.save,
         });
 
         if (!playerStats) {
-        throw new NotFoundException('경기결과 기록을 생성할 수 없습니다.');
+            throw new NotFoundException('경기결과 기록을 생성할 수 없습니다.');
         }
 
         await this.playerStatsRepository.save(playerStats);
 
-        return playerStats ;
+        return playerStats;
     }
 
     /**
@@ -501,16 +549,12 @@ export class MatchService {
      */
     async findTeamMatches(teamId: number) {
         const teamMatches = await this.matchRepository.findOne({
-            where: [
-                        { home_team_id:teamId },
-                        { away_team_id:teamId }
-                    ]
-
+            where: [{ home_team_id: teamId }, { away_team_id: teamId }],
         });
 
         if (!teamMatches) {
             throw new NotFoundException('팀에서 진행한 경기가 없습니다.');
-            }
+        }
 
         return teamMatches;
     }
@@ -522,13 +566,12 @@ export class MatchService {
      */
     async findMatchDetail(matchId: number) {
         const teamMatches = await this.matchResultRepository.find({
-            where: { match_id:matchId }
-
+            where: { match_id: matchId },
         });
 
         if (!teamMatches) {
             throw new NotFoundException('경기 기록이 없습니다.');
-            }
+        }
 
         return teamMatches;
     }
@@ -538,17 +581,18 @@ export class MatchService {
      * @param  userId
      * @returns
      */
-    async verifyTeamCreator(userId:number) {
-
+    async verifyTeamCreator(userId: number) {
         const creator = await this.teamRepository
             .createQueryBuilder('team')
-            .select(['team.id', 'team.creator_id','team.name','team.logoUrl','team.location_id'])
-            .where(
-                'team.creator_id=:userId',
-                { userId },
-            )
+            .select([
+                'team.id',
+                'team.creator_id',
+                'team.name',
+                'team.imageUUID',
+                'team.location_id',
+            ])
+            .where('team.creator_id=:userId', { userId })
             .getMany();
-        
 
         if (!creator[0]) {
             throw new BadRequestException('구단주가 아닙니다.');
@@ -558,11 +602,14 @@ export class MatchService {
 
         const user = await this.getUserInfo(userId);
 
+        const imageUrl = await this.awsService.presignedUrl(creator[0].imageUUID);
+
         // creator 배열의 각 요소에 user.email 추가
-        const updatedCreator = creator.map(item => ({
+        const updatedCreator = creator.map((item) => ({
             ...item,
             email: user.email,
-            user_id: user.id
+            imageUrl,
+            user_id: user.id,
         }));
 
         return updatedCreator;
@@ -574,8 +621,7 @@ export class MatchService {
      * @param  teamId
      * @returns
      */
-    private async getTeamInfo(teamId:number) {
-
+    private async getTeamInfo(teamId: number) {
         const team = await this.teamRepository.findOne({
             where: {
                 id: teamId,
@@ -604,19 +650,21 @@ export class MatchService {
      * @param  teamId
      * @returns
      */
-    async verifyOneMatch(matchId: number,teamId:number) {
-        const match = await this.matchRepository        
-        .createQueryBuilder("match")
-        .where("match.id = :matchId", { matchId })
-        .andWhere(
-            new Brackets(qb => {
-                qb.where("match.home_team_id = :teamId", { teamId })
-                    .orWhere("match.away_team_id = :teamId", { teamId });
-            })
-        )
-        .getOne();
+    async verifyOneMatch(matchId: number, teamId: number) {
+        const match = await this.matchRepository
+            .createQueryBuilder('match')
+            .where('match.id = :matchId', { matchId })
+            .andWhere(
+                new Brackets((qb) => {
+                    qb.where('match.home_team_id = :teamId', { teamId }).orWhere(
+                        'match.away_team_id = :teamId',
+                        { teamId },
+                    );
+                }),
+            )
+            .getOne();
 
-        if(!match){
+        if (!match) {
             throw new NotFoundException('해당 ID의 경기 일정 및 경기 등록자인지 확인바랍니다.');
         }
 
@@ -625,37 +673,33 @@ export class MatchService {
 
     /**
      * 경기 후 팀 스탯 생성
-     * @param  matchId
-     * @param  teamId
+     * @param  matchResult
      * @returns
      */
-    async createTeamStats(matchResult:any) {
-
+    async createTeamStats(matchResult: any) {
         const match = await this.findOneMatch(matchResult.match_id);
 
-        if(!match){
+        if (!match) {
             throw new NotFoundException('해당 ID의 경기 일정 및 경기 등록자인지 확인바랍니다.');
         }
 
         const home_team_id = match.home_team_id;
         const away_team_id = match.away_team_id;
 
-        const home_result = await this.isMatchDetail(match.id,home_team_id);
-        const away_result = await this.isMatchDetail(match.id,away_team_id);
+        const home_result = await this.isMatchDetail(match.id, home_team_id);
+        const away_result = await this.isMatchDetail(match.id, away_team_id);
 
         let home_score = 0;
         let away_score = 0;
 
-        if(!home_result) {
+        if (!home_result) {
             console.log(`홈 없음`);
             home_score = matchResult.goals.reduce((total, goal) => total + goal.count, 0);
             away_score = away_result.goals.reduce((total, goal) => total + goal.count, 0);
-            
-        }else{
+        } else {
             console.log(`어웨이 없음`);
             home_score = home_result.goals.reduce((total, goal) => total + goal.count, 0);
             away_score = matchResult.goals.reduce((total, goal) => total + goal.count, 0);
-
         }
 
         let home_win = 0;
@@ -666,30 +710,26 @@ export class MatchService {
         let away_lose = 0;
         let away_draw = 0;
 
-        if(home_score>away_score){
-
+        if (home_score > away_score) {
             home_win += 1;
             away_lose += 1;
-
-        }else if(home_score<away_score){
-
+        } else if (home_score < away_score) {
             away_win += 1;
             home_lose += 1;
-
-        }else{
-
+        } else {
             home_draw += 1;
             away_draw += 1;
-
         }
 
         return {
             home_win,
             home_lose,
             home_draw,
+            home_score,
             away_win,
             away_lose,
-            away_draw
+            away_draw,
+            away_score,
         };
     }
 
@@ -699,43 +739,46 @@ export class MatchService {
      * @param  teamId
      * @returns
      */
-    async chkResultMember(userId:number,matchId:number,creatematchResultDto:createMatchResultDto) {
-
+    async chkResultMember(
+        userId: number,
+        matchId: number,
+        creatematchResultDto: createMatchResultDto,
+    ) {
         // 구단주 체크
         const homeCreator = await this.verifyTeamCreator(userId);
 
         const teamId = homeCreator[0].id;
 
         // 골 멤버 체크
-        creatematchResultDto.goals.forEach((x)=>{
-            this.isTeamMember(teamId,x.playerId);
-        })
+        creatematchResultDto.goals.forEach((x) => {
+            this.isTeamMember(teamId, x.playerId);
+        });
 
         // 레드카드 멤버 체크
-        creatematchResultDto.redCards.forEach((x)=>{
-            this.isTeamMember(teamId,x.playerId);
-        })
+        creatematchResultDto.redCards.forEach((x) => {
+            this.isTeamMember(teamId, x.playerId);
+        });
 
         // 옐로우카드 멤버 체크
-        creatematchResultDto.yellowCards.forEach((x)=>{
-            this.isTeamMember(teamId,x.playerId);
-        })
+        creatematchResultDto.yellowCards.forEach((x) => {
+            this.isTeamMember(teamId, x);
+        });
 
         // 교체 멤버 체크
-        creatematchResultDto.substitions.forEach((x)=>{
-            this.isTeamMember(teamId,x.inPlayerId);
-            this.isTeamMember(teamId,x.outPlayerId);
-        })
+        creatematchResultDto.substitions.forEach((x) => {
+            this.isTeamMember(teamId, x.inPlayerId);
+            this.isTeamMember(teamId, x.outPlayerId);
+        });
 
         // 선방 멤버 체크
-        creatematchResultDto.saves.forEach((x)=>{
-            this.isTeamMember(teamId,x.playerId);
-        })
+        creatematchResultDto.saves.forEach((x) => {
+            this.isTeamMember(teamId, x.playerId);
+        });
 
         // 어시스트 멤버 체크
-        creatematchResultDto.assists.forEach((x)=>{
-            this.isTeamMember(teamId,x.playerId);
-        })
+        creatematchResultDto.assists.forEach((x) => {
+            this.isTeamMember(teamId, x.playerId);
+        });
     }
 
     /**
@@ -744,7 +787,6 @@ export class MatchService {
      */
     async findAllSoccerField() {
         const soccerField = await this.soccerFieldRepository.find({
-
             relations: {
                 locationfield: true,
             },
@@ -758,7 +800,7 @@ export class MatchService {
             },
         });
 
-        if(!soccerField){
+        if (!soccerField) {
             throw new NotFoundException('등록된 경기장 목록이 없습니다.');
         }
 
@@ -770,20 +812,22 @@ export class MatchService {
      * @param  date
      * @returns
      */
-    async findAvailableTimes(date: string,locationId:number) {
+    async findAvailableTimes(date: string, locationId: number) {
         const matches = await this.matchRepository.find({
             where: { date },
         });
-    
+
         const times = ['10:00:00', '12:00:00', '14:00:00', '16:00:00', '18:00:00', '20:00:00'];
-        const availableTimes = times.map(time => {
-            const isBooked = matches.some(match => match.time === time && match.soccer_field_id===locationId);
+        const availableTimes = times.map((time) => {
+            const isBooked = matches.some(
+                (match) => match.time === time && match.soccer_field_id === locationId,
+            );
             return {
                 time,
-                status: isBooked ? '예약 불가' : '예약 가능'
+                status: isBooked ? '예약 불가' : '예약 가능',
             };
         });
-    
+
         return availableTimes;
     }
 
@@ -791,58 +835,152 @@ export class MatchService {
      * 구단주 전체 명단 조회
      * @returns
      */
-    async getTeamOwners(userId:number) {
-
+    async getTeamOwners(userId: number) {
         const teamOwners = await this.teamRepository.find({
-
             relations: {
                 creator: true,
             },
             select: {
+                id: true,
+                imageUUID: true,
+                name: true,
+                gender: true,
+                description: true,
                 creator: {
                     id: true,
                     email: true,
-                    name: true
+                    name: true,
                 },
             },
 
             where: {
                 creator: {
-                    id: Not(userId) 
-                }
+                    id: Not(userId),
+                },
             },
-
         });
 
-        if (!teamOwners) {
+        if (!teamOwners.length) {
+            // 배열의 길이를 확인하는 것으로 변경
             throw new BadRequestException('구단주 명단이 없습니다.');
         }
 
-        return teamOwners;
+        // 각 팀 소유주의 imageUrl을 가져오기 위한 로직
+        const teamOwnersWithImageUrl = await Promise.all(
+            teamOwners.map(async (teamOwner) => {
+                let imageUrl = '';
+                if (teamOwner.imageUUID) {
+                    imageUrl = await this.awsService.presignedUrl(teamOwner.imageUUID);
+                }
+                // 객체 분해 할당을 사용하여 teamOwner 객체에 imageUrl 추가
+                return { ...teamOwner, imageUrl };
+            }),
+        );
+
+        return teamOwnersWithImageUrl;
     }
 
-    async isMatchDetail(matchId: number,teamId:number) {
+    async isMatchDetail(matchId: number, teamId: number) {
         const teamMatches = await this.matchResultRepository.findOne({
-            where: { match_id:matchId, team_id:teamId }
-
+            where: { match_id: matchId, team_id: teamId },
         });
 
         return teamMatches;
     }
 
-    async isTeamMember(teamId: number,memberId:number) {
-        const member = await this.memberRepository        
-        .createQueryBuilder("members")
-        .where("members.team_id = :teamId", { teamId })
-        .andWhere("members.user_id = :memberId", { memberId })
-        .getOne();
+    /**
+     * 팀별 일정 조회
+     * @param  teamId
+     * @returns
+     */
+    async getTeamSchedule(teamId: number, userId: number) {
+        //팀의 멤버인지 검증
+        await this.isTeamMember(teamId, userId);
 
-        if(!member){
-            const user = await this.userRepository.findOne({
-                where: { id: memberId },
-            });
+        const rawResults = await this.dataSource.query(`
+        SELECT 
+            f.field_name, 
+            DATE_FORMAT(m.date, '%Y-%m-%d') AS date,
+            t.image_uuid,
+            t.name,
+            m.time
+        FROM 
+            final_db2.matches AS m
+            LEFT JOIN final_db2.team AS t ON m.away_team_id = t.id
+            LEFT JOIN final_db2.soccer_fields AS f ON m.soccer_field_id = f.id
+        WHERE 
+            m.home_team_id = ${teamId}
+        
+        UNION
+        
+        SELECT 
+            f.field_name, 
+            DATE_FORMAT(m.date, '%Y-%m-%d') AS date,
+            t.image_uuid,
+            t.name,
+            m.time
+        FROM 
+            final_db2.matches AS m
+            LEFT JOIN final_db2.team AS t ON m.home_team_id = t.id
+            LEFT JOIN final_db2.soccer_fields AS f ON m.soccer_field_id = f.id
+        WHERE 
+            m.away_team_id = ${teamId}
+        `);
 
-            throw new NotFoundException(`${user.name}님은 해당 팀의 멤버가 아닙니다.`);
+        const resultsWithImageUrl = await Promise.all(
+            rawResults.map(async (match) => {
+                const imageUrl = match.image_uuid
+                    ? await this.awsService.presignedUrl(match.image_uuid)
+                    : '';
+                return { ...match, imageUrl };
+            }),
+        );
+
+        return resultsWithImageUrl;
+    }
+
+    /**
+     * 개인 멤버정보 조회
+     * @returns
+     */
+    async getMember(userId: number) {
+        const member = await this.memberRepository.findOne({
+            relations: {
+                user: true,
+                team: true,
+            },
+            select: {
+                user: {
+                    id: true,
+                },
+                team: {
+                    id: true,
+                },
+            },
+
+            where: {
+                user: {
+                    id: userId,
+                },
+            },
+        });
+
+        if (!member) {
+            throw new BadRequestException('멤버 정보가 없습니다.');
+        }
+
+        return member;
+    }
+
+    async isTeamMember(teamId: number, memberId: number) {
+        const member = await this.memberRepository
+            .createQueryBuilder('members')
+            .where('members.team_id = :teamId', { teamId })
+            .andWhere('members.user_id = :memberId', { memberId })
+            .getOne();
+
+        if (!member) {
+            throw new NotFoundException('팀의 멤버가 아닙니다.');
         }
 
         return member;
@@ -850,16 +988,16 @@ export class MatchService {
 
     private async teamTotalGames(teamId: number) {
         const teamStats = await this.teamStatsRepository.findOne({
-            select: ['wins','loses','draws','total_games'],
-            where: { team_id:teamId },
+            select: ['wins', 'loses', 'draws', 'total_games'],
+            where: { team_id: teamId },
         });
 
-        if(!teamStats){
+        if (!teamStats) {
             return {
-                wins:0,
-                loses:0,
-                draws:0,
-                total_games:0
+                wins: 0,
+                loses: 0,
+                draws: 0,
+                total_games: 0,
             };
         }
 
@@ -868,15 +1006,15 @@ export class MatchService {
 
     private async getUserInfo(userId: number) {
         const user = await this.userRepository.findOne({
-            where: { id: userId }
+            where: { id: userId },
         });
-    
+
         return user;
     }
 
-    async verifyReservedMatch(date: string,time:string) {
+    async verifyReservedMatch(date: string, time: string) {
         const existMatch = await this.matchRepository.findOne({
-            where: { date,time },
+            where: { date, time },
         });
         if (existMatch) {
             throw new BadRequestException('이미 예약된 경기 일정 입니다.');
@@ -886,11 +1024,9 @@ export class MatchService {
 
     async matchResultCount(matchId: number) {
         const count = await this.matchResultRepository.count({
-            where: { match_id: matchId }
+            where: { match_id: matchId },
         });
-    
+
         return count;
     }
 }
-
-

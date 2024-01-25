@@ -17,10 +17,34 @@ import { TeamStats } from './entities/team-stats.entity';
 import { TeamModel } from '../team/entities/team.entity';
 import { Member } from '../member/entities/member.entity';
 import { SoccerField } from './entities/soccer-field.entity';
+import { TeamJoinRequestToken } from '../email/entities/team-join-request-token.entity';
+import { AwsService } from '../aws/aws.service';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([Match,MatchResult,User,Member,SoccerField,TeamModel,PlayerStats,TeamStats,EmailVerification]),AuthModule],
-  controllers: [MatchController],
-  providers: [MatchService,EmailService,AuthService,JwtService,UserService,RedisService]
+    imports: [
+        TypeOrmModule.forFeature([
+            Match,
+            MatchResult,
+            User,
+            Member,
+            SoccerField,
+            TeamModel,
+            PlayerStats,
+            TeamStats,
+            EmailVerification,
+            TeamJoinRequestToken,
+        ]),
+        AuthModule,
+    ],
+    controllers: [MatchController],
+    providers: [
+        MatchService,
+        EmailService,
+        AuthService,
+        JwtService,
+        UserService,
+        AwsService,
+        RedisService,
+    ],
 })
 export class MatchModule {}

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import IORedis from 'ioredis';
+import { v4 } from 'uuid';
 
 @Injectable()
 export class RedisService {
@@ -47,5 +48,30 @@ export class RedisService {
     }
     async deleteRefreshToken(userId: number): Promise<void> {
         await this.redisClient.del(`refreshToken:${userId}`);
+    }
+
+    /**
+     * 팀 참가 이메일 구분 토큰 저장
+     * @returns
+     */
+    async setTeamJoinMailToken(randomToken: string) {
+        await this.redisClient.set(randomToken, randomToken);
+        await this.redisClient.expire(randomToken, 300);
+    }
+
+    /**
+     * 팀 참가 이메일 구분 토큰 조회
+     * @returns
+     */
+    async getTeamJoinMailToken(token: string) {
+        return await this.redisClient.get(token);
+    }
+
+    /**
+     * 팀 참가 이메일 구분 토큰 삭제
+     * @param token
+     */
+    async deleteTeamJoinMailToken(token: string) {
+        await this.redisClient.del(token);
     }
 }

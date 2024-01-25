@@ -149,14 +149,6 @@ export class MemberController {
         const userId = req['user'].id;
 
         this.memberService.sendJoiningEmail(userId, teamId);
-        /**
-         * 팀 신청시 이메일전송
-         * 1) 사용자가 팀 가입 버튼을 클릭시 요청함
-         * 2) 팀 id가 있어야함 + userId
-         * 3) 팀 id로 구단주를 검색후 구단주의 이메일을 가져온다.
-         * 4) 팀 장에게 요청한 사용자에 대하여 담아서 수락이메일을 보낸다.
-         *
-         */
     }
 
     /**
@@ -167,8 +159,16 @@ export class MemberController {
      */
     @ApiBearerAuth()
     @Post('/team/:teamId/user/:userId/approve')
-    async approveMember(@Param('teamId') teamId: number, @Param('userId') userId: number) {
+    async approveMember(
+        @Param('teamId') teamId: number,
+        @Param('userId') userId: number,
+        @Body('token') token: string,
+    ) {
+        await this.memberService.verifyEmailToken(token);
+
         const result = await this.memberService.registerMember(teamId, userId);
+
+        await this.memberService.deleteEmailToken(token);
         return `
         <html>
             <head>
@@ -190,8 +190,17 @@ export class MemberController {
      */
     @ApiBearerAuth()
     @Post('/team/:teamId/user/:userId/reject')
-    async rejectMember(@Param('teamId') teamId: number, @Param('userId') userId: number) {
+    async rejectMember(
+        @Param('teamId') teamId: number,
+        @Param('userId') userId: number,
+        @Body('token') token: string,
+    ) {
+        await this.memberService.verifyEmailToken(token);
+
         const result = await this.memberService.rejectJoiningEamil(teamId, userId);
+
+        await this.memberService.deleteEmailToken(token);
+
         return `거절 처리되었습니다.
     `;
     }

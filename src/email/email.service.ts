@@ -10,7 +10,10 @@ import { Repository } from 'typeorm';
 import { promisify } from 'util';
 import { AuthService } from '../auth/auth.service';
 import { EmailVerification } from '../email/entities/email.entity';
+import { TeamJoinRequestToken } from './entities/team-join-request-token.entity';
 import { joinTeamHtml, rejectTeamHtml } from './html/email.html';
+import { v4 } from 'uuid';
+import { RedisService } from '../redis/redis.service';
 
 const randomBytesAsync = promisify(randomBytes);
 
@@ -25,6 +28,9 @@ export class EmailService {
     constructor(
         @InjectRepository(EmailVerification)
         private readonly emailVerificationRepository: Repository<EmailVerification>,
+        @InjectRepository(TeamJoinRequestToken)
+        private readonly teamJoinRequestTokenRepository: Repository<TeamJoinRequestToken>,
+        private readonly redisService: RedisService,
     ) {
         // 이메일 전송을 위한 transporter 설정
         this.transporter = nodemailer.createTransport({
@@ -263,22 +269,30 @@ export class EmailService {
      * @param recipient
      */
     async sendTeamJoinEmail(from: SendJoiningEmailDto, recipient: TeamModel) {
+        const randomToken = v4();
+
         const mailOptions = {
             from: process.env.EMAIL_USER, // 발신자 이메일
             to: recipient.creator.email,
             subject: `${from.name}님의 구단 입단 신청입니다.`,
-            html: joinTeamHtml(from, recipient), // HTML 형식의 메일 내용
+            html: joinTeamHtml(from, recipient, randomToken), // HTML 형식의 메일 내용
         };
 
         try {
             const info = await this.transporter.sendMail(mailOptions);
-            console.log('메일 전송 성공');
+            await this.redisService.setTeamJoinMailToken(randomToken);
             return info;
         } catch (error) {
             console.error('Error sending email:', error);
         }
     }
 
+    /**
+     * 입단 거절 email 전송
+     * @param temaName
+     * @param user
+     * @returns
+     */
     async sendTeamRejectEmail(temaName: string, user: User) {
         const mailOptions = {
             from: process.env.EMAIL_USER, // 발신자 이메일
@@ -289,10 +303,45 @@ export class EmailService {
 
         try {
             const info = await this.transporter.sendMail(mailOptions);
-            console.log('메일 전송 성공');
             return info;
         } catch (error) {
             console.error('Error sending email:', error);
         }
+    }
+
+    /**
+     * 토큰을 데이터베이스에 저장한다.
+     * @param team
+     * @param userId
+     * @param token
+     */
+    async saveEmailVerificationToken(team: TeamModel, userId: number, token: string) {
+        await this.teamJoinRequestTokenRepository.save({
+            creatorId: team.creator.id,
+            userId,
+            token,
+        });
+    }
+
+    /**
+     * 토큰 값으로 데이터베이스에서 토큰정보 검색한다.
+     * @param token
+     * @returns
+     */
+    async findEmailVerificationToken(token: string) {
+        return await this.teamJoinRequestTokenRepository.findOne({
+            where: {
+                token,
+            },
+        });
+    }
+
+    /**
+     * 토큰 값을 이용하여 데이터베이스에서 해당 토큰을 삭제
+     * @param token
+     * @returns
+     */
+    async deleteEmailVerificationToken(token: string) {
+        return await this.teamJoinRequestTokenRepository.delete({ token });
     }
 }

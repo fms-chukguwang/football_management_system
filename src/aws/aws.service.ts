@@ -1,6 +1,14 @@
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { Injectable } from '@nestjs/common';
+import {
+    GetObjectCommand,
+    PutObjectCommand,
+    S3Client,
+    HeadObjectCommand,
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { v4 } from 'uuid';
+import AWS from 'aws-sdk';
 
 @Injectable()
 export class AwsService {
@@ -21,18 +29,46 @@ export class AwsService {
      * @param file
      */
     async uploadFile(file: Express.Multer.File) {
-        const command = new PutObjectCommand({
+        const uuid = v4();
+
+        const uploadCommend = new PutObjectCommand({
             Bucket: this.configService.get('AWS_BUCKET_NAME'),
-            Key: file.originalname,
+            Key: uuid,
             Body: file.buffer,
             //ACL: 'public-read',
-            ContentType: `image/${file.mimetype}`,
+            ContentType: file.mimetype,
         });
 
-        const result = await this.awsS3.send(command);
+        await this.awsS3.send(uploadCommend);
 
-        console.log('업로드 결과', result);
+        return uuid;
+    }
 
-        return `https://s3.${this.configService.get('AWS_REGION')}.amazonaws.com/${this.configService.get('AWS_BUCKET_NAME')}/${file.originalname}`;
+    /**
+     * presigned url 발급하기
+     * @param key
+     * @returns
+     */
+    async presignedUrl(key: string) {
+        try {
+            const command = new HeadObjectCommand({
+                Bucket: this.configService.get('AWS_BUCKET_NAME'),
+                Key: key,
+            });
+
+            await this.awsS3.send(command);
+
+            console.log('exist image!');
+        } catch (err) {
+            throw new NotFoundException('이미지가 존재하지 않습니다.');
+        }
+
+        const getCommend = new GetObjectCommand({
+            Bucket: this.configService.get('AWS_BUCKET_NAME'),
+            Key: key,
+        });
+        const presingedUrl = await getSignedUrl(this.awsS3, getCommend, { expiresIn: 300 });
+
+        return presingedUrl;
     }
 }

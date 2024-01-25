@@ -7,13 +7,12 @@ import {
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
-  } from 'typeorm';
+} from 'typeorm';
 import { Match } from './match.entity';
 import { Member } from '../../member/entities/member.entity';
-  
-  @Entity('player_statistics')
-  export class PlayerStats {
 
+@Entity('player_statistics')
+export class PlayerStats {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -21,7 +20,7 @@ import { Member } from '../../member/entities/member.entity';
     @JoinColumn({ name: 'match_id' })
     match: Match;
 
-    @ManyToOne(() => Member,(member) => member.playerstats)
+    @ManyToOne(() => Member, (member) => member.playerstats)
     @JoinColumn({ name: 'member_id' })
     member: Member;
 
@@ -57,11 +56,10 @@ import { Member } from '../../member/entities/member.entity';
 
     @CreateDateColumn()
     created_at: Date;
-  
+
     @UpdateDateColumn()
     updated_at: Date;
-  
+
     @DeleteDateColumn()
     deleted_at: Date;
-  }
-  
+}

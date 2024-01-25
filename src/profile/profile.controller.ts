@@ -26,42 +26,42 @@ import { PaginateProfileDto } from './dtos/paginate-profile-dto';
 @Controller('profile')
 export class ProfileController {
     constructor(private readonly profileService: ProfileService) {}
-/**
+    /**
      * 유저 팀이름  조회
      * @param req
      * @returns
      */
-//     @Get('team/:user_id')
-//   async getTeamNameByUserId(@Param('user_id') userId: string) {
-//     const teamName = await this.profileService.getTeamNameByUserId(userId);
-//     return { teamName };
-//   }
-        /**
+    //     @Get('team/:user_id')
+    //   async getTeamNameByUserId(@Param('user_id') userId: string) {
+    //     const teamName = await this.profileService.getTeamNameByUserId(userId);
+    //     return { teamName };
+    //   }
+    /**
      * 전체 프로필 정보 조회
      * @param req
      * @returns
      */
-        //  @Get('')
-        //  async findAllProfiles() {
-        //      const data = await this.profileService.findAllProfiles();
-     
-        //      return {
-        //          statusCode: HttpStatus.OK,
-        //          message: '전체 프로필 정보 조회에 성공했습니다.',
-        //          data,
-        //      };
-        //  }
+    //  @Get('')
+    //  async findAllProfiles() {
+    //      const data = await this.profileService.findAllProfiles();
 
-         @Get('')
-         async findAllProfiles(@Query() dto: PaginateProfileDto) {
-             // const data = await this.profileService.findAllProfiles();
-             const data = await this.profileService.paginateMyProfile(dto);
-             return {
-                 statusCode: HttpStatus.OK,
-                 message: '전체 프로필 정보 조회에 성공했습니다.',
-                 data,
-             };
-         }
+    //      return {
+    //          statusCode: HttpStatus.OK,
+    //          message: '전체 프로필 정보 조회에 성공했습니다.',
+    //          data,
+    //      };
+    //  }
+
+    @Get('')
+    async findAllProfiles(@Query() dto: PaginateProfileDto) {
+        // const data = await this.profileService.findAllProfiles();
+        const data = await this.profileService.paginateMyProfile(dto);
+        return {
+            statusCode: HttpStatus.OK,
+            message: '전체 프로필 정보 조회에 성공했습니다.',
+            data,
+        };
+    }
 
     /**
      * 프로필 정보 조회
@@ -88,7 +88,7 @@ export class ProfileController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @UseInterceptors(TransactionInterceptor)
-    @Post('')
+    @Post(':userId/register')
     async registerprofile(
         @Request() req,
         @Body() registerProfileInfoDto: RegisterProfileInfoDto,
@@ -115,7 +115,7 @@ export class ProfileController {
      */
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @Put(':teamId/:profileId')
+    @Put(':profileId')
     async updateprofileInfo(@Request() req, @Body() updateProfileInfoDto: UpdateProfileInfoDto) {
         const data = await this.profileService.updateProfileInfo(req.user.id, updateProfileInfoDto);
 

@@ -1,6 +1,14 @@
-
 import { Profile } from '../../profile/entities/profile.entity';
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    CreateDateColumn,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    OneToMany,
+    OneToOne,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
 import { BaseModel } from '../../common/entities/base.entity';
 import { TeamModel } from '../../team/entities/team.entity';
 import { User } from '../../user/entities/user.entity';
@@ -33,8 +41,9 @@ export class Member extends BaseModel {
     isStaff: boolean;
 
     @CreateDateColumn({
-        name: 'join_date',
+        type: 'timestamp',
+        precision: 6,
+        default: () => 'CURRENT_TIMESTAMP(6)',
     })
     joinDate: Date;
-    
 }
