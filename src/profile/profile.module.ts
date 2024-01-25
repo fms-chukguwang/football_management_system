@@ -8,7 +8,7 @@ import { User } from '../user/entities/user.entity';
 import { UserModule } from '../user/user.module'; 
 import { MemberModule } from '../member/member.module';
 import { Member } from '../member/entities/member.entity';
-import { CommonModule } from 'src/common/common.module';
+import { CommonModule } from '../common/common.module';
 
 @Module({
   imports: [
