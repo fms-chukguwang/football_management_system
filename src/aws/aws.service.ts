@@ -57,7 +57,7 @@ export class AwsService {
 
             await this.awsS3.send(command);
 
-            console.log('exist image!');
+          
         } catch (err) {
             throw new NotFoundException('이미지가 존재하지 않습니다.');
         }
