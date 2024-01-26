@@ -3,7 +3,8 @@ import { JobsService } from './jobs.service';
 import { JobsController } from './jobs.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SoccerField } from '../match/entities/soccer-field.entity';
-import { LocationModel } from 'src/location/entities/location.entity';
+import { LocationModel } from '../location/entities/location.entity';
+
 
 @Module({
     imports: [TypeOrmModule.forFeature([SoccerField, LocationModel])],
