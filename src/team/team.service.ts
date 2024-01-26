@@ -29,12 +29,7 @@ export class TeamService {
     ) {}
 
     async paginateMyProfile(dto: PaginateTeamDto) {
-        return await this.commonService.paginate(
-            dto,
-            this.teamRepository,
-            {},
-            'team'
-        );
+        return await this.commonService.paginate(dto, this.teamRepository, {}, 'team');
     }
 
     /**

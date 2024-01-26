@@ -5,7 +5,6 @@ import {
     NotFoundException,
     UnauthorizedException,
     forwardRef,
-
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Member } from './entities/member.entity';
@@ -29,7 +28,6 @@ export class MemberService {
         private readonly teamService: TeamService,
         private readonly eamilService: EmailService,
         private readonly redisService: RedisService,
-
     ) {}
 
     async findAllPlayers() {
@@ -63,7 +61,7 @@ export class MemberService {
     async registerMember(teamId: number, userId: number): Promise<Member> {
         const user = await this.userService.findOneById(userId);
         const existMember = await this.findMemberForUserId(user.id);
- 
+
         if (existMember) {
             throw new BadRequestException('해당 인원은 이미 팀에 참가하고 있습니다.');
         }
@@ -75,27 +73,29 @@ export class MemberService {
             team: {
                 id: teamId,
             },
-       
         });
 
         return registerMember;
     }
-    
-    //많은 멤버 한번에 추가하기 
-    async registerManyMembers(teamId: number, userIds: number[]): Promise<Member[]> {
-        const users = await Promise.all(userIds.map((userId) => this.userService.findOneById(userId)));
-        const existingMembers = await Promise.all(users.map((user) => this.findMemberForUserId(user.id)));
 
-    
+    //많은 멤버 한번에 추가하기
+    async registerManyMembers(teamId: number, userIds: number[]): Promise<Member[]> {
+        const users = await Promise.all(
+            userIds.map((userId) => this.userService.findOneById(userId)),
+        );
+        const existingMembers = await Promise.all(
+            users.map((user) => this.findMemberForUserId(user.id)),
+        );
+
         const registerMembers = await Promise.all(
             users.map((user) =>
                 this.memberRepository.save({
                     user: { id: user.id },
                     team: { id: teamId },
-                })
-            )
+                }),
+            ),
         );
-    
+
         return registerMembers;
     }
 
@@ -327,5 +327,17 @@ export class MemberService {
      */
     async deleteEmailToken(token: string) {
         await this.redisService.deleteTeamJoinMailToken(token);
+    }
+
+    async getMemberCountByTeamId(teamId: number) {
+        const findMembers = await this.memberRepository.findAndCount({
+            where: {
+                team: {
+                    id: teamId,
+                },
+            },
+        });
+
+        return findMembers;
     }
 }
