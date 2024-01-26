@@ -20,11 +20,15 @@ import { IsStaffGuard } from '../member/guard/is-staff.guard';
 import { CreateTeamDto } from './dtos/create-team.dto';
 import { UpdateTeamDto } from './dtos/update-team.dto';
 import { TeamService } from './team.service';
+import { MemberService } from 'src/member/member.service';
 
 @ApiTags('팀')
 @Controller('team')
 export class TeamController {
-    constructor(private readonly teamService: TeamService) {}
+    constructor(
+        private readonly teamService: TeamService,
+        private readonly memberService: MemberService,
+    ) {}
 
     /**
      * 팀 생성하기
@@ -45,28 +49,33 @@ export class TeamController {
         return { status: HttpStatus.OK, success: true, data };
     }
 
-     /**
+    /**
      * 팀 상세조회
      * @param req
      */
     @Get(':teamId')
-    getTeamDetail(@Param('teamId') teamId: number) {
-        return this.teamService.getTeamDetail(teamId);
+    async getTeamDetail(@Param('teamId') teamId: number) {
+        const [data, count] = await this.memberService.getMemberCountByTeamId(teamId);
+        const team = await this.teamService.getTeamDetail(teamId);
+        return {
+            team,
+            totalMember: count,
+        };
     }
 
-     /**
+    /**
      * 팀 전체조회
      * @param req
      */
-      @Get()
-      async getEveryTeams() {
+    @Get()
+    async getEveryTeams() {
         const teams = await this.teamService.getTeams();
         if (!teams) {
-          throw new NotFoundException('팀을 찾을 수 없습니다.');
+            throw new NotFoundException('팀을 찾을 수 없습니다.');
         }
-    
+
         return teams;
-      }
+    }
 
     /**
      * 팀 목록 조회
@@ -88,5 +97,4 @@ export class TeamController {
     ) {
         await this.teamService.updateTeam(teamId, updateTeamDto, file);
     }
-
 }
