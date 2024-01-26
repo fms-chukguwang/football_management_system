@@ -603,7 +603,7 @@ export class MatchService {
         const user = await this.getUserInfo(userId);
 
         const imageUrl = await this.awsService.presignedUrl(creator[0].imageUUID);
-
+        console.log(imageUrl);
         // creator 배열의 각 요소에 user.email 추가
         const updatedCreator = creator.map((item) => ({
             ...item,
