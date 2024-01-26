@@ -144,21 +144,49 @@ export class TeamService {
         return teamWithCounts;
     }
 
+    //호영님 코드
+    async getTeam2(dto: PaginateTeamDto,name?:string) {
+
+        const options: FindManyOptions<TeamModel> = {
+        };
+        if (name) {
+            options.where =  { name: Like(`%${name}%`) };
+        }
+
+        const data = await this.teamRepository.find(options);
+
+        const result = await this.commonService.paginate(dto, this.teamRepository, {}, 'team');
+
+        if ('total' in result) {
+            const { data, total } = result;
+            const teamWithCounts = await Promise.all(
+                data.map(async (team) => {
+                    const [data, count] = await this.memberService.getMemberCountByTeamId(team.id);
+                    return {
+                        team,
+                        totalMember: count,
+                    };
+                }),
+            );
+            return { data: teamWithCounts, total };
+        }
+    }
+
     /**
      * 팀 목록조회
      * @returns
      */
     async getTeam(dto: PaginateTeamDto, name?:string) {
-        // const options: FindManyOptions<TeamModel> = {
-        // };
-        // if (name) {
-        //     options.where =  { name: Like(`%${name}%`) };
-        // }
+        const options: FindManyOptions<TeamModel> = {
+        };
+        if (name) {
+            options.where =  { name: Like(`%${name}%`) };
+        }
 
-        // const data = await this.teamRepository.find(options);
+        const data = await this.teamRepository.find(options);
 
-        // return await this.commonService.paginate(dto, this.teamRepository, options, 'team');
-        return await this.commonService.paginate(dto, this.teamRepository, {}, 'team');
+        return await this.commonService.paginate(dto, this.teamRepository, options, 'team');
+       // return await this.commonService.paginate(dto, this.teamRepository, {}, 'team');
     }
 
 

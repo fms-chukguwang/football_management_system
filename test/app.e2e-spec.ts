@@ -6,6 +6,7 @@ import { faker } from '@faker-js/faker';
 import { SignUpDto } from '../src/auth/dtos/sign-up.dto';
 import { SignInDto } from 'src/auth/dtos/sign-in.dto';
 import { RegisterProfileInfoDto } from 'src/profile/dtos/register-profile-info';
+import { CannotGetEntityManagerNotConnectedError } from 'typeorm';
 
 enum Position {
     Goalkeeper = 'Goalkeeper',
@@ -26,6 +27,17 @@ enum Time {
     evening = '20:00:00',
 }
 
+enum Gender {
+   male = 'male',
+    female = 'female',
+}
+
+function getRandomGender(): Gender {
+    const gender = Object.values(Gender);
+    const randomIndex = Math.floor(Math.random() * gender.length);
+    return gender[randomIndex];
+}
+
 function getRandomTime(): Time {
     const time = Object.values(Time);
     const randomIndex = Math.floor(Math.random() * time.length);
@@ -44,7 +56,7 @@ let signUpDto: SignUpDto;
 let teamId: number;
 let userId: number;
 let matchId: number;
-let memberId: number;
+let memberId = 1;
 
 //시나리오 1 - 모든 새로운 팀 회원들이 구단주가 됨
 describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들이 구단주가 됨', () => {
@@ -81,7 +93,7 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
             weight: faker.number.int({ min: 40, max: 100 }),
             height: faker.number.int({ min: 150, max: 190 }),
             age: faker.number.int({ min: 18, max: 50 }),
-            gender: 'Male',
+            gender: getRandomGender(),
         };
 
         const response = await request(app.getHttpServer())
@@ -89,6 +101,7 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
             .set('Authorization', `Bearer ${accessToken}`)
             .send(registerPorfileDto)
             .expect(201);
+        
     });
     //팀 생성
     it('/team (POST)', async () => {
@@ -100,6 +113,7 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
             isMixedGender: false,
             postalCode: '12344',
             address: '경기도 화성시 향납',
+            
         };
 
         const response = await request(app.getHttpServer())
@@ -113,9 +127,7 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
             .field('address', registerTeamDto.address)
             .attach('file', 'src/img/IMG_6407.jpg')
             .expect(201);
-        teamId = response.body.data.teamId;
-        memberId = response.body.data.memberId;
-        console.log('memberId=', memberId);
+        teamId = response.body.data.id;
     });
 
 
@@ -135,17 +147,17 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
         console.log('getRandomTime()=', getRandomTime());
         console.log('teamId=', teamId);
         const registerMatchDto = {
-            date: '2024-02-25',
-            //time: getRandomTime(),
-            "time": "17:00:00",
+            date: onlyDate,
+            time: getRandomTime(),
+            //"time": "17:00:00",
             homeTeamId: teamId,
-            // awayTeamId: teamId - 1,
+            //awayTeamId: teamId - 1,
             awayTeamId: 3,
-            // fieldId: faker.number.int({ min: 1, max: 15 }),
+            //fieldId: faker.number.int({ min: 1, max: 15 }),
             fieldId: 1,
             token: `${accessToken}`,
         };
-
+        console.log("response starts");
         const response = await request(app.getHttpServer())
             .post(`/match/book`)
             .set('Authorization', `Bearer ${accessToken}`)
@@ -158,7 +170,8 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
                 token: registerMatchDto.token,
             })
             .expect(201);
-        matchId = response.body.data.matchId;
+            console.log("book match response=",response.body.data);
+       // matchId = response.body.data.matchId;
     });
 
 
@@ -178,14 +191,15 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
         console.log('getRandomTime()=', getRandomTime());
         console.log('teamId=', teamId);
         const registerMatchDto = {
-            date: '2024-02-25',
-            //time: getRandomTime(),
-            "time": "17:00:00",
+            date:onlyDate,
+            //date: '2024-02-25',
+            time: getRandomTime(),
+            //"time": "17:00:00",
             homeTeamId: teamId,
-            // awayTeamId: teamId - 1,
-            awayTeamId: 3,
-            // fieldId: faker.number.int({ min: 1, max: 15 }),
-            fieldId: 1,
+            awayTeamId: teamId - 1,
+            //awayTeamId: 3,
+            fieldId: faker.number.int({ min: 1, max: 15 }),
+            //fieldId: 1,
             token: `${accessToken}`,
         };
 
@@ -201,7 +215,7 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
                 token: registerMatchDto.token,
             })
             .expect(201);
-        matchId = response.body.data.matchId;
+        //matchId = response.body.data.matchId;
     });
 
     //경기 후 선수 기록 등록
@@ -232,7 +246,6 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
     // });
 
     //경기 후 팀 기록 등록
-
     // "team":{
     //     "substitions": [{"inPlayerId":2,"outPlayerId":1}],
     //     "passes": 150,
