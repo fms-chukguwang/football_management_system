@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
-import { AwsService } from './aws.service';
-import { MulterModule } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
 import { AwsController } from './aws.controller';
+import { AwsService } from './aws.service';
 
 @Module({
     exports: [AwsService],

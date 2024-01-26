@@ -8,7 +8,6 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v4 } from 'uuid';
-import AWS from 'aws-sdk';
 
 @Injectable()
 export class AwsService {

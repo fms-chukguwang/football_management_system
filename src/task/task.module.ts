@@ -8,10 +8,8 @@ import { LocationModel } from '../location/entities/location.entity';
 import { SoccerField } from '../match/entities/soccer-field.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([LocationModel, SoccerField]),
-  ],
-  controllers: [TaskController],
-  providers: [TaskService,JobsService,LocationService]
+    imports: [TypeOrmModule.forFeature([LocationModel, SoccerField])],
+    controllers: [TaskController],
+    providers: [TaskService, JobsService, LocationService],
 })
 export class TaskModule {}
