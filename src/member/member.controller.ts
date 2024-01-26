@@ -41,6 +41,24 @@ export class MemberController {
             success: true,
         };
     }
+//TODO TESTING
+       /**
+     * 많은 멤버 팀에 추가하기
+     * @param userId
+     * @param teamId
+     * @returns
+     */
+        @Post('register-many-members/:teamId')
+        async registerManyMembers(@Param('teamId') teamId: number, @Body() userIds: number[]) {
+            const registerMembers = await this.memberService.registerManyMembers(teamId, userIds);
+        
+            return {
+                statusCode: HttpStatus.OK,
+                data: registerMembers,
+                success: true,
+            };
+        }
+
 
     /**
      * 멤버 추방하기

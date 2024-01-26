@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AwsService } from '../aws/aws.service';
 import { LocationService } from '../location/location.service';
 import { MemberService } from '../member/member.service';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, FindManyOptions, Like, Repository } from 'typeorm';
 import { CreateTeamDto } from './dtos/create-team.dto';
 import { TeamModel } from './entities/team.entity';
 import {
@@ -12,6 +12,8 @@ import {
     EXIST_CREATOR,
 } from './validation-message/team-exception.message';
 import { UpdateTeamDto } from './dtos/update-team.dto';
+import { PaginateTeamDto } from './dtos/paginate-team-dto';
+import { CommonService } from '../common/common.service';
 
 @Injectable()
 export class TeamService {
@@ -23,7 +25,12 @@ export class TeamService {
         @Inject(forwardRef(() => MemberService))
         private readonly memberService: MemberService,
         private readonly dataSource: DataSource,
+        private readonly commonService: CommonService,
     ) {}
+
+    async paginateMyProfile(dto: PaginateTeamDto) {
+        return await this.commonService.paginate(dto, this.teamRepository, {}, 'team');
+    }
 
     /**
      * 팀 생성하기
@@ -122,17 +129,56 @@ export class TeamService {
      * 팀 전체조회
      * @returns
      */
-    async getTeams(): Promise<TeamModel[]> {
-        return this.teamRepository.find();
+
+    async getTeams() {
+        const teams = await this.teamRepository.find();
+        const teamWithCounts = await Promise.all(
+            teams.map(async (team) => {
+                const [data, count] = await this.memberService.getMemberCountByTeamId(team.id);
+                return {
+                    team,
+                    totalMember: count,
+                };
+            }),
+        );
+
+        return teamWithCounts;
     }
 
     /**
      * 팀 목록조회
      * @returns
      */
-    getTeam() {
-        return this.teamRepository.find({});
+
+    async getTeam(dto: PaginateTeamDto, name?:string) {
+        const options: FindManyOptions<TeamModel> = {
+        };
+        if (name) {
+            options.where =  { name: Like(`%${name}%`) };
+        }
+
+        const data = await this.teamRepository.find(options);
+
+        return await this.commonService.paginate(dto, this.teamRepository, options, 'team');
+
+    async getTeam2(dto: PaginateTeamDto) {
+        const result = await this.commonService.paginate(dto, this.teamRepository, {}, 'team');
+        if ('total' in result) {
+            const { data, total } = result;
+            const teamWithCounts = await Promise.all(
+                data.map(async (team) => {
+                    const [data, count] = await this.memberService.getMemberCountByTeamId(team.id);
+                    return {
+                        team,
+                        totalMember: count,
+                    };
+                }),
+            );
+            return { data: teamWithCounts, total };
+        }
+
     }
+
 
     /**
      * 팀 수정하기

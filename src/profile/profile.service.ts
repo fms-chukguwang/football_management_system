@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile } from './entities/profile.entity';
-import { QueryRunner, Repository } from 'typeorm';
+import { FindManyOptions, QueryRunner, Repository, ILike, Like, IsNull } from 'typeorm';
 import { RegisterProfileInfoDto } from './dtos/register-profile-info';
 import { User } from '../user/entities/user.entity';
 import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
@@ -26,16 +26,78 @@ export class ProfileService {
     //     const profile = await this.profileRepository.findOne({ where: { user_id: userId } });
     //     return profile ? profile.team_name : null;
     //   }
-    async paginateMyProfile(dto: PaginateProfileDto) {
-        return await this.commonService.paginate(
-            dto,
-            this.profileRepository,
-            {
-                relations: { user: { member: { team: true } } },
-            },
-            'profile',
-        );
+
+    async paginateMyProfile(userId:number, dto: PaginateProfileDto, name?: string) {
+        const user = await this.userRepository.findOne({where: {id: userId}});
+        const profile = await this.profileRepository.findOne({where: {user: {id: userId}}})
+        const member =await this.memberRepository.findOne({where: {user: {id: userId}}})
+        console.log("user=",user);
+        console.log("profile=",profile);
+        console.log("member=",member);
+        if (member.isStaff != true) {
+            return null;
+        }
+
+        const options: FindManyOptions<Profile> = {
+            relations: { user: { member: { team: true } } },
+        };
+
+        if (name) {
+            options.where = { user: { name: Like(`%${name}%`) } };
+        }
+
+        const data = await this.profileRepository.find(options);
+
+        return await this.commonService.paginate(dto, this.profileRepository, options , 'profile');
     }
+
+    async paginateProfile(userId: number, dto: PaginateProfileDto, name?: string) {
+        const user = await this.userRepository.findOne({ where: { id: userId } });
+        // const profile = await this.profileRepository.findOne({ where: { user: { id: userId } } });
+        const profile = await this.profileRepository.findOne({ where: { user } });
+
+        const member = await this.memberRepository.findOne({ where: { user: { id: userId } } });
+        // 팀 없는 사람들 가져오기
+
+        console.log(profile);
+
+        // if (member.isStaff != true) {
+        //     return null;
+        // }
+
+        const options: FindManyOptions<Profile> = {
+            relations: { user: { member: { team: true } } },
+            where: {
+                user: {
+                    member: {
+                        team: IsNull(),
+                    },
+                },
+            },
+        };
+
+        if (name) {
+            options.where = { user: { name: Like(`%${name}%`) } };
+        }
+
+        const data = await this.profileRepository.find(options);
+
+        return await this.commonService.paginate(dto, this.profileRepository, options, 'profile');
+    }
+
+    async searchProfile(name?: string) {
+        const options: FindManyOptions<Profile> = {
+          relations: { user: { member: { team: true } } },
+        };
+    
+        if (name) {
+          options.where = { user: { name: Like(`%${name}%`) } };
+        }
+
+        const data = await this.profileRepository.find(options);
+        return data;
+      }
+    
 
     async findAllProfiles() {
         const profiles = await this.profileRepository.find({
@@ -57,6 +119,17 @@ export class ProfileService {
         }
 
         return profile;
+    }
+
+
+    async findOneByUserId(id: number) {
+        const user = await this.userRepository.findOne({ where: { id } });
+
+        if (!user) {
+            throw new NotFoundException('유저를 찾을 수 없습니다.');
+        }
+
+        return user;
     }
 
     async findOneByName(name: string): Promise<Profile | null> {

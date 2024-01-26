@@ -1,9 +1,4 @@
-import {
-    MiddlewareConsumer,
-    Module,
-    NestModule,
-    RequestMethod,
-} from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -33,6 +28,7 @@ import { MemberModule } from './member/member.module';
 import { TaskModule } from './task/task.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { JobsModule } from './jobs/jobs.module';
+import { WebhookInterceptor } from './common/interceptors/webhook.interceptor';
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -55,7 +51,7 @@ import { JobsModule } from './jobs/jobs.module';
         MemberModule,
         TaskModule,
         ScheduleModule.forRoot(),
-        JobsModule
+        JobsModule,
     ],
     controllers: [AppController],
     providers: [
@@ -64,13 +60,15 @@ import { JobsModule } from './jobs/jobs.module';
             provide: APP_INTERCEPTOR,
             useClass: LogInterceptor,
         },
+        // {
+        //     provide: APP_INTERCEPTOR,
+        //     useClass: WebhookInterceptor,
+        // },
     ],
 })
 export class AppModule implements NestModule {
     configure(consumer: MiddlewareConsumer) {
-        consumer
-            .apply(LoggerMiddleware)
-            .forRoutes({ path: '*', method: RequestMethod.ALL });
+        consumer.apply(LoggerMiddleware).forRoutes({ path: '*', method: RequestMethod.ALL });
         mongoose.set('debug', true);
     }
 }

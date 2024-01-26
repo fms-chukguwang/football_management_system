@@ -15,6 +15,8 @@ import { TeamService } from '../team/team.service';
 import { EmailService } from '../email/email.service';
 import { SendJoiningEmailDto } from './dtos/send-joining-email.dto';
 import { RedisService } from '../redis/redis.service';
+import { UpdateProfileInfoDto } from '../profile/dtos/update-profile-info-dto';
+import { ProfileService } from '../profile/profile.service';
 
 @Injectable()
 export class MemberService {
@@ -74,6 +76,27 @@ export class MemberService {
         });
 
         return registerMember;
+    }
+
+    //많은 멤버 한번에 추가하기
+    async registerManyMembers(teamId: number, userIds: number[]): Promise<Member[]> {
+        const users = await Promise.all(
+            userIds.map((userId) => this.userService.findOneById(userId)),
+        );
+        const existingMembers = await Promise.all(
+            users.map((user) => this.findMemberForUserId(user.id)),
+        );
+
+        const registerMembers = await Promise.all(
+            users.map((user) =>
+                this.memberRepository.save({
+                    user: { id: user.id },
+                    team: { id: teamId },
+                }),
+            ),
+        );
+
+        return registerMembers;
     }
 
     /**
@@ -304,5 +327,17 @@ export class MemberService {
      */
     async deleteEmailToken(token: string) {
         await this.redisService.deleteTeamJoinMailToken(token);
+    }
+
+    async getMemberCountByTeamId(teamId: number) {
+        const findMembers = await this.memberRepository.findAndCount({
+            where: {
+                team: {
+                    id: teamId,
+                },
+            },
+        });
+
+        return findMembers;
     }
 }

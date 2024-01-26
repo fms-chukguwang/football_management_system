@@ -24,16 +24,6 @@ export class substitionsDto {
 export class createMatchResultDto {
 
     /**
-     * 골
-     * @example [{'playerId':1,'count':2},{'playerId':2,'count':1}]
-     */
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => userCountDto)
-    @IsOptional()
-    goals: userCountDto[];
-
-    /**
      * 코너킥
      * @example 5
      */
@@ -41,25 +31,6 @@ export class createMatchResultDto {
     @IsOptional()
     @Transform(({ value }) => value ?? 0)
     cornerKick: number;
-
-    /**
-     * 레드카드
-     * @example []
-     */
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => userCountDto)
-    @IsOptional()
-    redCards: userCountDto[];
-
-    /**
-     * 옐로우카드
-     * @example [1, 2, 3, 4]
-     */
-    @IsArray()
-    @IsInt({ each: true })
-    @IsOptional()
-    yellowCards: number[];
 
     /**
      * 교체
@@ -70,26 +41,6 @@ export class createMatchResultDto {
     @Type(() => substitionsDto)
     @IsOptional()
     substitions: substitionsDto[];
-
-    /**
-     * 선방
-     * @example [{'playerId':3,'count':1}]
-     */
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => userCountDto)
-    @IsOptional()
-    saves: userCountDto[];
-
-    /**
-     * 어시스트
-     * @example [{'playerId':3,'count':2},{'playerId':2,'count':1}]
-     */
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => userCountDto)
-    @IsOptional()
-    assists: userCountDto[];
 
     /**
      * 패스
