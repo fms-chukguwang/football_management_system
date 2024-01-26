@@ -7,6 +7,7 @@ import * as dotenv from 'dotenv';
 import { HttpExceptionFilter } from './common/exception-filter/http.exception-filter';
 import { winstonLogger } from './configs/winston.config';
 import { LoggingService } from './logging/logging.service';
+import * as Sentry from '@sentry/node';
 
 async function bootstrap() {
     const app = await NestFactory.create(
@@ -18,6 +19,10 @@ async function bootstrap() {
 
     // .env 파일을 현재 환경에 로드
     dotenv.config();
+
+    // Sentry.init({
+    //     dsn: process.env.SENTRY_DSN,
+    // });
 
     const configService = app.get(ConfigService);
     const port = configService.get<number>('SERVER_PORT');
