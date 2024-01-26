@@ -149,15 +149,16 @@ export class TeamService {
      * @returns
      */
     async getTeam(dto: PaginateTeamDto, name?:string) {
-        const options: FindManyOptions<TeamModel> = {
-        };
-        if (name) {
-            options.where =  { name: Like(`%${name}%`) };
-        }
+        // const options: FindManyOptions<TeamModel> = {
+        // };
+        // if (name) {
+        //     options.where =  { name: Like(`%${name}%`) };
+        // }
 
-        const data = await this.teamRepository.find(options);
+        // const data = await this.teamRepository.find(options);
 
-        return await this.commonService.paginate(dto, this.teamRepository, options, 'team');
+        // return await this.commonService.paginate(dto, this.teamRepository, options, 'team');
+        return await this.commonService.paginate(dto, this.teamRepository, {}, 'team');
     }
 
 
