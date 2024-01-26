@@ -163,9 +163,6 @@ export class ProfileService {
         const userRepository = this.getUserRepository(qr);
         const memberRepository = this.getMemberRepository(qr);
 
-        console.log('registerProfileInfoDto');
-        console.log(registerProfileInfoDto);
-
         const user = await this.userRepository.findOne({
             where: { id: userId },
             relations: ['profile'],
