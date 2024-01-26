@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
-import { LocationModel } from 'src/location/entities/location.entity';
-import { SoccerField } from 'src/match/entities/soccer-field.entity';
+import { LocationModel } from '../location/entities/location.entity';
+import { SoccerField } from '../match/entities/soccer-field.entity';
 import { Repository } from 'typeorm';
 import { parseString } from 'xml2js';
 

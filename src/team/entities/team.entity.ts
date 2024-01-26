@@ -73,6 +73,13 @@ export class TeamModel extends BaseModel {
     @Column({ default: 'Mixed' })
     gender: Gender;
 
+       /**
+     * 팀 인원수
+     */
+        @Column()
+       totalMembers: number;
+
+        
     /**
      * 팀 활동범위
      */

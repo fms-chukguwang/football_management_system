@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { TaskController } from './task.controller';
 import { TaskService } from './task.service';
-import { JobsService } from 'src/jobs/jobs.service';
-import { LocationService } from 'src/location/location.service';
+import { JobsService } from '../jobs/jobs.service';
+import { LocationService } from '../location/location.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { LocationModel } from 'src/location/entities/location.entity';
-import { SoccerField } from 'src/match/entities/soccer-field.entity';
+import { LocationModel } from '../location/entities/location.entity';
+import { SoccerField } from '../match/entities/soccer-field.entity';
 
 @Module({
   imports: [

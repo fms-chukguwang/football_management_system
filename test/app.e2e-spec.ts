@@ -21,6 +21,17 @@ enum Position {
     LeftWinger = 'Left Winger',
 }
 
+enum Time {
+    morning = '10:00:00',
+    evening = '20:00:00',
+}
+
+function getRandomTime(): Time {
+    const time = Object.values(Time);
+    const randomIndex = Math.floor(Math.random() * time.length);
+    return time[randomIndex];
+}
+
 function getRandomPosition(): Position {
     const positions = Object.values(Position);
     const randomIndex = Math.floor(Math.random() * positions.length);
@@ -32,6 +43,8 @@ let app: INestApplication;
 let signUpDto: SignUpDto;
 let teamId: number;
 let userId: number;
+let matchId: number;
+let memberId: number;
 
 //시나리오 1 - 모든 새로운 팀 회원들이 구단주가 됨
 describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들이 구단주가 됨', () => {
@@ -100,7 +113,126 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
             .field('address', registerTeamDto.address)
             .attach('file', 'src/img/IMG_6407.jpg')
             .expect(201);
+        teamId = response.body.data.teamId;
+        memberId  = response.body.data.memberId;
+        console.log("memberId=",memberId);
     });
+
+    // 경기 생성
+    it('/match/book/accept (POST)', async () => {
+        const randomDate = faker.date.between(
+            '2024-01-26T00:00:00.000Z',
+            '2024-02-28T00:00:00.000Z',
+        );
+
+        // ISO 8601 형식으로 날짜를 문자열로 변환
+        const isoDateString = randomDate.toISOString();
+
+        // 날짜 부분만 추출 (YYYY-MM-DD)
+        const onlyDate = isoDateString.split('T')[0];
+
+        const registerMatchDto = {
+            date: onlyDate,
+            time: getRandomTime(),
+            homeTeamId: teamId,
+            awayTeamId: teamId - 1,
+            fieldId: faker.number.int({ min: 1, max: 15 }),
+            token: `${accessToken}`,
+        };
+
+        const response = await request(app.getHttpServer())
+            .post(`/match/book/accept`)
+            .set('Authorization', `Bearer ${accessToken}`)
+            .send({
+                date: registerMatchDto.date,
+                time: registerMatchDto.time,
+                homeTeamId: registerMatchDto.homeTeamId,
+                awayTeamId: registerMatchDto.awayTeamId,
+                fieldId: registerMatchDto.fieldId,
+                token: registerMatchDto.token,
+            })
+            .expect(201);
+        matchId = response.body.data.matchId;
+    });
+
+    //경기 후 선수 기록 등록
+    it(':matchId/result/:memberId` (POST)', async () => {
+        const memberResultDto = {
+            clean_sheet: faker.number.int({ min: 0, max: 10 }),
+            assists: faker.number.int({ min: 0, max: 10 }),
+            goals: faker.number.int({ min: 0, max: 5 }),
+            yellowCards: faker.number.int({ min: 0, max: 3 }),
+            redCards: faker.number.int({ min: 0, max: 2 }),
+            substitions: faker.number.int({ min: 0, max: 3 }),
+            save: faker.number.int({ min: 0, max: 10 }),
+        };
+
+        const response = await request(app.getHttpServer())
+            .post(`${matchId}/result/${memberId}`)
+            .set('Authorization', `Bearer ${accessToken}`)
+            .send({
+                clean_sheet: memberResultDto.clean_sheet,
+                assists: memberResultDto.assists,
+                goals: memberResultDto.goals,
+                yellowCards: memberResultDto.yellowCards,
+                redCards: memberResultDto.redCards,
+                substitions: memberResultDto.substitions,
+                save: memberResultDto.save,
+            })
+            .expect(201);
+    });
+
+     //경기 후 팀 기록 등록
+
+    // "team":{
+    //     "substitions": [{"inPlayerId":2,"outPlayerId":1}],
+    //     "passes": 150,
+    //     "penaltyKick": 0,
+    //     "freeKick": 6
+    //    },
+    //   "results" : [{
+    //                 "userId": 1,
+    //                 "assists": 3,
+    //                 "goals": 1,
+    //                 "yellowCards": 1,
+    //                 "redCards": 0,
+    //                 "save": 0
+    //                 },{
+    //                 "userId": 2,
+    //                 "assists": 3,
+    //                 "goals": 1,
+    //                 "yellowCards": 1,
+    //                 "redCards": 0,
+    //                 "save": 0
+    //                 }
+    //     ]
+
+    //  it('/api/match/:metchId/result/member (POST)', async () => {
+    //     const memberResultDto = {
+    //         clean_sheet: faker.number.int({ min: 0, max: 10 }),
+    //         assists: faker.number.int({ min: 0, max: 10 }),
+    //         goals: faker.number.int({ min: 0, max: 5 }),
+    //         yellowCards: faker.number.int({ min: 0, max: 3 }),
+    //         redCards: faker.number.int({ min: 0, max: 2 }),
+    //         substitions: faker.number.int({ min: 0, max: 3 }),
+    //         save: faker.number.int({ min: 0, max: 10 }),
+    //     };
+
+    //     const response = await request(app.getHttpServer())
+    //         .post(`/api/match/${matchId}/result/member`)
+    //         .set('Authorization', `Bearer ${accessToken}`)
+    //         .send({
+    //             clean_sheet: memberResultDto.clean_sheet,
+    //             assists: memberResultDto.assists,
+    //             goals: memberResultDto.goals,
+    //             yellowCards: memberResultDto.yellowCards,
+    //             redCards: memberResultDto.redCards,
+    //             substitions: memberResultDto.substitions,
+    //             save: memberResultDto.save,
+    //         })
+    //         .expect(201);
+    // });
+
     afterAll(async () => {
         await app.close();
     });
