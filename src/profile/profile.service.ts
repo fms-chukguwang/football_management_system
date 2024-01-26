@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile } from './entities/profile.entity';
-import { FindManyOptions, QueryRunner, Repository, ILike, Like } from 'typeorm';
+import { FindManyOptions, QueryRunner, Repository, ILike, Like, IsNull } from 'typeorm';
 import { RegisterProfileInfoDto } from './dtos/register-profile-info';
 import { User } from '../user/entities/user.entity';
 import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
@@ -51,17 +51,29 @@ export class ProfileService {
         return await this.commonService.paginate(dto, this.profileRepository, options , 'profile');
     }
 
-    async paginateProfile(userId:number, dto: PaginateProfileDto, name?: string) {
-        const user = await this.userRepository.findOne({where: {id: userId}});
-        const profile = await this.profileRepository.findOne({where: {user: {id: userId}}})
-        const member =await this.memberRepository.findOne({where: {user: {id: userId}}})
+    async paginateProfile(userId: number, dto: PaginateProfileDto, name?: string) {
+        const user = await this.userRepository.findOne({ where: { id: userId } });
+        // const profile = await this.profileRepository.findOne({ where: { user: { id: userId } } });
+        const profile = await this.profileRepository.findOne({ where: { user } });
 
-        if (member.isStaff != true) {
-            return null;
-        }
+        const member = await this.memberRepository.findOne({ where: { user: { id: userId } } });
+        // 팀 없는 사람들 가져오기
+
+        console.log(profile);
+
+        // if (member.isStaff != true) {
+        //     return null;
+        // }
 
         const options: FindManyOptions<Profile> = {
-            relations: { user: { member: {team: true} } },
+            relations: { user: { member: { team: true } } },
+            where: {
+                user: {
+                    member: {
+                        team: IsNull(),
+                    },
+                },
+            },
         };
 
         if (name) {
@@ -70,7 +82,7 @@ export class ProfileService {
 
         const data = await this.profileRepository.find(options);
 
-        return await this.commonService.paginate(dto, this.profileRepository, options , 'profile');
+        return await this.commonService.paginate(dto, this.profileRepository, options, 'profile');
     }
 
     async searchProfile(name?: string) {

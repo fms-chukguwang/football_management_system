@@ -20,7 +20,9 @@ import { IsStaffGuard } from '../member/guard/is-staff.guard';
 import { CreateTeamDto } from './dtos/create-team.dto';
 import { UpdateTeamDto } from './dtos/update-team.dto';
 import { TeamService } from './team.service';
-import { MemberService } from 'src/member/member.service';
+import { MemberService } from '../member/member.service';
+import { PaginateTeamDto } from './dtos/paginate-team-dto';
+
 
 @ApiTags('팀')
 @Controller('team')
@@ -67,15 +69,15 @@ export class TeamController {
      * 팀 전체조회
      * @param req
      */
-    @Get()
-    async getEveryTeams() {
-        const teams = await this.teamService.getTeams();
-        if (!teams) {
-            throw new NotFoundException('팀을 찾을 수 없습니다.');
-        }
-
-        return teams;
-    }
+    //@Get()
+    // async getEveryTeams() {
+    //     const teams = await this.teamService.getTeams();
+    //     if (!teams) {
+    //         throw new NotFoundException('팀을 찾을 수 없습니다.');
+    //     }
+        
+    //     return teams;
+    // }
 
     /**
      * 팀 목록 조회
@@ -83,8 +85,8 @@ export class TeamController {
      * @returns
      */
     @Get('')
-    getTeam(@Query() query: any) {
-        return this.teamService.getTeam();
+    async getTeam(@Query() dto: PaginateTeamDto) {
+        return  await this.teamService.getTeam(dto, dto.name);
     }
 
     @UseGuards(JwtAuthGuard, IsStaffGuard)

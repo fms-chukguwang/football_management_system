@@ -114,46 +114,95 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
             .attach('file', 'src/img/IMG_6407.jpg')
             .expect(201);
         teamId = response.body.data.teamId;
-        memberId  = response.body.data.memberId;
-        console.log("memberId=",memberId);
+        memberId = response.body.data.memberId;
+        console.log('memberId=', memberId);
     });
 
+
+    // 경기 예약
+    it('/match/book (POST)', async () => {
+        const randomDate = faker.date.between(
+            '2024-01-26T00:00:00.000Z',
+            '2024-02-28T00:00:00.000Z',
+        );
+
+        // ISO 8601 형식으로 날짜를 문자열로 변환
+        const isoDateString = randomDate.toISOString();
+
+        // 날짜 부분만 추출 (YYYY-MM-DD)
+        const onlyDate = isoDateString.split('T')[0];
+        console.log('date=', onlyDate);
+        console.log('getRandomTime()=', getRandomTime());
+        console.log('teamId=', teamId);
+        const registerMatchDto = {
+            date: '2024-02-25',
+            //time: getRandomTime(),
+            "time": "17:00:00",
+            homeTeamId: teamId,
+            // awayTeamId: teamId - 1,
+            awayTeamId: 3,
+            // fieldId: faker.number.int({ min: 1, max: 15 }),
+            fieldId: 1,
+            token: `${accessToken}`,
+        };
+
+        const response = await request(app.getHttpServer())
+            .post(`/match/book`)
+            .set('Authorization', `Bearer ${accessToken}`)
+            .send({
+                date: registerMatchDto.date,
+                time: registerMatchDto.time,
+                homeTeamId: registerMatchDto.homeTeamId,
+                awayTeamId: registerMatchDto.awayTeamId,
+                fieldId: registerMatchDto.fieldId,
+                token: registerMatchDto.token,
+            })
+            .expect(201);
+        matchId = response.body.data.matchId;
+    });
+
+
     // 경기 생성
-    // it('/match/book/accept (POST)', async () => {
-    //     const randomDate = faker.date.between(
-    //         '2024-01-26T00:00:00.000Z',
-    //         '2024-02-28T00:00:00.000Z',
-    //     );
+    it('/match/book/accept (POST)', async () => {
+        const randomDate = faker.date.between(
+            '2024-01-26T00:00:00.000Z',
+            '2024-02-28T00:00:00.000Z',
+        );
 
-    //     // ISO 8601 형식으로 날짜를 문자열로 변환
-    //     const isoDateString = randomDate.toISOString();
+        // ISO 8601 형식으로 날짜를 문자열로 변환
+        const isoDateString = randomDate.toISOString();
 
-    //     // 날짜 부분만 추출 (YYYY-MM-DD)
-    //     const onlyDate = isoDateString.split('T')[0];
+        // 날짜 부분만 추출 (YYYY-MM-DD)
+        const onlyDate = isoDateString.split('T')[0];
+        console.log('date=', onlyDate);
+        console.log('getRandomTime()=', getRandomTime());
+        console.log('teamId=', teamId);
+        const registerMatchDto = {
+            date: '2024-02-25',
+            //time: getRandomTime(),
+            "time": "17:00:00",
+            homeTeamId: teamId,
+            // awayTeamId: teamId - 1,
+            awayTeamId: 3,
+            // fieldId: faker.number.int({ min: 1, max: 15 }),
+            fieldId: 1,
+            token: `${accessToken}`,
+        };
 
-    //     const registerMatchDto = {
-    //         date: onlyDate,
-    //         time: getRandomTime(),
-    //         homeTeamId: teamId,
-    //         awayTeamId: teamId - 1,
-    //         fieldId: faker.number.int({ min: 1, max: 15 }),
-    //         token: `${accessToken}`,
-    //     };
-
-    //     const response = await request(app.getHttpServer())
-    //         .post(`/match/book/accept`)
-    //         .set('Authorization', `Bearer ${accessToken}`)
-    //         .send({
-    //             date: registerMatchDto.date,
-    //             time: registerMatchDto.time,
-    //             homeTeamId: registerMatchDto.homeTeamId,
-    //             awayTeamId: registerMatchDto.awayTeamId,
-    //             fieldId: registerMatchDto.fieldId,
-    //             token: registerMatchDto.token,
-    //         })
-    //         .expect(201);
-    //     matchId = response.body.data.matchId;
-    // });
+        const response = await request(app.getHttpServer())
+            .post(`/match/book/accept`)
+            .set('Authorization', `Bearer ${accessToken}`)
+            .send({
+                date: registerMatchDto.date,
+                time: registerMatchDto.time,
+                homeTeamId: registerMatchDto.homeTeamId,
+                awayTeamId: registerMatchDto.awayTeamId,
+                fieldId: registerMatchDto.fieldId,
+                token: registerMatchDto.token,
+            })
+            .expect(201);
+        matchId = response.body.data.matchId;
+    });
 
     //경기 후 선수 기록 등록
     // it(':matchId/result/:memberId` (POST)', async () => {
@@ -182,7 +231,7 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
     //         .expect(201);
     // });
 
-     //경기 후 팀 기록 등록
+    //경기 후 팀 기록 등록
 
     // "team":{
     //     "substitions": [{"inPlayerId":2,"outPlayerId":1}],
@@ -206,7 +255,7 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
     //                 "save": 0
     //                 }
     //     ]
-    
+
     //  it('/api/match/:metchId/result/member (POST)', async () => {
     //     const memberResultDto = {
     //         clean_sheet: faker.number.int({ min: 0, max: 10 }),
@@ -238,7 +287,6 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
     });
 });
 
-
 //시나리오 2 - 아무 소속에 없는 회원 팀에 가입시키기
 describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들이 구단주가 됨', () => {
     beforeAll(async () => {
@@ -267,22 +315,22 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
         accessToken = response.body.data.accessToken;
     });
 
-        //프로필 생성
-        it('/profile (POST)', async () => {
-            const registerPorfileDto = {
-                preferredPosition: getRandomPosition(),
-                weight: faker.number.int({ min: 40, max: 100 }),
-                height: faker.number.int({ min: 150, max: 190 }),
-                age: faker.number.int({ min: 18, max: 50 }),
-                gender: 'Male',
-            };
-    
-            const response = await request(app.getHttpServer())
-                .post('/profile')
-                .set('Authorization', `Bearer ${accessToken}`)
-                .send(registerPorfileDto)
-                .expect(201);
-        });
+    //프로필 생성
+    it('/profile (POST)', async () => {
+        const registerPorfileDto = {
+            preferredPosition: getRandomPosition(),
+            weight: faker.number.int({ min: 40, max: 100 }),
+            height: faker.number.int({ min: 150, max: 190 }),
+            age: faker.number.int({ min: 18, max: 50 }),
+            gender: 'Male',
+        };
+
+        const response = await request(app.getHttpServer())
+            .post('/profile')
+            .set('Authorization', `Bearer ${accessToken}`)
+            .send(registerPorfileDto)
+            .expect(201);
+    });
 
     afterAll(async () => {
         await app.close();

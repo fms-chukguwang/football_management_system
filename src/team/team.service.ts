@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AwsService } from '../aws/aws.service';
 import { LocationService } from '../location/location.service';
 import { MemberService } from '../member/member.service';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, FindManyOptions, Like, Repository } from 'typeorm';
 import { CreateTeamDto } from './dtos/create-team.dto';
 import { TeamModel } from './entities/team.entity';
 import {
@@ -129,17 +129,37 @@ export class TeamService {
      * 팀 전체조회
      * @returns
      */
-    async getTeams(): Promise<TeamModel[]> {
-        return this.teamRepository.find();
+     async getTeams() {
+        const teams = await this.teamRepository.find();
+        const teamWithCounts = await Promise.all(
+            teams.map(async (team) => {
+                const [data, count] = await this.memberService.getMemberCountByTeamId(team.id);
+                return {
+                    team,
+                    totalMember: count,
+                };
+            }),
+        );
+
+        return teamWithCounts;
     }
 
     /**
      * 팀 목록조회
      * @returns
      */
-    getTeam() {
-        return this.teamRepository.find({});
+    async getTeam(dto: PaginateTeamDto, name?:string) {
+        const options: FindManyOptions<TeamModel> = {
+        };
+        if (name) {
+            options.where =  { name: Like(`%${name}%`) };
+        }
+
+        const data = await this.teamRepository.find(options);
+
+        return await this.commonService.paginate(dto, this.teamRepository, options, 'team');
     }
+
 
     /**
      * 팀 수정하기
