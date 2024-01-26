@@ -8,16 +8,15 @@ import {
     OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
-  } from 'typeorm';
+} from 'typeorm';
 import { Match } from './match.entity';
-  
-  @Entity('match_results')
-  export class MatchResult {
 
+@Entity('match_results')
+export class MatchResult {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Match,(match) => match.matchresult, {onDelete: 'CASCADE'})
+    @ManyToOne(() => Match, (match) => match.matchresult, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'match_id' })
     match: Match;
 
@@ -34,8 +33,8 @@ import { Match } from './match.entity';
     corner_kick: number;
 
     @Column({ type: 'json', nullable: true })
-    red_cards: { playerId: number; count: number }[]; 
-    
+    red_cards: { playerId: number; count: number }[];
+
     @Column({ type: 'simple-array', nullable: true })
     yellow_cards: number[];
 
@@ -59,14 +58,13 @@ import { Match } from './match.entity';
 
     @Column({ type: 'int', nullable: false })
     free_kick: number;
-  
+
     @CreateDateColumn()
     created_at: Date;
-  
+
     @UpdateDateColumn()
     updated_at: Date;
-  
+
     @DeleteDateColumn()
     deleted_at: Date;
-  }
-  
+}
