@@ -24,7 +24,8 @@ export class UserService {
             where: {
                 id,
             },
-            relations: ['profile'],
+            relations:  ['profile', 'member', 'team']
+        
         });
 
         if (!user) {

@@ -16,6 +16,8 @@ import { TeamService } from '../team/team.service';
 import { EmailService } from '../email/email.service';
 import { SendJoiningEmailDto } from './dtos/send-joining-email.dto';
 import { RedisService } from '../redis/redis.service';
+import { UpdateProfileInfoDto } from 'src/profile/dtos/update-profile-info-dto';
+import { ProfileService } from '../profile/profile.service';
 
 @Injectable()
 export class MemberService {
@@ -27,6 +29,7 @@ export class MemberService {
         private readonly teamService: TeamService,
         private readonly eamilService: EmailService,
         private readonly redisService: RedisService,
+
     ) {}
 
     async findAllPlayers() {
@@ -60,7 +63,7 @@ export class MemberService {
     async registerMember(teamId: number, userId: number): Promise<Member> {
         const user = await this.userService.findOneById(userId);
         const existMember = await this.findMemberForUserId(user.id);
-
+ 
         if (existMember) {
             throw new BadRequestException('해당 인원은 이미 팀에 참가하고 있습니다.');
         }
@@ -72,6 +75,7 @@ export class MemberService {
             team: {
                 id: teamId,
             },
+       
         });
 
         return registerMember;
