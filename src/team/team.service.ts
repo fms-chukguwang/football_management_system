@@ -145,7 +145,7 @@ export class TeamService {
         return teamWithCounts;
     }
 
-    //호영님 코드
+    //호영님 코드 수정중
     async getTeam2(dto: PaginateTeamDto,name?:string) {
 
         const options: FindManyOptions<TeamModel> = {
@@ -193,24 +193,22 @@ export class TeamService {
     }
 
 
-    async getTeam2(dto: PaginateTeamDto) {
-        const result = await this.commonService.paginate(dto, this.teamRepository, {}, 'team');
-        if ('total' in result) {
-            const { data, total } = result;
-            const teamWithCounts = await Promise.all(
-                data.map(async (team) => {
-                    const [data, count] = await this.memberService.getMemberCountByTeamId(team.id);
-                    return {
-                        team,
-                        totalMember: count,
-                    };
-                }),
-            );
-            return { data: teamWithCounts, total };
-        }
-
-
-    }
+    // async getTeam2(dto: PaginateTeamDto) {
+    //     const result = await this.commonService.paginate(dto, this.teamRepository, {}, 'team');
+    //     if ('total' in result) {
+    //         const { data, total } = result;
+    //         const teamWithCounts = await Promise.all(
+    //             data.map(async (team) => {
+    //                 const [data, count] = await this.memberService.getMemberCountByTeamId(team.id);
+    //                 return {
+    //                     team,
+    //                     totalMember: count,
+    //                 };
+    //             }),
+    //         );
+    //         return { data: teamWithCounts, total };
+    //     }
+    // }
 
 
     /**
