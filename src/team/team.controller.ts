@@ -69,13 +69,15 @@ export class TeamController {
      * 팀 전체조회
      * @param req
      */
-    //@Get()
+
+    // @Get()
     // async getEveryTeams() {
+    //     console.log('전체 조회');
+
     //     const teams = await this.teamService.getTeams();
     //     if (!teams) {
     //         throw new NotFoundException('팀을 찾을 수 없습니다.');
     //     }
-        
     //     return teams;
     // }
 
@@ -87,6 +89,7 @@ export class TeamController {
     @Get('')
     async getTeam(@Query() dto: PaginateTeamDto) {
         return  await this.teamService.getTeam(dto, dto.name);
+
     }
 
     @UseGuards(JwtAuthGuard, IsStaffGuard)
