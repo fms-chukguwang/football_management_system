@@ -1,9 +1,4 @@
-import {
-    MiddlewareConsumer,
-    Module,
-    NestModule,
-    RequestMethod,
-} from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -62,9 +57,7 @@ import { MemberModule } from './member/member.module';
 })
 export class AppModule implements NestModule {
     configure(consumer: MiddlewareConsumer) {
-        consumer
-            .apply(LoggerMiddleware)
-            .forRoutes({ path: '*', method: RequestMethod.ALL });
+        consumer.apply(LoggerMiddleware).forRoutes({ path: '*', method: RequestMethod.ALL });
         mongoose.set('debug', true);
     }
 }
