@@ -19,17 +19,18 @@ async function bootstrap() {
     // .env 파일을 현재 환경에 로드
     dotenv.config();
 
+    const configService = app.get(ConfigService);
+    const port = configService.get<number>('SERVER_PORT');
+
+    const FRONT_PORT = configService.get<number>('FRONT_PORT');
     const corsOptions = {
-        origin: 'http://localhost:3001',
+        origin: `http://localhost:${FRONT_PORT || 3001}`,
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true,
         allowedHeaders: 'Origin,X-Requested-With,Content-Type,Accept,Authorization',
     };
 
     app.enableCors(corsOptions);
-
-    const configService = app.get(ConfigService);
-    const port = configService.get<number>('SERVER_PORT');
 
     app.setGlobalPrefix('api', { exclude: ['/health-check'] });
 

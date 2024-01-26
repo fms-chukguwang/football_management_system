@@ -19,20 +19,19 @@ enum Position {
     Forward = 'Forward',
     RightWinger = 'Right Winger',
     LeftWinger = 'Left Winger',
-  }
-  
+}
 
 function getRandomPosition(): Position {
-  const positions = Object.values(Position);
-  const randomIndex = Math.floor(Math.random() * positions.length);
-  return positions[randomIndex];
+    const positions = Object.values(Position);
+    const randomIndex = Math.floor(Math.random() * positions.length);
+    return positions[randomIndex];
 }
 
 let accessToken: string;
 let app: INestApplication;
 let signUpDto: SignUpDto;
-let teamId:number;
-let userId:number;
+let teamId: number;
+let userId: number;
 
 //시나리오 1 - 모든 새로운 팀 회원들이 구단주가 됨
 describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들이 구단주가 됨', () => {
@@ -101,14 +100,13 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
             .field('address', registerTeamDto.address)
             .attach('file', 'src/img/IMG_6407.jpg')
             .expect(201);
-            teamId = response.body.data.id;
     });
     afterAll(async () => {
         await app.close();
     });
 });
 
-    //시나리오 2 - 아무 소속에 없는 회원 팀에 가입시키기
+//시나리오 2 - 아무 소속에 없는 회원 팀에 가입시키기
 //     describe('AppController (e2e) - 시나리오 2: 아무 소속에 없는 회원 팀에 가입시키기', () => {
 //     beforeAll(async () => {
 //         const moduleFixture: TestingModule = await Test.createTestingModule({
