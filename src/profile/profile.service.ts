@@ -87,6 +87,17 @@ export class ProfileService {
         return profile;
     }
 
+
+    async findOneByUserId(id: number) {
+        const user = await this.userRepository.findOne({ where: { id } });
+
+        if (!user) {
+            throw new NotFoundException('유저를 찾을 수 없습니다.');
+        }
+
+        return user;
+    }
+
     async findOneByName(name: string): Promise<Profile | null> {
         const profile = await this.profileRepository.findOne({ where: { name } });
 
