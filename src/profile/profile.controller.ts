@@ -47,7 +47,6 @@ export class ProfileController {
     @Get('')
     async findAllProfiles(@Request() req, @Query() dto: PaginateProfileDto) {
         const userId = req.user.id;
-        console.log("userId=",userId)
         const data = await this.profileService.paginateMyProfile(userId, dto, dto.name);
         return {
             statusCode: HttpStatus.OK,
@@ -55,6 +54,24 @@ export class ProfileController {
             data,
         };
     }
+
+        /**
+     * 팀없는 프로필 정보 조회
+     * @param req
+     * @returns
+     */
+         @ApiBearerAuth()
+         @UseGuards(JwtAuthGuard)
+         @Get('/available/')
+         async findAvailableProfiles(@Request() req, @Query() dto: PaginateProfileDto) {
+             const userId = req.user.id;
+             const data = await this.profileService.paginateProfile(userId, dto, dto.name);
+             return {
+                 statusCode: HttpStatus.OK,
+                 message: '팀없는 프로필 정보 조회에 성공했습니다.',
+                 data,
+             };
+         }
 
     //   @Get('search')
     //   async searchProfiles( @Query('name') name: string) {

@@ -51,6 +51,28 @@ export class ProfileService {
         return await this.commonService.paginate(dto, this.profileRepository, options , 'profile');
     }
 
+    async paginateProfile(userId:number, dto: PaginateProfileDto, name?: string) {
+        const user = await this.userRepository.findOne({where: {id: userId}});
+        const profile = await this.profileRepository.findOne({where: {user: {id: userId}}})
+        const member =await this.memberRepository.findOne({where: {user: {id: userId}}})
+
+        if (member.isStaff != true) {
+            return null;
+        }
+
+        const options: FindManyOptions<Profile> = {
+            relations: { user: { member: {team: true} } },
+        };
+
+        if (name) {
+            options.where = { user: { name: Like(`%${name}%`) } };
+        }
+
+        const data = await this.profileRepository.find(options);
+
+        return await this.commonService.paginate(dto, this.profileRepository, options , 'profile');
+    }
+
     async searchProfile(name?: string) {
         const options: FindManyOptions<Profile> = {
           relations: { user: { member: { team: true } } },
