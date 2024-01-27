@@ -383,85 +383,6 @@ export class MatchService {
         await queryRunner.startTransaction();
 
         try {
-            // 한 팀이 등록한 상태라면 팀 스탯 생성
-            /*if (matchResultCount === 1) {
-                const teamStats = await this.createTeamStats(matchResult);
-
-                console.log(`home:${teamStats.home_score} away:${teamStats.away_score}`);
-
-                // 홈팀 스탯 생성
-                const gethomeTeamStats = await this.teamTotalGames(match.home_team_id);
-
-                const homeWins = gethomeTeamStats.wins + teamStats.home_win;
-                const homeLoses = gethomeTeamStats.loses + teamStats.home_lose;
-                const homeDraws = gethomeTeamStats.wins + teamStats.home_draw;
-                const homeTotalGames = gethomeTeamStats.total_games + 1;
-
-                const homeTeamResult = this.teamStatsRepository.create({
-                    team_id: match.home_team_id,
-                    wins: homeWins,
-                    loses: homeLoses,
-                    draws: homeDraws,
-                    total_games: homeTotalGames,
-                });
-
-                // 어웨이팀 스탯 생성
-                const getawayTeamStats = await this.teamTotalGames(match.away_team_id);
-
-                const awayWins = getawayTeamStats.wins + teamStats.away_win;
-                const awayLoses = getawayTeamStats.loses + teamStats.away_lose;
-                const awayDraws = getawayTeamStats.wins + teamStats.away_draw;
-                const awayTotalGames = getawayTeamStats.total_games + 1;
-
-                const awayTeamResult = this.teamStatsRepository.create({
-                    team_id: match.away_team_id,
-                    wins: awayWins,
-                    loses: awayLoses,
-                    draws: awayDraws,
-                    total_games: awayTotalGames,
-                });
-
-                //클린시트는 member등록 후 골 구해질 때 계산
-                
-                // 마지막 입력한 팀 득점이 0인 경우 (상대팀 클린시트)
-                if (
-                    homeCreator[0].id === match.home_team_id &&
-                    creatematchResultDto.goals.length === 0
-                ) {
-                    await queryRunner.manager.update(
-                        'match_results',
-                        { match_id: matchId, team_id: match.away_team_id },
-                        { clean_sheet: true },
-                    );
-                }
-
-                // 마지막 입력한 팀 득점이 0인 경우 (상대팀 클린시트)
-                if (
-                    homeCreator[0].id === match.away_team_id &&
-                    creatematchResultDto.goals.length === 0
-                ) {
-                    await queryRunner.manager.update(
-                        'match_results',
-                        { match_id: matchId, team_id: match.home_team_id },
-                        { clean_sheet: true },
-                    );
-                }
-
-                // 상대팀 득점이 0인 경우 (마지막 입력한 팀 클린시트)
-                if (homeCreator[0].id === match.home_team_id && teamStats.away_score === 0) {
-                    console.log('away chk ' + teamStats.away_score);
-                    matchResult.clean_sheet = true;
-                }
-
-                // 상대 득점이 0인 경우 (마지막 입력한 팀 클린시트)
-                if (homeCreator[0].id === match.away_team_id && teamStats.home_score === 0) {
-                    console.log('away chk ' + teamStats.away_score);
-                    matchResult.clean_sheet = true;
-                }
-
-                await queryRunner.manager.save('team_statistics', homeTeamResult);
-                await queryRunner.manager.save('team_statistics', awayTeamResult);
-            }*/
 
             await queryRunner.manager.save('match_results', matchResult);
 
@@ -553,7 +474,7 @@ export class MatchService {
 
             let goalsCount =0;
 
-            const matches = await this.matchResultRepository.find({where:{id:matchId}});
+            const matches = await this.matchResultRepository.find({where:{match_id:matchId}});
 
             const queryRunner = this.dataSource.createQueryRunner();
 
@@ -618,7 +539,6 @@ export class MatchService {
                   }
 
                 const matchResultCount = await this.matchResultCount(matchId);
-                console.log('matchResult count:',matchResultCount.count);
 
                 let this_clean_sheet = false;
                 let other_clean_sheet = false;
@@ -639,7 +559,6 @@ export class MatchService {
                     const otherTeam = await this.matchResultRepository.findOne({
                         where:{match_id:matchId, team_id: Not(homeCreator[0].id)}
                     })
-
             
                     let this_score = goalsCount;
                     let other_score = otherTeam.goals.reduce((total, goal) => total + goal.count, 0);

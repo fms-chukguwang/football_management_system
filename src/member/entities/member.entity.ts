@@ -13,6 +13,7 @@ import { BaseModel } from '../../common/entities/base.entity';
 import { TeamModel } from '../../team/entities/team.entity';
 import { User } from '../../user/entities/user.entity';
 import { PlayerStats } from '../../match/entities/player-stats.entity';
+import { MatchFormation } from 'src/formation/entities/formation.entity';
 
 @Entity('members')
 export class Member extends BaseModel {
@@ -33,6 +34,9 @@ export class Member extends BaseModel {
 
     @OneToMany(() => PlayerStats, (playerstats) => playerstats.member)
     playerstats: PlayerStats[];
+
+    @OneToMany(() => MatchFormation, (matchformation) => matchformation.member)
+    matchformation: MatchFormation[];
 
     @Column({
         name: 'is_staff',
