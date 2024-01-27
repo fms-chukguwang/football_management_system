@@ -166,32 +166,40 @@ export class MatchService {
         return match;
     }
 
-    /**
-     * 경기가 끝났는지 조회
-     * @param matchId
-     * @returns
-     */
-    async findIfMatchOver(matchId: number) {
-        const match = await this.matchRepository.findOne({
-            where: { id: matchId },
-        });
+/**
+ * 경기가 끝났는지 조회
+ * @param matchId
+ * @returns
+ */
+ async findIfMatchOver(matchId: number) {
+    const match = await this.matchRepository.findOne({
+        where: { id: matchId },
+    });
 
-        if (!match) {
-            throw new NotFoundException('해당 ID의 경기 일정이 없습니다.');
-        }
-
-        // 경기 종료 시간을 2시간 더한 시간과 현재 시간을 비교하여 경기가 끝났는지 확인
-        const matchEndTimePlus2Hours = new Date(match.date);
-        matchEndTimePlus2Hours.setHours(matchEndTimePlus2Hours.getHours() + 2);
-
-        const currentTime = new Date();
-
-        if (currentTime < matchEndTimePlus2Hours) {
-            throw new NotFoundException('경기가 아직 안끝났습니다.');
-        }
-
-        return true;
+    if (!match) {
+        throw new NotFoundException('해당 ID의 경기 일정이 없습니다.');
     }
+
+    // match.date와 match.time을 합쳐서 matchEndTime을 만듬
+    const matchEndTime = new Date(`${match.date} ${match.time}`);
+
+    // 경기 종료 시간을 2시간 더한 시간과 현재 시간을 비교하여 경기가 끝났는지 확인
+    const matchEndTimePlus2Hours = new Date(matchEndTime);
+    matchEndTimePlus2Hours.setHours(matchEndTimePlus2Hours.getHours() + 2);
+
+    const currentTime = new Date();
+    
+    console.log("current Time=", currentTime);
+    console.log("match time=", match.date, match.time);
+    console.log("match end time +2 hr=", matchEndTimePlus2Hours);
+
+    if (currentTime < matchEndTimePlus2Hours) {
+        throw new NotFoundException('경기가 아직 안끝났습니다.');
+    }
+
+    return true;
+}
+
 
     /**
      * 경기 수정 이메일 요청(상대팀 구단주에게)
