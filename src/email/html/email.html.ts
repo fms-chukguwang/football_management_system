@@ -8,12 +8,16 @@ export const joinTeamHtml = (from: SendJoiningEmailDto, recipient: TeamModel, to
     <p>${from.name} 회원님이 ${recipient.name} 구단에 입단 신청을 했습니다.</p>
     <p>수락하시겠습니까?</p>
 
-    <form action="http://localhost:3001/api/team/${recipient.id}/user/${from.id}/approve" method="POST">
+    <form action="http://localhost:${
+        process.env.SERVER_PORT || 3000
+    }/api/team/${recipient.id}/user/${from.id}/approve" method="POST">
     <input type="hidden" name="token" value="${token}">
     <button style="background-color: #4CAF50; color: white; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; border-radius: 5px; cursor: pointer;">수락</button>
     </form>
 
-    <form action="http://localhost:3001/api/team/${recipient.id}/user/${from.id}/reject" method="POST">
+    <form action=http://localhost:${
+        process.env.SERVER_PORT || 3000
+    }/api/team/${recipient.id}/user/${from.id}/reject" method="POST">
     <input type="hidden" name="token" value="${token}">
     <button style="background-color: #4CAF50; color: white; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; border-radius: 5px; cursor: pointer;">거절</button>
     </form>

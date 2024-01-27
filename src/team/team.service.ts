@@ -146,7 +146,7 @@ export class TeamService {
     }
 
     //호영님 코드 수정중
-    async getTeam2(dto: PaginateTeamDto,name?:string) {
+    async getTeam(dto: PaginateTeamDto,name?:string) {
 
         const options: FindManyOptions<TeamModel> = {
         };
@@ -156,7 +156,7 @@ export class TeamService {
 
         const data = await this.teamRepository.find(options);
 
-        const result = await this.commonService.paginate(dto, this.teamRepository, {}, 'team');
+        const result = await this.commonService.paginate(dto, this.teamRepository, options, 'team');
 
         if ('total' in result) {
             const { data, total } = result;
@@ -178,7 +178,7 @@ export class TeamService {
      * @returns
      */
 
-    async getTeam(dto: PaginateTeamDto, name?:string) {
+    async getTeam2(dto: PaginateTeamDto, name?:string) {
         const options: FindManyOptions<TeamModel> = {
         };
         if (name) {

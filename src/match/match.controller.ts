@@ -49,8 +49,8 @@ export class MatchController {
     async createMatch(@Body() creatematchDto: createMatchDto) {
     
         const data = await this.matchService.createMatch(creatematchDto);
-    
-        return "경기 예약 되었습니다.";
+        console.log(data);
+        return data;
     }
 
     /**
