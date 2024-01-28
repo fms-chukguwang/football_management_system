@@ -148,37 +148,45 @@ export class EmailService {
         }
     }
 
-    async verifyCode(email: string, code: string): Promise<boolean> {
-        const savedCode = await this.emailVerificationRepository.findOne({
-            where: { email },
-        });
+async verifyCode(email: string, code: string): Promise<boolean> {
+    const savedCode = await this.emailVerificationRepository.findOne({
+        where: { email },
+    });
 
-        // 인증번호가 일치하고, 유효 기간 내에 있는 경우
-        if (
-            savedCode &&
-            savedCode.code === code &&
-            (await this.isValidExpiration(savedCode.expiry))
-        ) {
-            // 기존에 저장된 인증번호 삭제
-            await this.emailVerificationRepository.delete({ email });
-            return true;
-        }
+    // 인증번호가 일치하고, 유효 기간 내에 있는 경우
+    if (
+        savedCode &&
+        savedCode.code === code &&
+        (await this.isValidExpiration(savedCode.expiry))
+    ) {
+        // 기존에 저장된 인증번호 삭제
+        await this.emailVerificationRepository.delete({ email });
+        return true;
+    }
 
-        // 인증번호가 일치하지 않거나, 유효 기간이 지났을 경우
-        if (savedCode) {
-            savedCode.attempts += 1;
-            await this.emailVerificationRepository.save(savedCode);
+    // 인증번호가 일치하지 않거나, 유효 기간이 지났을 경우
+    if (savedCode) {
+        savedCode.attempts += 1;
+        await this.emailVerificationRepository.save(savedCode);
 
-            // 시도 횟수가 허용 범위를 초과하면 회원을 휴면 상태로 전환
-            if (savedCode.attempts >= this.max_attempts) {
-                console.log(`User with email ${email} exceeded maximum verification attempts.`);
+        // 시도 횟수가 허용 범위를 초과하면 회원을 휴면 상태로 전환
+        if (savedCode.attempts >= this.max_attempts) {
+            console.log(`User with email ${email} exceeded maximum verification attempts.`);
+
+            // authService가 주입되었는지 확인 후에 updateUserToInactive 호출
+            if (this.authService) {
                 // 휴먼 계정 전환
                 await this.authService.updateUserToInactive(email);
+            } else {
+                console.error('authService is not defined.'); 
+                // authService가 정의되지 않았을 때의 예외 처리
             }
         }
-
-        return false;
     }
+
+    return false;
+}
+
 
     async isValidExpiration(expiration: Date): Promise<boolean> {
         const currentDateTime = new Date();
