@@ -17,7 +17,7 @@ import { Transform } from 'class-transformer';
 import { Member } from '../../member/entities/member.entity';
 import { Factory } from 'nestjs-seeder';
 import { Match } from '../../match/entities/match.entity';
-import { MatchFormation } from 'src/formation/entities/formation.entity';
+import { MatchFormation } from '../../formation/entities/formation.entity';
 
 @Entity('team')
 export class TeamModel extends BaseModel {
