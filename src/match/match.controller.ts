@@ -277,6 +277,27 @@ export class MatchController {
         };
     }
 
+
+    /**
+     * 특정 멤버정보 조회
+     * @param req
+     * @returns
+     */
+     @ApiBearerAuth()
+     @UseGuards(JwtAuthGuard)
+     @Get('member/:memberId')
+     async getMemberDetail(@Request() req, @Param('memberId') memberId: number) {
+         const userId = req.user.id;
+
+         const data = await this.matchService.getMember(memberId);
+     
+         return {
+             statusCode: HttpStatus.OK,
+             success: true,
+             data
+         };
+     }
+
     /**
      * 예약 가능 시간 조회
      * @param req
