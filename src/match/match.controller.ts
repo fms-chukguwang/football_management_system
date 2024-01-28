@@ -161,6 +161,44 @@ export class MatchController {
     }
 
     /**
+     * 경기 결과 조회 (팀내 선수 전체)
+     * @param req
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get(':matchId/result/team/:teamId/members')
+    async getMembersMatchResult(@Request() req, @Param('matchId') matchId: number,@Param('teamId') teamId: number) {
+
+        const data = await this.matchService.getMembersMatchResult(matchId,teamId);
+    
+        return {
+            statusCode: HttpStatus.OK,
+            success: true,
+            data
+        };
+    }
+
+    /**
+     * 경기 결과 조회 (팀)
+     * @param req
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get(':matchId/result/team/:teamId')
+    async getTeamMatchResult(@Request() req, @Param('matchId') matchId: number,@Param('teamId') teamId: number) {
+
+        const data = await this.matchService.getTeamMatchResult(matchId,teamId);
+    
+        return {
+            statusCode: HttpStatus.OK,
+            success: true,
+            data
+        };
+    }
+
+    /**
      * 경기 결과 등록 (팀)
      * @param req
      * @returns

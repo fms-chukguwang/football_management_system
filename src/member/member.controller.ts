@@ -222,4 +222,23 @@ export class MemberController {
         return `거절 처리되었습니다.
     `;
     }
+
+    /**
+     * 팀별 멤버 목록 조회
+     * @param req
+     * @param teamId
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get('/team/:teamId/members')
+    async getTeamMembers(@Req() req: Request, @Param('teamId') teamId: number) {
+
+        const data = await this.memberService.getTeamMembers(teamId);
+
+        return {
+            statusCode: HttpStatus.OK,
+            data,
+            success: true,
+        };
+    }
 }

@@ -1,8 +1,10 @@
-import { Controller, Get, UseGuards, Request, HttpStatus, Param } from '@nestjs/common';
+import { Controller, Get, UseGuards, Request, HttpStatus, Param, Post, Body } from '@nestjs/common';
 import { FormationService } from './formation.service';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { UpdateFormationDto } from './dtos/update-formation.dto';
 
+@ApiTags('전술')
 @Controller('formation')
 export class FormationController {
 
@@ -11,21 +13,40 @@ export class FormationController {
     ) {}
 
     /**
-     * 개인 멤버정보 조회
+     * 팀별 포메이션 조회
      * @param req
      * @returns
      */
-        @ApiBearerAuth()
-        @UseGuards(JwtAuthGuard)
-        @Get('formation/:teamId')
-        async getMatchFormation(@Param('teamId') teamId: number) {
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get(':teamId/:matchId')
+    async getMatchFormation(@Param('teamId') teamId: number,@Param('matchId') matchId: number) {
+
+        const data = await this.formationService.getMatchFormation(teamId,matchId);
     
-            const data = await this.formationService.getMatchFormation(teamId);
-        
-            return {
-                statusCode: HttpStatus.OK,
-                success: true,
-                data
-            };
-        }
+        return {
+            statusCode: HttpStatus.OK,
+            success: true,
+            data
+        };
+    }
+
+    /**
+     * 팀별 포메이션 저장
+     * @param req
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Post(':teamId/:matchId')
+    async saveMatchFormation(@Param('teamId') teamId: number,@Param('matchId') matchId: number,@Body() updateFormationDto:UpdateFormationDto) {
+
+        const data = await this.formationService.saveMatchFormation(teamId,matchId,updateFormationDto);
+    
+        return {
+            statusCode: HttpStatus.OK,
+            success: true,
+            data
+        };
+    }
 }
