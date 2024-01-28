@@ -252,10 +252,11 @@ export class AuthController {
         if (!existingUser) {
             return {
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: '등록된 이메일 주소없니다.',
+                message: '등록된 이메일 주소가 아닙니다.',
             };
         }
 
+        
         const emailSent = await this.emailService.sendVerificationEmail(email);
 
         if (!emailSent) {

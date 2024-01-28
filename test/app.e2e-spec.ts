@@ -53,18 +53,28 @@ function getRandomPosition(): Position {
 let accessToken1: string;
 let accessToken2: string;
 let accessToken3: string;
+let accessToken4: string;
+let accessToken5: string;
+let accessToken6: string;
 let app: INestApplication;
 let signUpDto: SignUpDto;
-let teamId: number;
+let teamId1: number;
+let teamId2: number;
+let teamId3: number;
+let teamId4: number;
 let userId1: number;
 let userId2: number;
+let userId3: number;
+let userId4: number;
 let matchId: number;
 let date: string;
 let memberId1: number;
 let memberId2: number;
+let memberId3: number;
+let memberId4: number;
 
-//시나리오 1 - 모든 새로운 팀 회원들이 구단주가 됨
-describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들이 구단주가 됨', () => {
+//시나리오 1 - 팀 1 구단주 
+describe('AppController (e2e) - 시나리오 1: 팀 1구단주', () => {
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
             imports: [AppModule],
@@ -98,7 +108,7 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
             weight: faker.number.int({ min: 40, max: 100 }),
             height: faker.number.int({ min: 150, max: 190 }),
             age: faker.number.int({ min: 18, max: 50 }),
-            gender: getRandomGender(),
+            gender: 'male',
         };
 
         const response = await request(app.getHttpServer())
@@ -130,54 +140,92 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
             .field('address', registerTeamDto.address)
             .attach('file', 'src/img/IMG_6407.jpg')
             .expect(201);
-        teamId = response.body.data.id;
+        teamId1 = response.body.data.id;
     });
-
-    // 경기 예약
-    // it('/match/book (POST)', async () => {
-    //     const randomDate = faker.date.between(
-    //         '2024-01-26T00:00:00.000Z',
-    //         '2024-02-28T00:00:00.000Z',
-    //     );
-
-    //     // ISO 8601 형식으로 날짜를 문자열로 변환
-    //     const isoDateString = randomDate.toISOString();
-
-    //     // 날짜 부분만 추출 (YYYY-MM-DD)
-    //     const onlyDate = isoDateString.split('T')[0];
-
-    //     const registerMatchDto = {
-    //         date: onlyDate,
-    //         time: getRandomTime(),
-    //         homeTeamId: teamId,
-    //         awayTeamId: teamId-1,
-    //         fieldId: faker.number.int({ min: 1, max: 15 }),
-    //         token: `${accessToken}`,
-    //     };
-
-    //     const response = await request(app.getHttpServer())
-    //         .post(`/match/book`)
-    //         .set('Authorization', `Bearer ${accessToken}`)
-    //         .send({
-    //             date: registerMatchDto.date,
-    //             time: registerMatchDto.time,
-    //             homeTeamId: registerMatchDto.homeTeamId,
-    //             awayTeamId: registerMatchDto.awayTeamId,
-    //             fieldId: registerMatchDto.fieldId,
-    //             token: registerMatchDto.token,
-    //         })
-    //         .expect(201);
-    //         console.log("egisterMatch response=",response);
-
-    // });
 
     afterAll(async () => {
         await app.close();
     });
 });
 
-//시나리오 2 - 아무 소속에 없는 회원 팀에 가입시키기
-describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들이 구단주가 됨', () => {
+//시나리오 2 - 구단주 2
+describe('AppController (e2e) - 시나리오 2: 구단주2', () => {
+    beforeAll(async () => {
+        const moduleFixture: TestingModule = await Test.createTestingModule({
+            imports: [AppModule],
+        }).compile();
+
+        app = moduleFixture.createNestApplication();
+
+        await app.init();
+    }, 10000);
+
+    //더미데이터 회원가입
+    it('/auth/sign-up (POST)', async () => {
+        const signUpDto = {
+            passwordConfirm: 'Ex@mp1e!!',
+            email: faker.internet.email(),
+            password: 'Ex@mp1e!!',
+            name: faker.person.fullName(),
+        };
+
+        const response = await request(app.getHttpServer())
+            .post('/auth/sign-up')
+            .send(signUpDto)
+            .expect(201);
+        accessToken4 = response.body.data.accessToken;
+    });
+
+    //프로필 생성
+    it('/profile (POST)', async () => {
+        const registerPorfileDto = {
+            preferredPosition: getRandomPosition(),
+            weight: faker.number.int({ min: 40, max: 100 }),
+            height: faker.number.int({ min: 150, max: 190 }),
+            age: faker.number.int({ min: 18, max: 50 }),
+            gender: 'male',
+        };
+
+        const response = await request(app.getHttpServer())
+            .post('/profile')
+            .set('Authorization', `Bearer ${accessToken4}`)
+            .send(registerPorfileDto)
+            .expect(201);
+    });
+    //팀 생성
+    it('/team (POST)', async () => {
+        //팀을 생성할때 만든 유저는 자동으로 is_staff가 true가 되고 그 팀에 소속됨
+        const registerTeamDto = {
+            name: faker.lorem.words(2),
+            description: faker.lorem.text(),
+            gender: 'male',
+            isMixedGender: false,
+            postalCode: '12344',
+            address: '경기도 화성시 향납',
+        };
+
+        const response = await request(app.getHttpServer())
+            .post('/team')
+            .set('Authorization', `Bearer ${accessToken4}`)
+            .field('name', registerTeamDto.name)
+            .field('description', registerTeamDto.description)
+            .field('gender', registerTeamDto.gender)
+            .field('isMixedGender', registerTeamDto.isMixedGender)
+            .field('postalCode', registerTeamDto.postalCode)
+            .field('address', registerTeamDto.address)
+            .attach('file', 'src/img/IMG_6407.jpg')
+            .expect(201);
+        teamId2 = response.body.data.id;
+    });
+
+    afterAll(async () => {
+        await app.close();
+    });
+});
+
+
+//시나리오 3 - 아무 소속에 없는 회원1,2 팀1에 가입시키기
+describe('AppController (e2e) - 시나리오 3 - 아무 소속에 없는 회원1,2 팀1에 가입시키기', () => {
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
             imports: [AppModule],
@@ -225,7 +273,7 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
         userId1 = response.body.data.user.id;
     });
 
-    //멤버1를 팀에 추가
+    //멤버1를 팀1에 추가
     it('/team/:teamId/user/:userId (POST)', async () => {
         const registerMemberDto = {
             preferredPosition: getRandomPosition(),
@@ -236,7 +284,7 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
         };
 
         const response = await request(app.getHttpServer())
-            .post(`/team/${teamId}/user/${userId1}`)
+            .post(`/team/${teamId1}/user/${userId1}`)
             .set('Authorization', `Bearer ${accessToken1}`)
             .send(registerMemberDto)
             .expect(201);
@@ -244,25 +292,8 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
         memberId1 = response.body.data.id;
     });
 
-    afterAll(async () => {
-        await app.close();
-    });
-});
-
-//시나리오 3 - 아무 소속에 없는 회원 팀에 가입시키고 팀 구단주가 팀 멤버 1,2 경기 평가하기
-describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들이 구단주가 됨', () => {
-    beforeAll(async () => {
-        const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AppModule],
-        }).compile();
-
-        app = moduleFixture.createNestApplication();
-
-        await app.init();
-    }, 10000);
-
-    //더미데이터 회원가입
-    it('/auth/sign-up (POST)', async () => {
+     //더미데이터 회원가입
+     it('/auth/sign-up (POST)', async () => {
         const signUpDto = {
             passwordConfirm: 'Ex@mp1e!!',
             email: faker.internet.email(),
@@ -274,7 +305,7 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
             .post('/auth/sign-up')
             .send(signUpDto)
             .expect(201);
- 
+
         accessToken3 = response.body.data.accessToken;
         //userId1 = response.body.data.id;
     });
@@ -298,7 +329,7 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
         userId2 = response.body.data.user.id;
     });
 
-    //멤버2를 팀에 추가
+    //멤버2를 팀1에 추가
     it('/team/:teamId/user/:userId (POST)', async () => {
         const registerMemberDto = {
             preferredPosition: getRandomPosition(),
@@ -309,12 +340,157 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
         };
 
         const response = await request(app.getHttpServer())
-            .post(`/team/${teamId}/user/${userId2}`)
+            .post(`/team/${teamId1}/user/${userId2}`)
             .set('Authorization', `Bearer ${accessToken1}`)
             .send(registerMemberDto)
             .expect(201);
+
         memberId2 = response.body.data.id;
     });
+    afterAll(async () => {
+        await app.close();
+    });
+});
+
+//시나리오 4 - 아무 소속에 없는 회원1,2 팀2에 가입시키기
+describe('AppController (e2e) - 시나리오 4 - 아무 소속에 없는 회원1,2 팀2에 가입시키기', () => {
+    beforeAll(async () => {
+        const moduleFixture: TestingModule = await Test.createTestingModule({
+            imports: [AppModule],
+        }).compile();
+
+        app = moduleFixture.createNestApplication();
+
+        await app.init();
+    }, 10000);
+
+    //더미데이터 회원가입
+    it('/auth/sign-up (POST)', async () => {
+        const signUpDto = {
+            passwordConfirm: 'Ex@mp1e!!',
+            email: faker.internet.email(),
+            password: 'Ex@mp1e!!',
+            name: faker.person.fullName(),
+        };
+
+        const response = await request(app.getHttpServer())
+            .post('/auth/sign-up')
+            .send(signUpDto)
+            .expect(201);
+
+        accessToken5 = response.body.data.accessToken;
+        //userId1 = response.body.data.id;
+    });
+
+    //프로필 생성
+    it('/profile (POST)', async () => {
+        const registerPorfileDto = {
+            preferredPosition: getRandomPosition(),
+            weight: faker.number.int({ min: 40, max: 100 }),
+            height: faker.number.int({ min: 150, max: 190 }),
+            age: faker.number.int({ min: 18, max: 50 }),
+            gender: 'Male',
+        };
+
+        const response = await request(app.getHttpServer())
+            .post('/profile')
+            .set('Authorization', `Bearer ${accessToken5}`)
+            .send(registerPorfileDto)
+            .expect(201);
+   
+        userId3 = response.body.data.user.id;
+    });
+
+    //멤버3을 팀2에 추가
+    it('/team/:teamId/user/:userId (POST)', async () => {
+        const registerMemberDto = {
+            preferredPosition: getRandomPosition(),
+            weight: faker.number.int({ min: 40, max: 100 }),
+            height: faker.number.int({ min: 150, max: 190 }),
+            age: faker.number.int({ min: 18, max: 50 }),
+            gender: 'Male',
+        };
+
+        const response = await request(app.getHttpServer())
+            .post(`/team/${teamId2}/user/${userId3}`)
+            .set('Authorization', `Bearer ${accessToken4}`)
+            .send(registerMemberDto)
+            .expect(201);
+
+        memberId3 = response.body.data.id;
+    });
+ //더미데이터 회원가입
+ it('/auth/sign-up (POST)', async () => {
+    const signUpDto = {
+        passwordConfirm: 'Ex@mp1e!!',
+        email: faker.internet.email(),
+        password: 'Ex@mp1e!!',
+        name: faker.person.fullName(),
+    };
+
+    const response = await request(app.getHttpServer())
+        .post('/auth/sign-up')
+        .send(signUpDto)
+        .expect(201);
+
+    accessToken6 = response.body.data.accessToken;
+    //userId1 = response.body.data.id;
+});
+
+//프로필 생성
+it('/profile (POST)', async () => {
+    const registerPorfileDto = {
+        preferredPosition: getRandomPosition(),
+        weight: faker.number.int({ min: 40, max: 100 }),
+        height: faker.number.int({ min: 150, max: 190 }),
+        age: faker.number.int({ min: 18, max: 50 }),
+        gender: 'Male',
+    };
+
+    const response = await request(app.getHttpServer())
+        .post('/profile')
+        .set('Authorization', `Bearer ${accessToken6}`)
+        .send(registerPorfileDto)
+        .expect(201);
+
+    userId4 = response.body.data.user.id;
+});
+
+//멤버4를 팀2에 추가
+it('/team/:teamId/user/:userId (POST)', async () => {
+    const registerMemberDto = {
+        preferredPosition: getRandomPosition(),
+        weight: faker.number.int({ min: 40, max: 100 }),
+        height: faker.number.int({ min: 150, max: 190 }),
+        age: faker.number.int({ min: 18, max: 50 }),
+        gender: 'Male',
+    };
+
+    const response = await request(app.getHttpServer())
+        .post(`/team/${teamId2}/user/${userId4}`)
+        .set('Authorization', `Bearer ${accessToken1}`)
+        .send(registerMemberDto)
+        .expect(201);
+    memberId4 = response.body.data.id;
+});
+    afterAll(async () => {
+        await app.close();
+    });
+});
+
+//시나리오 4 - 아무 소속에 없는 회원 팀2 에 가입시키기
+describe('AppController (e2e) - 시나리오 4 - 아무 소속에 없는 회원 팀2 에 가입시키기', () => {
+    beforeAll(async () => {
+        const moduleFixture: TestingModule = await Test.createTestingModule({
+            imports: [AppModule],
+        }).compile();
+
+        app = moduleFixture.createNestApplication();
+
+        await app.init();
+    }, 10000);
+
+   
 
     // 경기 생성
     it('/match/book/accept (POST)', async () => {
@@ -332,16 +508,15 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
         const registerMatchDto = {
             date: onlyDate,
             time: getRandomTime(),
-            homeTeamId: teamId,
-            // awayTeamId: faker.number.int({ min: 1, max: 15 }),
-            awayTeamId: teamId - 1,
+            homeTeamId: teamId1,
+            awayTeamId: teamId2,
             fieldId: faker.number.int({ min: 1, max: 15 }),
-            token: `${accessToken1}`,
+            token: `${accessToken4}`,
         };
 
         const response = await request(app.getHttpServer())
             .post(`/match/book/accept`)
-            .set('Authorization', `Bearer ${accessToken1}`)
+            .set('Authorization', `Bearer ${accessToken4}`)
             .send({
                 date: registerMatchDto.date,
                 time: registerMatchDto.time,
@@ -355,7 +530,25 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
         matchId = parsedResponse.id;
         console.log('matchId=', matchId);
     });
-    //경기 후 팀 기록 등록
+    afterAll(async () => {
+        await app.close();
+    });
+});
+
+//시나리오 5 - 경기 평가하기
+describe('AppController (e2e) - 시나리오 4 - 아무 소속에 없는 회원 팀2 에 가입시키기', () => {
+    beforeAll(async () => {
+        const moduleFixture: TestingModule = await Test.createTestingModule({
+            imports: [AppModule],
+        }).compile();
+
+        app = moduleFixture.createNestApplication();
+
+        await app.init();
+    }, 10000);
+
+   
+    //경기 후 팀1 기록 등록
     it('/match/:metchId/result (POST)', async () => {
         const teamResultDto = {
             cornerKick: faker.number.int({ min: 0, max: 10 }),
@@ -379,7 +572,31 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
         console.log('match team result', response.body);
     });
 
-    //경기 결과 등록 멤버 전체 저장
+        //경기 후 팀2 기록 등록
+        it('/match/:metchId/result (POST)', async () => {
+            const teamResultDto = {
+                cornerKick: faker.number.int({ min: 0, max: 10 }),
+                substitions: [{ inPlayerId: `${memberId3}`, outPlayerId: `${memberId4}` }],
+                passes: faker.number.int({ min: 0, max: 100 }),
+                penaltyKick: faker.number.int({ min: 0, max: 10 }),
+                freeKick: faker.number.int({ min: 0, max: 10 }),
+            };
+    
+            const response = await request(app.getHttpServer())
+                .post(`/match/${matchId}/result`)
+                .set('Authorization', `Bearer ${accessToken4}`)
+                .send({
+                    cornerKick: teamResultDto.cornerKick,
+                    substitions: teamResultDto.substitions,
+                    passes: teamResultDto.passes,
+                    penaltykICK: teamResultDto.penaltyKick,
+                    freeKick: teamResultDto.freeKick,
+                })
+                .expect(201);
+            console.log('match team result', response.body);
+        });
+
+    //경기 결과 등록 팀1 멤버1 전체 저장
     it('/match/:matchId/result/member` (POST)', async () => {
         const allMemberResultDto = {
             results: [
@@ -404,7 +621,7 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
             console.log("member result=",response.body);
     });
 
-    //경기 결과 등록 멤버 전체 저장
+    //경기 결과 등록 팀1 멤버2 전체 저장
     it('/match/:matchId/result/member` (POST)', async () => {
         const allMemberResultDto = {
             results: [
@@ -421,12 +638,61 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
 
         const response = await request(app.getHttpServer())
             .post(`/match/${matchId}/result/member`)
-            .set('Authorization', `Bearer ${accessToken1}`)
+            .set('Authorization', `Bearer ${accessToken4}`)
             .send({
                 results: allMemberResultDto.results,
             })
             .expect(201);
     });
+
+        //경기 결과 등록 팀2 멤버3 전체 저장
+        it('/match/:matchId/result/member` (POST)', async () => {
+            const allMemberResultDto = {
+                results: [
+                    {
+                        memberId: `${memberId3}`,
+                        assists: faker.number.int({ min: 0, max: 10 }),
+                        goals: faker.number.int({ min: 0, max: 10 }),
+                        yellowCards: faker.number.int({ min: 0, max: 3 }),
+                        redCards: faker.number.int({ min: 0, max: 2 }),
+                        save: faker.number.int({ min: 0, max: 10 }),
+                    },
+                ],
+            };
+    
+            const response = await request(app.getHttpServer())
+                .post(`/match/${matchId}/result/member`)
+                .set('Authorization', `Bearer ${accessToken4}`)
+                .send({
+                    results: allMemberResultDto.results,
+                })
+                .expect(201);
+                console.log("member result=",response.body);
+        });
+    
+        //경기 결과 등록 팀2 멤버4 전체 저장
+        it('/match/:matchId/result/member` (POST)', async () => {
+            const allMemberResultDto = {
+                results: [
+                    {
+                        memberId: `${memberId4}`,
+                        assists: faker.number.int({ min: 0, max: 10 }),
+                        goals: faker.number.int({ min: 0, max: 10 }),
+                        yellowCards: faker.number.int({ min: 0, max: 3 }),
+                        redCards: faker.number.int({ min: 0, max: 2 }),
+                        save: faker.number.int({ min: 0, max: 10 }),
+                    },
+                ],
+            };
+    
+            const response = await request(app.getHttpServer())
+                .post(`/match/${matchId}/result/member`)
+                .set('Authorization', `Bearer ${accessToken4}`)
+                .send({
+                    results: allMemberResultDto.results,
+                })
+                .expect(201);
+        });
 
     //경기 결과 등록 멤버 전체 저장
     //   it('/match/:matchId/result/member` (POST)', async () => {
@@ -460,64 +726,3 @@ describe('AppController (e2e) - 시나리오 1: 모든 새로운 팀 회원들�
     });
 });
 
-//시나리오 3 - 아무 소속에 없는 회원 팀에 가입시키기
-//     describe('AppController (e2e) - 시나리오 2: 아무 소속에 없는 회원 팀에 가입시키기', () => {
-//     beforeAll(async () => {
-//         const moduleFixture: TestingModule = await Test.createTestingModule({
-//             imports: [AppModule],
-//         }).compile();
-
-//         app = moduleFixture.createNestApplication();
-
-//         await app.init();
-//     });
-
-//     //더미데이터 회원가입2
-//     it('/auth/sign-up (POST)', async () => {
-//         const signUpDto = {
-//             passwordConfirm: 'Ex@mp1e!!',
-//             email: faker.internet.email(),
-//             password: 'Ex@mp1e!!',
-//             name: faker.person.fullName(),
-//         };
-
-//         const response = await request(app.getHttpServer())
-//             .post('/auth/sign-up')
-//             .send(signUpDto)
-//             .expect(201);
-//         console.log(response.body);
-//         accessToken = response.body.data.accessToken;
-//         userId = response.body.data.id;
-//     });
-
-//     //프로필 생성2
-//     it('/profile (POST)', async () => {
-//         const registerPorfileDto = {
-//              preferredPosition: getRandomPosition(),
-//             weight: faker.number.int,
-//             height: faker.number.int,
-//             age: faker.number.int,
-//             gender: 'Male',
-//         };
-
-//         const response = await request(app.getHttpServer())
-//             .post('/profile')
-//             .set('Authorization', `Bearer ${accessToken}`)
-//             .send(registerPorfileDto)
-//             .expect(201);
-//     });
-//     //멤버 생성
-//     it('/team/{teamId}/user/{userId} (POST)', async () => {
-//         //팀 아이디는 마지막 팀 아이디가 되는건가?
-//         //유저아이디는 회원가입한 유저 -> 실패! 유저가 스태프여야하는데 스태프가 되려면 팀을 만들어야함
-//         const response = await request(app.getHttpServer())
-//             .post(`/team/${teamId}/user/${userId}`)
-//             .set('Authorization', `Bearer ${accessToken}`)
-//             .send()
-//             .expect(201);
-//     });
-
-//     afterAll(async () => {
-//         await app.close();
-//     });
-// });
