@@ -29,6 +29,7 @@ import { TaskModule } from './task/task.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { JobsModule } from './jobs/jobs.module';
 import { WebhookInterceptor } from './common/interceptors/webhook.interceptor';
+import { FormationModule } from './formation/formation.module';
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -52,6 +53,7 @@ import { WebhookInterceptor } from './common/interceptors/webhook.interceptor';
         TaskModule,
         ScheduleModule.forRoot(),
         JobsModule,
+        FormationModule,
     ],
     controllers: [AppController],
     providers: [
