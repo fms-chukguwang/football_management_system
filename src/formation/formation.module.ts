@@ -6,10 +6,11 @@ import { Member } from '../member/entities/member.entity';
 import { TeamModel } from '../team/entities/team.entity';
 import { Match } from '../match/entities/match.entity';
 import { MatchFormation } from './entities/formation.entity';
+import { User } from '../user/entities/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Member,TeamModel,Match,MatchFormation]),
+    TypeOrmModule.forFeature([Member,TeamModel,Match,MatchFormation,User]),
 ],
   controllers: [FormationController],
   providers: [FormationService]

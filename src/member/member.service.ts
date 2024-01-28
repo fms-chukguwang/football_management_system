@@ -339,6 +339,39 @@ export class MemberService {
         await this.redisService.deleteTeamJoinMailToken(token);
     }
 
+    /**
+     * 팀별 멤버 목록 조회
+     * @param teamId
+     */
+    async getTeamMembers(teamId: number) {
+        const findMembers = await this.memberRepository.find({
+            select:{
+                team:{
+                    id: true,
+                },
+                user:{
+                    name: true,
+                },
+                matchformation: {
+                    position:true,
+                }
+            },
+            where: {
+                team: {
+                    id: teamId,
+                },
+            },
+            relations: {
+                team: true,
+                user: true,
+                matchformation:true
+            },
+        });
+
+        console.log('findMembers:',findMembers);
+        return findMembers;
+    }
+
     async getMemberCountByTeamId(teamId: number) {
         const findMembers = await this.memberRepository.findAndCount({
             where: {

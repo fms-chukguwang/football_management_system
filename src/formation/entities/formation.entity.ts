@@ -42,6 +42,9 @@ import { Member } from '../../member/entities/member.entity';
   
     @Column({ type: 'varchar', nullable: true })
     formation: string;
+
+    @Column({ type: 'varchar', nullable: true })
+    position: string;
   
     @CreateDateColumn()
     created_at: Date;

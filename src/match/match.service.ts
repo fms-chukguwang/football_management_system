@@ -370,6 +370,29 @@ export class MatchService {
     }
 
     /**
+     * 경기 결과 (팀) 정보 가져오기
+     * @param  teamId
+     * @returns
+     */
+    async getTeamMatchResult(matchId:number, teamId: number) {
+        const team = await this.matchResultRepository.findOne({
+            where: {
+                match_id: matchId,
+                team_id:teamId
+            },
+            relations: {
+                match: true,
+            }
+        });
+
+        if (!team) {
+            throw new BadRequestException('경기 결과 (팀) 정보가 없습니다.');
+        }
+
+        return team;
+    }
+
+    /**
      * 경기 결과 등록
      * @param  userId
      * @param  matchId
@@ -439,6 +462,29 @@ export class MatchService {
         } finally {
             await queryRunner.release();
         }
+    }
+
+    /**
+     * 경기 결과 (팀내 선수 전체) 정보 가져오기
+     * @param  teamId
+     * @param  matchId
+     * @returns
+     */
+    async getMembersMatchResult(matchId:number, teamId: number) {
+
+
+        const memberStats = await this.playerStatsRepository.find({
+            where: {
+                match_id: matchId,
+                team_id:teamId
+            }
+        });
+
+        if (!memberStats) {
+            throw new BadRequestException('경기 결과 (선수) 정보가 없습니다.');
+        }
+
+        return memberStats;
     }
 
     /**
@@ -1110,7 +1156,8 @@ export class MatchService {
             DATE_FORMAT(m.date, '%Y-%m-%d') AS date,
             t.image_uuid,
             t.name,
-            m.time
+            m.time,
+            m.id AS match_id
         FROM 
             final_db2.matches AS m
             LEFT JOIN final_db2.team AS t ON m.away_team_id = t.id
@@ -1125,7 +1172,8 @@ export class MatchService {
             DATE_FORMAT(m.date, '%Y-%m-%d') AS date,
             t.image_uuid,
             t.name,
-            m.time
+            m.time,
+            m.id AS match_id
         FROM 
             final_db2.matches AS m
             LEFT JOIN final_db2.team AS t ON m.home_team_id = t.id
