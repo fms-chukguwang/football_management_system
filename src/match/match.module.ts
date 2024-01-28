@@ -19,7 +19,7 @@ import { Member } from '../member/entities/member.entity';
 import { SoccerField } from './entities/soccer-field.entity';
 import { TeamJoinRequestToken } from '../email/entities/team-join-request-token.entity';
 import { AwsService } from '../aws/aws.service';
-import { MatchFormation } from 'src/formation/entities/formation.entity';
+import { MatchFormation } from '../formation/entities/formation.entity';
 
 @Module({
     imports: [

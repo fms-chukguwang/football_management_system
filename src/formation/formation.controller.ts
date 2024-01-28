@@ -1,7 +1,7 @@
 import { Controller, Get, UseGuards, Request, HttpStatus, Param } from '@nestjs/common';
 import { FormationService } from './formation.service';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('formation')
 export class FormationController {

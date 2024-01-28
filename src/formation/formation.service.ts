@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MatchFormation } from './entities/formation.entity';
+import { MatchFormation } from '../formation/entities/formation.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()

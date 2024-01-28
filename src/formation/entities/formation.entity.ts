@@ -11,8 +11,8 @@ import {
     UpdateDateColumn,
   } from 'typeorm';
 import { TeamModel } from '../../team/entities/team.entity';
-import { Match } from 'src/match/entities/match.entity';
-import { Member } from 'src/member/entities/member.entity';
+import { Match } from '../../match/entities/match.entity';
+import { Member } from '../../member/entities/member.entity';
   
   @Entity('match_formations')
   export class MatchFormation {
