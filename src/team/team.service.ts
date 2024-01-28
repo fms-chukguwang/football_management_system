@@ -29,12 +29,7 @@ export class TeamService {
     ) {}
 
     async paginateMyProfile(dto: PaginateTeamDto) {
-        return await this.commonService.paginate(
-            dto,
-            this.teamRepository,
-            {},
-            'team'
-        );
+        return await this.commonService.paginate(dto, this.teamRepository, {}, 'team');
     }
 
     /**
@@ -119,6 +114,7 @@ export class TeamService {
             },
             relations: {
                 creator: true,
+                location: true,
             },
             select: {
                 creator: {

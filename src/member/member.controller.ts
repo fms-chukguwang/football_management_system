@@ -41,24 +41,24 @@ export class MemberController {
             success: true,
         };
     }
-//TODO TESTING
-       /**
+    //TODO TESTING
+    /**
      * 많은 멤버 팀에 추가하기
      * @param userId
      * @param teamId
      * @returns
      */
-        @Post('team/:teamId/users')
-        async registerManyMembers(@Param('teamId') teamId: number, @Body() userIds: number[]) {
-            console.log('Controller entered');
-            const registerMembers = await this.memberService.registerManyMembers(teamId, userIds);
-        
-            return {
-                statusCode: HttpStatus.OK,
-                data: registerMembers,
-                success: true,
-            };
-        }
+    @Post('team/:teamId/users')
+    async registerManyMembers(@Param('teamId') teamId: number, @Body() userIds: number[]) {
+        console.log('Controller entered');
+        const registerMembers = await this.memberService.registerManyMembers(teamId, userIds);
+
+        return {
+            statusCode: HttpStatus.OK,
+            data: registerMembers,
+            success: true,
+        };
+    }
 
     /**
      * 멤버 추방하기
@@ -221,5 +221,14 @@ export class MemberController {
 
         return `거절 처리되었습니다.
     `;
+    }
+
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get('team/:teamId/members')
+    getMembers(@Param('teamId') teamId: number) {
+        const members = this.memberService.getTeamMembers(teamId);
+        console.log(members);
+        return members;
     }
 }
