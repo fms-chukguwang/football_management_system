@@ -7,7 +7,7 @@ import { AwsModule } from '../aws/aws.module';
 import { LocationModule } from '../location/location.module';
 import { MemberModule } from '../member/member.module';
 import { CommonModule } from '../common/common.module';
-import { MatchFormation } from 'src/formation/entities/formation.entity';
+import { MatchFormation } from '../formation/entities/formation.entity';
 
 @Module({
     imports: [

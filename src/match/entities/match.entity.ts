@@ -13,7 +13,7 @@
 import { MatchResult } from './match-result.entity';
 import { PlayerStats } from './player-stats.entity';
 import { TeamModel } from '../../team/entities/team.entity';
-import { MatchFormation } from 'src/formation/entities/formation.entity';
+import { MatchFormation } from '../../formation/entities/formation.entity';
   
   @Entity('matches')
   export class Match {

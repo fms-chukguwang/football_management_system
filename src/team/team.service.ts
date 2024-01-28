@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, forwardRef } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, forwardRef, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AwsService } from '../aws/aws.service';
 import { LocationService } from '../location/location.service';
@@ -27,6 +27,22 @@ export class TeamService {
         private readonly dataSource: DataSource,
         private readonly commonService: CommonService,
     ) {}
+
+    async findOneById(id: number) {
+        const team = await this.teamRepository.findOne({
+            where: {
+                id,
+            },
+            relations:  ['location', 'creator', 'members', 'homeMatch', 'awayMatch', 'matchFormation']
+        
+        });
+
+        if (!team) {
+            throw new NotFoundException('팀을 찾을 수 없습니다.');
+        }
+
+        return team;
+    }
 
     async paginateMyProfile(dto: PaginateTeamDto) {
         return await this.commonService.paginate(dto, this.teamRepository, {}, 'team');

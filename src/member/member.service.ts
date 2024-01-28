@@ -65,6 +65,14 @@ export class MemberService {
         if (existMember) {
             throw new BadRequestException('해당 인원은 이미 팀에 참가하고 있습니다.');
         }
+        
+        const team= await this.teamService.findOneById(teamId);
+        //팀이 혼성인지
+        if (!team.isMixedGender) {
+        if(user.profile.gender!== team.gender) {
+        //팀이 혼성이 아닌데 성별이 다를때
+        throw new BadRequestException('팀의 셩별과 일치하지 않습니다.');
+        }}
 
         const registerMember = await this.memberRepository.save({
             user: {
@@ -77,6 +85,8 @@ export class MemberService {
 
         return registerMember;
     }
+
+
 
     //많은 멤버 한번에 추가하기
     async registerManyMembers(teamId: number, userIds: number[]): Promise<Member[]> {
