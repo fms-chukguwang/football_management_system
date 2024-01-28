@@ -92,6 +92,21 @@ export class TeamController {
 
     }
 
+      /**
+     * 성별 따른 팀 목록 조회
+     * @param req
+     * @param query
+     * @returns
+     */
+    //    @ApiBearerAuth()
+    //    @UseGuards(JwtAuthGuard)
+    //    @Get('/list/gender')
+    //    async getTeamByGender(@Request() req, @Query() dto: PaginateTeamDto) {
+    //     const userId = req.user.id;
+    //     return  await this.teamService.getTeamByGender(userId, dto, dto.name);
+   
+    //    }
+
     @UseGuards(JwtAuthGuard, IsStaffGuard)
     @UseInterceptors(FileInterceptor('file'))
     @Patch(':teamId')
