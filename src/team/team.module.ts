@@ -9,14 +9,16 @@ import { MemberModule } from '../member/member.module';
 import { CommonModule } from '../common/common.module';
 import { ChatsModule } from 'src/chats/chats.module';
 import { MatchFormation } from '../formation/entities/formation.entity';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([TeamModel,MatchFormation]),
+        TypeOrmModule.forFeature([TeamModel, MatchFormation]),
         AwsModule,
         LocationModule,
         forwardRef(() => MemberModule),
         CommonModule,
+        RedisModule,
         ChatsModule,
     ],
     exports: [TeamService],
