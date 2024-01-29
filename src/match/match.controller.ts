@@ -10,6 +10,7 @@ import { createRequestDto } from './dtos/create-request.dto';
 import { updateRequestDto } from './dtos/update-request.dto';
 import { createMatchResultDto } from './dtos/result-match.dto';
 import { createPlayerStatsDto } from './dtos/player-stats.dto';
+import { ResultMembersDto } from './dtos/result-final.dto';
 
 @ApiTags('예약')
 @Controller('match')
@@ -48,8 +49,8 @@ export class MatchController {
     async createMatch(@Body() creatematchDto: createMatchDto) {
     
         const data = await this.matchService.createMatch(creatematchDto);
-    
-        return "경기 예약 되었습니다.";
+        console.log(data);
+        return data;
     }
 
     /**
@@ -160,6 +161,44 @@ export class MatchController {
     }
 
     /**
+     * 경기 결과 조회 (팀내 선수 전체)
+     * @param req
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get(':matchId/result/team/:teamId/members')
+    async getMembersMatchResult(@Request() req, @Param('matchId') matchId: number,@Param('teamId') teamId: number) {
+
+        const data = await this.matchService.getMembersMatchResult(matchId,teamId);
+    
+        return {
+            statusCode: HttpStatus.OK,
+            success: true,
+            data
+        };
+    }
+
+    /**
+     * 경기 결과 조회 (팀)
+     * @param req
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get(':matchId/result/team/:teamId')
+    async getTeamMatchResult(@Request() req, @Param('matchId') matchId: number,@Param('teamId') teamId: number) {
+
+        const data = await this.matchService.getTeamMatchResult(matchId,teamId);
+    
+        return {
+            statusCode: HttpStatus.OK,
+            success: true,
+            data
+        };
+    }
+
+    /**
      * 경기 결과 등록 (팀)
      * @param req
      * @returns
@@ -179,17 +218,17 @@ export class MatchController {
     }
 
     /**
-     * 경기 후 선수 기록 등록
+     * 경기 결과 등록 멤버 전체 저장
      * @param req
      * @returns
      */
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @Post(':matchId/result/:memberId')
-    async resultPlayerCreate(@Request() req, @Param('matchId') matchId: number,@Param('memberId') memberId: number, @Body() createplayerStatsDto: createPlayerStatsDto) {
+    @Post(':matchId/result/member')
+    async resultMathfinal(@Request() req, @Param('matchId') matchId: number, @Body() resultMemberDto: ResultMembersDto) {
         const userId = req.user.id;
 
-        await this.matchService.resultPlayerCreate(userId,matchId,memberId,createplayerStatsDto);
+        await this.matchService.resultMathfinal(userId,matchId,resultMemberDto);
     
         return {
             statusCode: HttpStatus.OK,
@@ -275,6 +314,27 @@ export class MatchController {
             data
         };
     }
+
+
+    /**
+     * 특정 멤버정보 조회
+     * @param req
+     * @returns
+     */
+     @ApiBearerAuth()
+     @UseGuards(JwtAuthGuard)
+     @Get('member/:memberId')
+     async getMemberDetail(@Request() req, @Param('memberId') memberId: number) {
+         const userId = req.user.id;
+
+         const data = await this.matchService.getMember(memberId);
+     
+         return {
+             statusCode: HttpStatus.OK,
+             success: true,
+             data
+         };
+     }
 
     /**
      * 예약 가능 시간 조회

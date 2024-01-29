@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile } from './entities/profile.entity';
-import { FindManyOptions, QueryRunner, Repository, ILike, Like } from 'typeorm';
+import { FindManyOptions, QueryRunner, Repository, ILike, Like, IsNull } from 'typeorm';
 import { RegisterProfileInfoDto } from './dtos/register-profile-info';
 import { User } from '../user/entities/user.entity';
 import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
@@ -9,6 +9,8 @@ import { LocationModel } from '../location/entities/location.entity';
 import { Member } from '../member/entities/member.entity';
 import { PaginateProfileDto } from './dtos/paginate-profile-dto';
 import { CommonService } from '../common/common.service';
+import { TeamController } from 'src/team/team.controller';
+import { Gender } from 'src/enums/gender.enum';
 
 @Injectable()
 export class ProfileService {
@@ -27,13 +29,13 @@ export class ProfileService {
     //     return profile ? profile.team_name : null;
     //   }
 
-    async paginateMyProfile(userId:number, dto: PaginateProfileDto, name?: string) {
-        const user = await this.userRepository.findOne({where: {id: userId}});
-        const profile = await this.profileRepository.findOne({where: {user: {id: userId}}})
-        const member =await this.memberRepository.findOne({where: {user: {id: userId}}})
-        console.log("user=",user);
-        console.log("profile=",profile);
-        console.log("member=",member);
+    async paginateMyProfile(userId: number, dto: PaginateProfileDto, name?: string) {
+        const user = await this.userRepository.findOne({ where: { id: userId } });
+        const profile = await this.profileRepository.findOne({ where: { user: { id: userId } } });
+        const member = await this.memberRepository.findOne({ where: { user: { id: userId } } });
+        console.log('user=', user);
+        console.log('profile=', profile);
+        console.log('member=', member);
         if (member.isStaff != true) {
             return null;
         }
@@ -48,22 +50,77 @@ export class ProfileService {
 
         const data = await this.profileRepository.find(options);
 
-        return await this.commonService.paginate(dto, this.profileRepository, options , 'profile');
+        return await this.commonService.paginate(dto, this.profileRepository, options, 'profile');
     }
+
+
+async paginateProfile(userId: number, dto: PaginateProfileDto, name?: string) {
+    try {
+        const user = await this.userRepository.findOne({ where: { id: userId }, relations: ['team'] });
+
+        console.log("uesr=",user)
+        if (!user || !user.team) {
+            throw new Error('User or team not found');
+        }
+
+        // 팀이 혼성이 아니라면 동일한 성별의 프로필들만 보여줌
+        const mixedGenderTeam = user.team.isMixedGender;
+        let options: FindManyOptions<Profile>;
+
+        if (!mixedGenderTeam) {
+            options = {
+                relations: { user: { member: { team: true } } },
+                where: {
+                    user: {
+                        profile: {
+                            gender: user.team.gender, // 팀의 성별을 기준으로 검색
+                        },
+                        member: {
+                            team: IsNull(),
+                        },
+                    },
+                },
+            };
+        } else {
+            // 혼성 팀이면 모든 프로필 허용
+            options = {
+                relations: { user: { member: { team: true } } },
+                where: {
+                    user: {
+                        member: {
+                            team: IsNull(),
+                        },
+                    },
+                },
+            };
+        }
+
+        if (name) {
+            options.where = { user: { name: Like(`%${name}%`) } };
+        }
+
+        const data = await this.profileRepository.find(options);
+
+        return await this.commonService.paginate(dto, this.profileRepository, options, 'profile');
+    } catch (error) {
+        console.error('Error in paginateProfile:', error);
+        throw new Error('Error in paginateProfile');
+    }
+}
+
 
     async searchProfile(name?: string) {
         const options: FindManyOptions<Profile> = {
-          relations: { user: { member: { team: true } } },
+            relations: { user: { member: { team: true } } },
         };
-    
+
         if (name) {
-          options.where = { user: { name: Like(`%${name}%`) } };
+            options.where = { user: { name: Like(`%${name}%`) } };
         }
 
         const data = await this.profileRepository.find(options);
         return data;
-      }
-    
+    }
 
     async findAllProfiles() {
         const profiles = await this.profileRepository.find({
@@ -86,7 +143,6 @@ export class ProfileService {
 
         return profile;
     }
-
 
     async findOneByUserId(id: number) {
         const user = await this.userRepository.findOne({ where: { id } });
@@ -128,9 +184,6 @@ export class ProfileService {
         const profileRepository = this.getProfileRepository(qr);
         const userRepository = this.getUserRepository(qr);
         const memberRepository = this.getMemberRepository(qr);
-
-        console.log('registerProfileInfoDto');
-        console.log(registerProfileInfoDto);
 
         const user = await this.userRepository.findOne({
             where: { id: userId },

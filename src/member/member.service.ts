@@ -15,7 +15,7 @@ import { TeamService } from '../team/team.service';
 import { EmailService } from '../email/email.service';
 import { SendJoiningEmailDto } from './dtos/send-joining-email.dto';
 import { RedisService } from '../redis/redis.service';
-import { UpdateProfileInfoDto } from 'src/profile/dtos/update-profile-info-dto';
+import { UpdateProfileInfoDto } from '../profile/dtos/update-profile-info-dto';
 import { ProfileService } from '../profile/profile.service';
 
 @Injectable()
@@ -64,6 +64,15 @@ export class MemberService {
 
         if (existMember) {
             throw new BadRequestException('해당 인원은 이미 팀에 참가하고 있습니다.');
+        }
+
+        const team = await this.teamService.findOneById(teamId);
+        //팀이 혼성인지
+        if (!team.isMixedGender) {
+            if (user.profile.gender !== team.gender) {
+                //팀이 혼성이 아닌데 성별이 다를때
+                throw new BadRequestException('팀의 셩별과 일치하지 않습니다.');
+            }
         }
 
         const registerMember = await this.memberRepository.save({
@@ -329,23 +338,19 @@ export class MemberService {
         await this.redisService.deleteTeamJoinMailToken(token);
     }
 
-    /**
-     * 팀에 있는 모든 회원정보 가져오기
-     * @param teamId
-     * @returns
-     */
     async getTeamMembers(teamId: number) {
-        const teamMembers = this.memberRepository.find({
-            where: {
-                team: {
-                    id: teamId,
-                },
-            },
+        const findMembers = await this.memberRepository.find({
             select: {
+                team: {
+                    id: true,
+                },
                 user: {
                     id: true,
                     name: true,
                     email: true,
+                },
+                matchformation: {
+                    position: true,
                 },
                 profile: {
                     preferredPosition: true,
@@ -353,12 +358,32 @@ export class MemberService {
                     age: true,
                 },
             },
+            where: {
+                team: {
+                    id: teamId,
+                },
+            },
             relations: {
+                team: true,
                 user: true,
+                matchformation: true,
                 profile: true,
             },
         });
 
-        return teamMembers;
+        console.log('findMembers:', findMembers);
+        return findMembers;
+    }
+
+    async getMemberCountByTeamId(teamId: number) {
+        const findMembers = await this.memberRepository.findAndCount({
+            where: {
+                team: {
+                    id: teamId,
+                },
+            },
+        });
+
+        return findMembers;
     }
 }

@@ -48,9 +48,8 @@ export class MemberController {
      * @param teamId
      * @returns
      */
-    @Post('team/:teamId/users')
+    @Post('register-many-members/:teamId')
     async registerManyMembers(@Param('teamId') teamId: number, @Body() userIds: number[]) {
-        console.log('Controller entered');
         const registerMembers = await this.memberService.registerManyMembers(teamId, userIds);
 
         return {
@@ -223,12 +222,21 @@ export class MemberController {
     `;
     }
 
+    /**
+     * 팀별 멤버 목록 조회
+     * @param req
+     * @param teamId
+     */
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @Get('team/:teamId/members')
-    getMembers(@Param('teamId') teamId: number) {
-        const members = this.memberService.getTeamMembers(teamId);
-        console.log(members);
-        return members;
+    @Get('/team/:teamId/members')
+    async getTeamMembers(@Req() req: Request, @Param('teamId') teamId: number) {
+        const data = await this.memberService.getTeamMembers(teamId);
+
+        return {
+            statusCode: HttpStatus.OK,
+            data,
+            success: true,
+        };
     }
 }

@@ -20,11 +20,17 @@ import { IsStaffGuard } from '../member/guard/is-staff.guard';
 import { CreateTeamDto } from './dtos/create-team.dto';
 import { UpdateTeamDto } from './dtos/update-team.dto';
 import { TeamService } from './team.service';
+import { MemberService } from '../member/member.service';
+import { PaginateTeamDto } from './dtos/paginate-team-dto';
+
 
 @ApiTags('팀')
 @Controller('team')
 export class TeamController {
-    constructor(private readonly teamService: TeamService) {}
+    constructor(
+        private readonly teamService: TeamService,
+        private readonly memberService: MemberService,
+    ) {}
 
     /**
      * 팀 생성하기
@@ -45,28 +51,35 @@ export class TeamController {
         return { status: HttpStatus.OK, success: true, data };
     }
 
-     /**
+    /**
      * 팀 상세조회
      * @param req
      */
     @Get(':teamId')
-    getTeamDetail(@Param('teamId') teamId: number) {
-        return this.teamService.getTeamDetail(teamId);
+    async getTeamDetail(@Param('teamId') teamId: number) {
+        const [data, count] = await this.memberService.getMemberCountByTeamId(teamId);
+        const team = await this.teamService.getTeamDetail(teamId);
+        return {
+            team,
+            totalMember: count,
+        };
     }
 
-     /**
+    /**
      * 팀 전체조회
      * @param req
      */
-      @Get()
-      async getEveryTeams() {
-        const teams = await this.teamService.getTeams();
-        if (!teams) {
-          throw new NotFoundException('팀을 찾을 수 없습니다.');
-        }
-    
-        return teams;
-      }
+
+    // @Get()
+    // async getEveryTeams() {
+    //     console.log('전체 조회');
+
+    //     const teams = await this.teamService.getTeams();
+    //     if (!teams) {
+    //         throw new NotFoundException('팀을 찾을 수 없습니다.');
+    //     }
+    //     return teams;
+    // }
 
     /**
      * 팀 목록 조회
@@ -74,9 +87,25 @@ export class TeamController {
      * @returns
      */
     @Get('')
-    getTeam(@Query() query: any) {
-        return this.teamService.getTeam();
+    async getTeam(@Query() dto: PaginateTeamDto) {
+        return  await this.teamService.getTeam(dto, dto.name);
+
     }
+
+      /**
+     * 성별 따른 팀 목록 조회
+     * @param req
+     * @param query
+     * @returns
+     */
+    //    @ApiBearerAuth()
+    //    @UseGuards(JwtAuthGuard)
+    //    @Get('/list/gender')
+    //    async getTeamByGender(@Request() req, @Query() dto: PaginateTeamDto) {
+    //     const userId = req.user.id;
+    //     return  await this.teamService.getTeamByGender(userId, dto, dto.name);
+   
+    //    }
 
     @UseGuards(JwtAuthGuard, IsStaffGuard)
     @UseInterceptors(FileInterceptor('file'))
@@ -88,5 +117,4 @@ export class TeamController {
     ) {
         await this.teamService.updateTeam(teamId, updateTeamDto, file);
     }
-
 }

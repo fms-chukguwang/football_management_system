@@ -99,7 +99,7 @@ export class AuthController {
      * @returns
      */
     @Post('/kakao/callback/code')
-   // @UseGuards(AuthGuard('kakao'))
+    // @UseGuards(AuthGuard('kakao'))
     async verifyKakaoCode(
         @Request() req,
         @Body() verifyKakaoCodeDto: VerifyKakaoCodeDto,
@@ -111,7 +111,7 @@ export class AuthController {
                 await this.authService.verifyKakaoCode(verifyKakaoCodeDto);
             console.log('shouldRedirect=', shouldRedirect);
             // 리다이렉션 여부에 따라 처리
-          return res.json({accessToken, refreshToken});
+            return res.json({ accessToken, refreshToken });
         } catch (error) {
             console.error('Error during Kakao code verification:', error);
             return res.status(500).json({ error: 'Internal Server Error' });
@@ -238,7 +238,7 @@ export class AuthController {
     }
 
     /**
-     * 이메일 인증 (비밀번호 재설정시)
+     * 이메일 인증
      * @param passwordResetUserDto - 사용자 이메일 및 인증 관련 정보를 담은 DTO
      * @returns 인증 번호를 이메일로 전송한 결과 메시지
      */
@@ -252,10 +252,11 @@ export class AuthController {
         if (!existingUser) {
             return {
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: '등록된 이메일 주소없니다.',
+                message: '등록된 이메일 주소가 아닙니다.',
             };
         }
 
+        
         const emailSent = await this.emailService.sendVerificationEmail(email);
 
         if (!emailSent) {
@@ -269,6 +270,50 @@ export class AuthController {
             statusCode: HttpStatus.OK,
             message: '이메일 인증 코드를 전송했습니다.',
         };
+    }
+
+      /**
+     * 회원가입시 인증 번호 보내기
+     * @param verifyCodeDto - 사용자 이메일 및 인증 번호 비교
+     * @returns 인증 결과 메시지
+     */
+
+    @HttpCode(HttpStatus.OK)
+    @Post('/send-code')
+    async sendCode(@Body() verifyCodeDto: VerifyCodeDto) {
+        const { email, verificationCode } = verifyCodeDto;
+
+        // 이메일 중복 체크
+        const existingUser = await this.userService.findOneByEmail(email);
+        if (existingUser) {
+            return {
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: '등록된 이메일 주소입니다.',
+            };
+        }
+
+        const emailSent = await this.emailService.sendVerificationEmail(email);
+
+        if (!emailSent) {
+            return {
+                statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: '이메일 전송에 실패했습니다.',
+            };
+        }
+
+        const verificationResult = await this.emailService.verifyCode(email, verificationCode);
+
+        if (verificationResult) {
+            return {
+                statusCode: HttpStatus.OK,
+                message: '인증 성공',
+            };
+        } else {
+            return {
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: '인증 실패',
+            };
+        }
     }
 
     /**
