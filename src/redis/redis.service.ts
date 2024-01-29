@@ -29,7 +29,6 @@ export class RedisService {
         console.log('redis kakaoCode expires in = ', this.kakaoCodeTTL);
     }
 
-
     async setRefreshToken(userId: number, refreshToken: string): Promise<void> {
         await this.redisClient.set(`refreshToken:${userId}`, refreshToken);
         await this.redisClient.expire(`refreshToken:${userId}`, this.refreshTokenTTL);
@@ -73,5 +72,14 @@ export class RedisService {
      */
     async deleteTeamJoinMailToken(token: string) {
         await this.redisClient.del(token);
+    }
+
+    async getTeamDetail(teamId: number) {
+        return await this.redisClient.get(`teamDeatail_${teamId}`);
+    }
+
+    async setTeamDetail(team: string, teamId: number) {
+        await this.redisClient.set(`teamDeatail_${teamId}`, team);
+        await this.redisClient.expire(`teamDeatail_${teamId}`, 180);
     }
 }
