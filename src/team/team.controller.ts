@@ -57,6 +57,7 @@ export class TeamController {
     @Get(':teamId')
     async getTeamDetail(@Param('teamId') teamId: number) {
         const [data, count] = await this.memberService.getMemberCountByTeamId(teamId);
+
         const team = await this.teamService.getTeamDetail(teamId);
         return {
             team,

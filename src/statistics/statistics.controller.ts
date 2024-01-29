@@ -6,7 +6,7 @@ export class StatisticsController {
     constructor(private readonly statisticsService: StatisticsService) {}
 
     @Get()
-    getTeamStats(@Param('teamId') teamId: number) {
-        this.statisticsService.getTeamStats(1);
+    async getTeamStats(@Param('teamId') teamId: number) {
+        return await this.statisticsService.getTeamStats(1);
     }
 }

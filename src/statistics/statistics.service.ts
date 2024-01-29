@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { stat } from 'fs';
 import { TeamStats } from 'src/match/entities/team-stats.entity';
 import { Repository } from 'typeorm';
 
@@ -17,6 +18,6 @@ export class StatisticsService {
             },
         });
 
-        console.log(stats);
+        return stats;
     }
 }

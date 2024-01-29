@@ -7,6 +7,7 @@ import { AwsModule } from '../aws/aws.module';
 import { LocationModule } from '../location/location.module';
 import { MemberModule } from '../member/member.module';
 import { CommonModule } from '../common/common.module';
+import { ChatsModule } from 'src/chats/chats.module';
 import { MatchFormation } from '../formation/entities/formation.entity';
 import { RedisModule } from 'src/redis/redis.module';
 
@@ -18,6 +19,7 @@ import { RedisModule } from 'src/redis/redis.module';
         forwardRef(() => MemberModule),
         CommonModule,
         RedisModule,
+        ChatsModule,
     ],
     exports: [TeamService],
     controllers: [TeamController],

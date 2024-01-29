@@ -21,6 +21,8 @@ import { UpdateTeamDto } from './dtos/update-team.dto';
 import { PaginateTeamDto } from './dtos/paginate-team-dto';
 import { CommonService } from '../common/common.service';
 import { RedisService } from 'src/redis/redis.service';
+import { ChatsService } from 'src/chats/chats.service';
+import { CreateChatDto } from 'src/chats/dto/create-chat.dto';
 
 @Injectable()
 export class TeamService {
@@ -33,6 +35,7 @@ export class TeamService {
         private readonly memberService: MemberService,
         private readonly dataSource: DataSource,
         private readonly commonService: CommonService,
+        private readonly chatService: ChatsService,
         private readonly redisService: RedisService,
     ) {}
 
@@ -109,6 +112,10 @@ export class TeamService {
 
             const imageUUID = await this.awsService.uploadFile(file);
 
+            // 채팅방 생성
+            const createChatDto: CreateChatDto = { userIds: [userId] };
+            const chat = await this.chatService.createChat(createChatDto);
+
             const result = this.teamRepository.create({
                 ...createTeamDto,
                 imageUUID: imageUUID,
@@ -116,6 +123,7 @@ export class TeamService {
                     id: findLocation.id,
                 },
                 creator: { id: userId },
+                chat,
             });
 
             const savedTeam = await this.teamRepository.save(result);
@@ -188,6 +196,7 @@ export class TeamService {
     }
 
     //호영님 코드 수정중
+
     async getTeam(dto: PaginateTeamDto, name?: string) {
         const options: FindManyOptions<TeamModel> = {};
         if (name) {
@@ -212,6 +221,7 @@ export class TeamService {
             return { data: teamWithCounts, total };
         }
     }
+
     async getTeamByGender(userId, dto: PaginateTeamDto, name?: string) {
         const options: FindManyOptions<TeamModel> = {};
         if (name) {
