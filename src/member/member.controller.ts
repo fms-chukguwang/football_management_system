@@ -32,7 +32,6 @@ export class MemberController {
     @UseGuards(JwtAuthGuard, IsStaffGuard)
     @Post('team/:teamId/user/:userId')
     async registerMember(@Param('teamId') teamId: number, @Param('userId') userId: number) {
-        console.log('컨트롤러 진입');
         const registerMember = await this.memberService.registerMember(teamId, userId);
 
         return {
@@ -41,24 +40,23 @@ export class MemberController {
             success: true,
         };
     }
-//TODO TESTING
-       /**
+    //TODO TESTING
+    /**
      * 많은 멤버 팀에 추가하기
      * @param userId
      * @param teamId
      * @returns
      */
-        @Post('register-many-members/:teamId')
-        async registerManyMembers(@Param('teamId') teamId: number, @Body() userIds: number[]) {
-            const registerMembers = await this.memberService.registerManyMembers(teamId, userIds);
-        
-            return {
-                statusCode: HttpStatus.OK,
-                data: registerMembers,
-                success: true,
-            };
-        }
+    @Post('register-many-members/:teamId')
+    async registerManyMembers(@Param('teamId') teamId: number, @Body() userIds: number[]) {
+        const registerMembers = await this.memberService.registerManyMembers(teamId, userIds);
 
+        return {
+            statusCode: HttpStatus.OK,
+            data: registerMembers,
+            success: true,
+        };
+    }
 
     /**
      * 멤버 추방하기

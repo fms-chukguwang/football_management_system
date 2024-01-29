@@ -6,17 +6,17 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 @UseGuards(JwtAuthGuard)
 @Controller('chats')
 export class ChatsController {
-  constructor(private readonly chatsService: ChatsService) {}
+    constructor(private readonly chatsService: ChatsService) {}
 
-  // @Get()
-  // async getAllChats() {
-  //   return await this.chatsService.getAllChats();
-  // }
-  @Get()
-  async paginateChat(@Query() dto: PaginateChatDto, @Req() req) {
-    return await this.chatsService.paginateChat(dto, req.user.id);
-  }
+    // @Get()
+    // async getAllChats() {
+    //   return await this.chatsService.getAllChats();
+    // }
+    @Get()
+    async paginateChat(@Query() dto: PaginateChatDto, @Req() req) {
+        return await this.chatsService.paginateChat(dto, req.user.id);
+    }
 
-  @Get(':userId')
-  paginateChatById() {}
+    @Get(':userId')
+    paginateChatById() {}
 }
