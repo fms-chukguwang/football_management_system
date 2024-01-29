@@ -32,7 +32,6 @@ export class MemberController {
     @UseGuards(JwtAuthGuard, IsStaffGuard)
     @Post('team/:teamId/user/:userId')
     async registerMember(@Param('teamId') teamId: number, @Param('userId') userId: number) {
-        console.log('컨트롤러 진입');
         const registerMember = await this.memberService.registerMember(teamId, userId);
 
         return {

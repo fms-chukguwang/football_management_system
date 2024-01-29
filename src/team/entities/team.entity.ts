@@ -17,7 +17,9 @@ import { Transform } from 'class-transformer';
 import { Member } from '../../member/entities/member.entity';
 import { Factory } from 'nestjs-seeder';
 import { Match } from '../../match/entities/match.entity';
+import { Chats } from 'src/chats/entities/chats.entity';
 import { MatchFormation } from '../../formation/entities/formation.entity';
+
 
 @Entity('team')
 export class TeamModel extends BaseModel {
@@ -74,13 +76,12 @@ export class TeamModel extends BaseModel {
     @Column({ default: 'Mixed' })
     gender: Gender;
 
-       /**
+    /**
      * 팀 인원수
      */
-        @Column()
-       totalMembers: number;
+    @Column()
+    totalMembers: number;
 
-        
     /**
      * 팀 활동범위
      */
@@ -106,6 +107,12 @@ export class TeamModel extends BaseModel {
     @OneToMany(() => Match, (match) => match.awayteam)
     awayMatch: Match[];
 
+
+    @OneToOne(() => Chats, (chat) => chat.team)
+    @JoinColumn()
+    chat: Chats;
+
     @OneToMany(() => MatchFormation, (matchformation) => matchformation.team)
     matchformation: MatchFormation[];
+
 }
