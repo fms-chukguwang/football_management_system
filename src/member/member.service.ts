@@ -72,9 +72,20 @@ export class MemberService {
             where: { id: teamId },
             relations: ['chat'],
         });
+      
         if (existMember) {
             throw new BadRequestException('해당 인원은 이미 팀에 참가하고 있습니다.');
         }
+      
+
+        if (!team.isMixedGender) {
+            if (user.profile.gender !== team.gender) {
+                //팀이 혼성이 아닌데 성별이 다를때
+                throw new BadRequestException('팀의 셩별과 일치하지 않습니다.');
+            }
+        }
+
+
         const registerMember = await this.memberRepository.save({
             user: {
                 id: userId,
@@ -338,6 +349,43 @@ export class MemberService {
      */
     async deleteEmailToken(token: string) {
         await this.redisService.deleteTeamJoinMailToken(token);
+    }
+
+    async getTeamMembers(teamId: number) {
+        const findMembers = await this.memberRepository.find({
+            select: {
+                team: {
+                    id: true,
+                },
+                user: {
+                    id: true,
+                    name: true,
+                    email: true,
+                },
+                matchformation: {
+                    position: true,
+                },
+                profile: {
+                    preferredPosition: true,
+                    imageUrl: true,
+                    age: true,
+                },
+            },
+            where: {
+                team: {
+                    id: teamId,
+                },
+            },
+            relations: {
+                team: true,
+                user: true,
+                matchformation: true,
+                profile: true,
+            },
+        });
+
+        console.log('findMembers:', findMembers);
+        return findMembers;
     }
 
     async getMemberCountByTeamId(teamId: number) {

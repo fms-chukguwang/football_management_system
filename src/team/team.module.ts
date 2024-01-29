@@ -8,10 +8,11 @@ import { LocationModule } from '../location/location.module';
 import { MemberModule } from '../member/member.module';
 import { CommonModule } from '../common/common.module';
 import { ChatsModule } from 'src/chats/chats.module';
+import { MatchFormation } from '../formation/entities/formation.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([TeamModel]),
+        TypeOrmModule.forFeature([TeamModel,MatchFormation]),
         AwsModule,
         LocationModule,
         forwardRef(() => MemberModule),
