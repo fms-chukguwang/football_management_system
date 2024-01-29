@@ -28,8 +28,8 @@ enum Time {
 }
 
 enum Gender {
-    male = 'male',
-    female = 'female',
+    male = 'Male',
+    female = 'Female',
 }
 
 function getRandomGender(): Gender {
