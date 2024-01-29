@@ -67,6 +67,7 @@ export class MemberService {
         }
         
         const team= await this.teamService.findOneById(teamId);
+        
         //팀이 혼성인지
         if (!team.isMixedGender) {
         if(user.profile.gender!== team.gender) {

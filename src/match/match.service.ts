@@ -1203,6 +1203,7 @@ export class MatchService {
             relations: {
                 user: true,
                 team: true,
+                playerstats: true
             },
             select: {
                 user: {
@@ -1211,6 +1212,7 @@ export class MatchService {
                 team: {
                     id: true,
                 },
+                
             },
 
             where: {

@@ -13,6 +13,7 @@ import { User } from '../user/entities/user.entity';
     TypeOrmModule.forFeature([Member,TeamModel,Match,MatchFormation,User]),
 ],
   controllers: [FormationController],
-  providers: [FormationService]
+  providers: [FormationService],
+  exports: [FormationService],
 })
 export class FormationModule {}
