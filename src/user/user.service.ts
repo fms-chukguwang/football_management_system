@@ -45,6 +45,14 @@ export class UserService {
         return user;
     }
 
+    async findOneByEmailForVerification(email: string): Promise<User | null> {
+        const user = await this.userRepository.findOneBy({ email });
+        if (!user) {
+            return null;
+        }
+        return user;
+    }
+
     async updateMyInfo(id: number, updateMyInfoDto: UpdateMyInfoDto): Promise<User> {
         try {
             const user = await this.userRepository.findOneBy({ id });
