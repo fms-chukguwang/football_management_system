@@ -74,12 +74,26 @@ export class RedisService {
         await this.redisClient.del(token);
     }
 
+    /**
+     * 팀 정보
+     * @param teamId
+     * @returns
+     */
     async getTeamDetail(teamId: number) {
         return await this.redisClient.get(`teamDeatail_${teamId}`);
     }
 
+    /**
+     * 팀 정보 세팅
+     * @param team
+     * @param teamId
+     */
     async setTeamDetail(team: string, teamId: number) {
         await this.redisClient.set(`teamDeatail_${teamId}`, team);
         await this.redisClient.expire(`teamDeatail_${teamId}`, 180);
+    }
+
+    async delTeamDetail(teamId: number) {
+        await this.redisClient.del(`teamDeatail_${teamId}`);
     }
 }

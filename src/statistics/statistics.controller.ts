@@ -5,8 +5,13 @@ import { StatisticsService } from './statistics.service';
 export class StatisticsController {
     constructor(private readonly statisticsService: StatisticsService) {}
 
-    @Get()
+    /**
+     * 팀 승무패 가져오기
+     * @param teamId
+     * @returns
+     */
+    @Get('/:teamId')
     async getTeamStats(@Param('teamId') teamId: number) {
-        return await this.statisticsService.getTeamStats(1);
+        return await this.statisticsService.getTeamStats(teamId);
     }
 }

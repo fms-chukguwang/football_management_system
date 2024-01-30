@@ -120,7 +120,21 @@ export class TeamController {
         @Param('teamId') teamId: number,
         @UploadedFile() file?: Express.Multer.File,
     ) {
-        await this.teamService.updateTeam(teamId, updateTeamDto, file);
+        try {
+            await this.teamService.updateTeam(teamId, updateTeamDto, file);
+
+            return {
+                message: '업데이트가 성공하였습니다.',
+                statusCode: HttpStatus.OK,
+                success: true,
+            };
+        } catch (err) {
+            return {
+                message: `업데이트가 실패하였습니다. error ${err}`,
+                statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+                success: false,
+            };
+        }
     }
 
     @UseGuards(JwtAuthGuard)
