@@ -1,4 +1,10 @@
-import { BadRequestException, Inject, Injectable, forwardRef, NotFoundException } from '@nestjs/common';
+import {
+    BadRequestException,
+    Inject,
+    Injectable,
+    forwardRef,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AwsService } from '../aws/aws.service';
 import { LocationService } from '../location/location.service';
@@ -14,6 +20,9 @@ import {
 import { UpdateTeamDto } from './dtos/update-team.dto';
 import { PaginateTeamDto } from './dtos/paginate-team-dto';
 import { CommonService } from '../common/common.service';
+import { RedisService } from 'src/redis/redis.service';
+import { ChatsService } from 'src/chats/chats.service';
+import { CreateChatDto } from 'src/chats/dto/create-chat.dto';
 
 @Injectable()
 export class TeamService {
@@ -26,6 +35,8 @@ export class TeamService {
         private readonly memberService: MemberService,
         private readonly dataSource: DataSource,
         private readonly commonService: CommonService,
+        private readonly chatService: ChatsService,
+        private readonly redisService: RedisService,
     ) {}
 
     async findOneById(id: number) {
@@ -95,6 +106,10 @@ export class TeamService {
 
             const imageUUID = await this.awsService.uploadFile(file);
 
+            // 채팅방 생성
+            const createChatDto: CreateChatDto = { userIds: [userId] };
+            const chat = await this.chatService.createChat(createChatDto);
+
             const result = this.teamRepository.create({
                 ...createTeamDto,
                 imageUUID: imageUUID,
@@ -102,6 +117,7 @@ export class TeamService {
                     id: findLocation.id,
                 },
                 creator: { id: userId },
+                chat,
             });
 
             const savedTeam = await this.teamRepository.save(result);
@@ -123,22 +139,34 @@ export class TeamService {
      * @param teamId
      * @returns
      */
-    getTeamDetail(teamId: number) {
-        return this.teamRepository.findOne({
-            where: {
-                id: teamId,
-            },
-            relations: {
-                creator: true,
-            },
-            select: {
-                creator: {
-                    id: true,
-                    email: true,
-                    name: true,
+    async getTeamDetail(teamId: number) {
+        let redisResult = await this.redisService.getTeamDetail(teamId);
+
+        if (!redisResult) {
+            console.log('redis 저장 시작');
+            const findOneTeam = await this.teamRepository.findOne({
+                where: {
+                    id: teamId,
                 },
-            },
-        });
+                relations: {
+                    creator: true,
+                    location: true,
+                },
+                select: {
+                    creator: {
+                        id: true,
+                        email: true,
+                        name: true,
+                    },
+                },
+            });
+
+            await this.redisService.setTeamDetail(JSON.stringify(findOneTeam), teamId);
+
+            redisResult = await this.redisService.getTeamDetail(teamId);
+        }
+
+        return JSON.parse(redisResult);
     }
 
     /**
@@ -162,12 +190,11 @@ export class TeamService {
     }
 
     //호영님 코드 수정중
-    async getTeam(dto: PaginateTeamDto,name?:string) {
 
-        const options: FindManyOptions<TeamModel> = {
-        };
+    async getTeam(dto: PaginateTeamDto, name?: string) {
+        const options: FindManyOptions<TeamModel> = {};
         if (name) {
-            options.where =  { name: Like(`%${name}%`) };
+            options.where = { name: Like(`%${name}%`) };
         }
 
         const data = await this.teamRepository.find(options);
@@ -188,12 +215,11 @@ export class TeamService {
             return { data: teamWithCounts, total };
         }
     }
-    async getTeamByGender(userId, dto: PaginateTeamDto,name?:string) {
 
-        const options: FindManyOptions<TeamModel> = {
-        };
+    async getTeamByGender(userId, dto: PaginateTeamDto, name?: string) {
+        const options: FindManyOptions<TeamModel> = {};
         if (name) {
-            options.where =  { name: Like(`%${name}%`) };
+            options.where = { name: Like(`%${name}%`) };
         }
 
         const data = await this.teamRepository.find(options);
@@ -220,20 +246,18 @@ export class TeamService {
      * @returns
      */
 
-    async getTeam2(dto: PaginateTeamDto, name?:string) {
-        const options: FindManyOptions<TeamModel> = {
-        };
+    async getTeam2(dto: PaginateTeamDto, name?: string) {
+        const options: FindManyOptions<TeamModel> = {};
         if (name) {
-            options.where =  { name: Like(`%${name}%`) };
+            options.where = { name: Like(`%${name}%`) };
         }
 
         const data = await this.teamRepository.find(options);
 
         return await this.commonService.paginate(dto, this.teamRepository, options, 'team');
 
-       // return await this.commonService.paginate(dto, this.teamRepository, {}, 'team');
+        // return await this.commonService.paginate(dto, this.teamRepository, {}, 'team');
     }
-
 
     // async getTeam2(dto: PaginateTeamDto) {
     //     const result = await this.commonService.paginate(dto, this.teamRepository, {}, 'team');
@@ -251,7 +275,6 @@ export class TeamService {
     //         return { data: teamWithCounts, total };
     //     }
     // }
-
 
     /**
      * 팀 수정하기

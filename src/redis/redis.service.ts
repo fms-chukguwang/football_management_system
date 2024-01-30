@@ -12,6 +12,7 @@ export class RedisService {
         this.redisClient = new IORedis({
             host: this.configService.get<string>('REDIS_HOST'),
             port: this.configService.get<number>('REDIS_PORT'),
+            password: this.configService.get<string>('REDIS_PASSWORD'),
         });
         this.redisClient.on('connect', () => {
             console.log('Connected to Redis');
@@ -28,7 +29,6 @@ export class RedisService {
         await this.redisClient.expire(key, this.kakaoCodeTTL);
         console.log('redis kakaoCode expires in = ', this.kakaoCodeTTL);
     }
-
 
     async setRefreshToken(userId: number, refreshToken: string): Promise<void> {
         await this.redisClient.set(`refreshToken:${userId}`, refreshToken);
@@ -73,5 +73,14 @@ export class RedisService {
      */
     async deleteTeamJoinMailToken(token: string) {
         await this.redisClient.del(token);
+    }
+
+    async getTeamDetail(teamId: number) {
+        return await this.redisClient.get(`teamDeatail_${teamId}`);
+    }
+
+    async setTeamDetail(team: string, teamId: number) {
+        await this.redisClient.set(`teamDeatail_${teamId}`, team);
+        await this.redisClient.expire(`teamDeatail_${teamId}`, 180);
     }
 }

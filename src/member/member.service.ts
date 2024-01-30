@@ -17,6 +17,9 @@ import { SendJoiningEmailDto } from './dtos/send-joining-email.dto';
 import { RedisService } from '../redis/redis.service';
 import { UpdateProfileInfoDto } from '../profile/dtos/update-profile-info-dto';
 import { ProfileService } from '../profile/profile.service';
+import { TeamModel } from 'src/team/entities/team.entity';
+import { consoleSandbox } from '@sentry/utils';
+import { ChatsService } from 'src/chats/chats.service';
 
 @Injectable()
 export class MemberService {
@@ -28,6 +31,9 @@ export class MemberService {
         private readonly teamService: TeamService,
         private readonly eamilService: EmailService,
         private readonly redisService: RedisService,
+        private readonly chatsService: ChatsService,
+        @InjectRepository(TeamModel)
+        private readonly teamRepository: Repository<TeamModel>,
     ) {}
 
     async findAllPlayers() {
@@ -62,18 +68,23 @@ export class MemberService {
         const user = await this.userService.findOneById(userId);
         const existMember = await this.findMemberForUserId(user.id);
 
+        const team = await this.teamRepository.findOne({
+            where: { id: teamId },
+            relations: ['chat'],
+        });
+      
         if (existMember) {
             throw new BadRequestException('해당 인원은 이미 팀에 참가하고 있습니다.');
         }
-        
-        const team= await this.teamService.findOneById(teamId);
-        
-        //팀이 혼성인지
+      
+
         if (!team.isMixedGender) {
-        if(user.profile.gender!== team.gender) {
-        //팀이 혼성이 아닌데 성별이 다를때
-        throw new BadRequestException('팀의 셩별과 일치하지 않습니다.');
-        }}
+            if (user.profile.gender !== team.gender) {
+                //팀이 혼성이 아닌데 성별이 다를때
+                throw new BadRequestException('팀의 셩별과 일치하지 않습니다.');
+            }
+        }
+
 
         const registerMember = await this.memberRepository.save({
             user: {
@@ -83,11 +94,11 @@ export class MemberService {
                 id: teamId,
             },
         });
+        const chatId = team.chat.id;
+        await this.chatsService.inviteChat(chatId, userId);
 
         return registerMember;
     }
-
-
 
     //많은 멤버 한번에 추가하기
     async registerManyMembers(teamId: number, userIds: number[]): Promise<Member[]> {
@@ -340,22 +351,25 @@ export class MemberService {
         await this.redisService.deleteTeamJoinMailToken(token);
     }
 
-    /**
-     * 팀별 멤버 목록 조회
-     * @param teamId
-     */
     async getTeamMembers(teamId: number) {
         const findMembers = await this.memberRepository.find({
-            select:{
-                team:{
+            select: {
+                team: {
                     id: true,
                 },
-                user:{
+                user: {
+                    id: true,
                     name: true,
+                    email: true,
                 },
                 matchformation: {
-                    position:true,
-                }
+                    position: true,
+                },
+                profile: {
+                    preferredPosition: true,
+                    imageUrl: true,
+                    age: true,
+                },
             },
             where: {
                 team: {
@@ -365,11 +379,12 @@ export class MemberService {
             relations: {
                 team: true,
                 user: true,
-                matchformation:true
+                matchformation: true,
+                profile: true,
             },
         });
 
-        console.log('findMembers:',findMembers);
+        console.log('findMembers:', findMembers);
         return findMembers;
     }
 

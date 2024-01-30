@@ -23,7 +23,6 @@ import { TeamService } from './team.service';
 import { MemberService } from '../member/member.service';
 import { PaginateTeamDto } from './dtos/paginate-team-dto';
 
-
 @ApiTags('팀')
 @Controller('team')
 export class TeamController {
@@ -58,6 +57,7 @@ export class TeamController {
     @Get(':teamId')
     async getTeamDetail(@Param('teamId') teamId: number) {
         const [data, count] = await this.memberService.getMemberCountByTeamId(teamId);
+
         const team = await this.teamService.getTeamDetail(teamId);
         return {
             team,
@@ -88,11 +88,10 @@ export class TeamController {
      */
     @Get('')
     async getTeam(@Query() dto: PaginateTeamDto) {
-        return  await this.teamService.getTeam(dto, dto.name);
-
+        return await this.teamService.getTeam(dto, dto.name);
     }
 
-      /**
+    /**
      * 성별 따른 팀 목록 조회
      * @param req
      * @param query
@@ -104,9 +103,15 @@ export class TeamController {
     //    async getTeamByGender(@Request() req, @Query() dto: PaginateTeamDto) {
     //     const userId = req.user.id;
     //     return  await this.teamService.getTeamByGender(userId, dto, dto.name);
-   
+
     //    }
 
+    /**
+     * 팀 정보 수정
+     * @param updateTeamDto
+     * @param teamId
+     * @param file
+     */
     @UseGuards(JwtAuthGuard, IsStaffGuard)
     @UseInterceptors(FileInterceptor('file'))
     @Patch(':teamId')
@@ -117,4 +122,8 @@ export class TeamController {
     ) {
         await this.teamService.updateTeam(teamId, updateTeamDto, file);
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Get(':teamId/stats')
+    getTeamStats(@Param('teamId') teamId: number) {}
 }

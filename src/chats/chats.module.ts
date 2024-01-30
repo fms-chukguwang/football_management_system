@@ -10,8 +10,9 @@ import { MessagesController } from '../messages/messages.controller';
 import { CommonModule } from '../common/common.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Chats, Message]), CommonModule],
-  controllers: [ChatsController, MessagesController],
-  providers: [ChatsService, ChatsGateway, ChatMessagesService],
+    exports: [ChatsService],
+    imports: [TypeOrmModule.forFeature([Chats, Message]), CommonModule],
+    controllers: [ChatsController, MessagesController],
+    providers: [ChatsService, ChatsGateway, ChatMessagesService],
 })
 export class ChatsModule {}
