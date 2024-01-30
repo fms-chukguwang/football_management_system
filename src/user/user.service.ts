@@ -24,9 +24,17 @@ export class UserService {
             where: {
                 id,
             },
-            relations: ['profile', 'member', 'member.team', 'team'],
+            relations: [
+                'profile',
+                'member',
+                'member.team',
+                'member.team.chat',
+                'team',
+                'team.chat',
+                'team.members',
+                'team.members.user',
+            ],
         });
-        console.log(user);
         if (!user) {
             throw new NotFoundException('사용자를 찾을 수 없습니다.');
         }

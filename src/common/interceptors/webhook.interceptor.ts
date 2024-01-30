@@ -3,6 +3,7 @@ import { captureException } from '@sentry/minimal';
 import { Observable, tap } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { IncomingWebhook } from '@slack/client';
+import * as Sentry from '@sentry/node';
 
 @Injectable()
 export class WebhookInterceptor implements NestInterceptor {
@@ -40,6 +41,7 @@ export class WebhookInterceptor implements NestInterceptor {
             catchError((error) => {
                 // console.log('path=', path);
                 // console.log('method=', method);
+                Sentry.captureException(error);
                 const webhook = new IncomingWebhook(process.env.SLACK_WEBHOOK);
                 webhook.send({
                     attachments: [
@@ -49,7 +51,7 @@ export class WebhookInterceptor implements NestInterceptor {
                             fields: [
                                 {
                                     title: `Request Message: ${error.message}`,
-                                    value: error.stack,
+                                    value: `path: ${path}, method: ${method}, ${error.stack}`,
                                     short: false,
                                 },
                             ],
@@ -57,7 +59,7 @@ export class WebhookInterceptor implements NestInterceptor {
                         },
                     ],
                 });
-                return null;
+                return error;
             }),
         );
     }

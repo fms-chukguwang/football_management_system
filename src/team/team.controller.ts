@@ -23,7 +23,6 @@ import { TeamService } from './team.service';
 import { MemberService } from '../member/member.service';
 import { PaginateTeamDto } from './dtos/paginate-team-dto';
 
-
 @ApiTags('팀')
 @Controller('team')
 export class TeamController {
@@ -88,11 +87,10 @@ export class TeamController {
      */
     @Get('')
     async getTeam(@Query() dto: PaginateTeamDto) {
-        return  await this.teamService.getTeam(dto, dto.name);
-
+        return await this.teamService.getTeam(dto, dto.name);
     }
 
-      /**
+    /**
      * 성별 따른 팀 목록 조회
      * @param req
      * @param query
@@ -104,7 +102,7 @@ export class TeamController {
     //    async getTeamByGender(@Request() req, @Query() dto: PaginateTeamDto) {
     //     const userId = req.user.id;
     //     return  await this.teamService.getTeamByGender(userId, dto, dto.name);
-   
+
     //    }
 
     @UseGuards(JwtAuthGuard, IsStaffGuard)
@@ -116,5 +114,24 @@ export class TeamController {
         @UploadedFile() file?: Express.Multer.File,
     ) {
         await this.teamService.updateTeam(teamId, updateTeamDto, file);
+    }
+
+    /**
+     * 팀 멤버 조회
+     * @param query
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get(':teamId/member')
+    async getTeamMembers(@Param('teamId') teamId: number) {
+        const [data, count] = await this.memberService.getMemberCountByTeamId(teamId);
+        const nameToMemberId = data.map((member) => {
+            return { name: member.user.name, memberId: member.id };
+        });
+        return {
+            data: nameToMemberId,
+            total: count,
+        };
     }
 }
