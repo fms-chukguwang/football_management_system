@@ -72,19 +72,19 @@ export class MemberService {
             where: { id: teamId },
             relations: ['chat'],
         });
-      
+
         if (existMember) {
             throw new BadRequestException('해당 인원은 이미 팀에 참가하고 있습니다.');
         }
-      
-
+        if (!user.profile) {
+            throw new BadRequestException('프로필이 존재하지 않은 유저는 팀에 등록할수 없습니다.');
+        }
         if (!team.isMixedGender) {
             if (user.profile.gender !== team.gender) {
                 //팀이 혼성이 아닌데 성별이 다를때
-                throw new BadRequestException('팀의 셩별과 일치하지 않습니다.');
+                throw new BadRequestException('팀의 성별과 일치하지 않습니다.');
             }
         }
-
 
         const registerMember = await this.memberRepository.save({
             user: {

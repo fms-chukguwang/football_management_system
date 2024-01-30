@@ -4,6 +4,7 @@ import {
     Injectable,
     forwardRef,
     NotFoundException,
+    InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AwsService } from '../aws/aws.service';
@@ -143,7 +144,6 @@ export class TeamService {
         let redisResult = await this.redisService.getTeamDetail(teamId);
 
         if (!redisResult) {
-            console.log('redis 저장 시작');
             const findOneTeam = await this.teamRepository.findOne({
                 where: {
                     id: teamId,
@@ -296,7 +296,11 @@ export class TeamService {
                     ...dto,
                 },
             );
-        } catch (err) {}
-        return console.log('업데이트 성공');
+
+            await this.redisService.delTeamDetail(teamId);
+        } catch (err) {
+            console.log(err);
+            throw new InternalServerErrorException('업데이트중 예기치 못한 오류가 발생하였습니다.');
+        }
     }
 }

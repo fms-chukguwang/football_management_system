@@ -232,10 +232,11 @@ export class MemberController {
     async getTeamMembers(@Req() req: Request, @Param('teamId') teamId: number) {
         const data = await this.memberService.getTeamMembers(teamId);
 
-        return {
-            statusCode: HttpStatus.OK,
-            data,
-            success: true,
-        };
+        // return {
+        //     statusCode: HttpStatus.OK,
+        //     data,
+        //     success: true,
+        // };
+        return data;
     }
 }
