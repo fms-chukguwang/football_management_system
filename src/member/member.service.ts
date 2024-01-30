@@ -17,9 +17,9 @@ import { SendJoiningEmailDto } from './dtos/send-joining-email.dto';
 import { RedisService } from '../redis/redis.service';
 import { UpdateProfileInfoDto } from '../profile/dtos/update-profile-info-dto';
 import { ProfileService } from '../profile/profile.service';
-import { TeamModel } from 'src/team/entities/team.entity';
+import { TeamModel } from '../team/entities/team.entity';
 import { consoleSandbox } from '@sentry/utils';
-import { ChatsService } from 'src/chats/chats.service';
+import { ChatsService } from '../chats/chats.service';
 
 @Injectable()
 export class MemberService {
