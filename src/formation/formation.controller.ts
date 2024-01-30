@@ -41,6 +41,9 @@ export class FormationController {
     @Post(':teamId/:matchId')
     async saveMatchFormation(@Param('teamId') teamId: number,@Param('matchId') matchId: number,@Body() updateFormationDto:UpdateFormationDto) {
 
+        console.log('cccccc data:',updateFormationDto);
+        console.log('homeTeamId:',teamId);
+        console.log('matchId:',matchId);
         const data = await this.formationService.saveMatchFormation(teamId,matchId,updateFormationDto);
     
         return {
