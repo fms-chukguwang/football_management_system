@@ -5,4 +5,5 @@ export class StatisticsDto {
     totalGames: number;
     goals: number;
     conceded: number;
+    cleanSheet: number;
 }

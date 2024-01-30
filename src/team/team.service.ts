@@ -150,7 +150,6 @@ export class TeamService {
         let redisResult = await this.redisService.getTeamDetail(teamId);
 
         if (!redisResult) {
-            console.log('redis 저장 시작');
             const findOneTeam = await this.teamRepository.findOne({
                 where: {
                     id: teamId,
