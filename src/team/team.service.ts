@@ -44,14 +44,8 @@ export class TeamService {
             where: {
                 id,
             },
-            relations: [
-                'location',
-                'creator',
-                'members',
-                'homeMatch',
-                'awayMatch',
-                'matchFormation',
-            ],
+            relations:  ['location', 'creator', 'members', 'homeMatch', 'awayMatch']
+        
         });
 
         if (!team) {
