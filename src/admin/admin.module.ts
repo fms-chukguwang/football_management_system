@@ -5,8 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../user/entities/user.entity';
 import { CommonModule } from '../common/common.module';
 import { UserModule } from '../user/user.module';
-import { TeamModel } from 'src/team/entities/team.entity';
-import { TeamModule } from 'src/team/team.module';
+import { TeamModel } from '../team/entities/team.entity';
+import { TeamModule } from '../team/team.module';
 
 @Module({
     imports: [TypeOrmModule.forFeature([User, TeamModel]), CommonModule, UserModule, TeamModule],

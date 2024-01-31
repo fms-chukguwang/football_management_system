@@ -7,7 +7,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { IsAdminGuard } from './guards/isAdmin.guard';
 import { Request } from 'express';
 import { UserService } from '../user/user.service';
-import { TeamService } from 'src/team/team.service';
+import { TeamService } from '../team/team.service';
 
 /**
  * 확인해야할 권한
