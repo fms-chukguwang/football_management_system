@@ -1,6 +1,5 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
-import { captureException } from '@sentry/minimal';
-import { Observable, tap } from 'rxjs';
+import { tap, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { IncomingWebhook } from '@slack/client';
 import * as Sentry from '@sentry/node';
@@ -13,7 +12,7 @@ export class WebhookInterceptor implements NestInterceptor {
         const [, , path] = req.originalUrl.split('/');
 
         return next.handle().pipe(
-            tap((observable) => {
+            tap(() => {
                 if (
                     path === 'admin' &&
                     (method === 'POST' || method === 'PUT' || method === 'DELETE')
@@ -26,8 +25,8 @@ export class WebhookInterceptor implements NestInterceptor {
                                 text: '어드민 계정으로 DB에 접근했습니다.',
                                 fields: [
                                     {
-                                        title: `Request Message: ${observable.message}`,
-                                        value: observable.stack,
+                                        title: `Request Message: ${JSON.stringify(req.body)}`,
+                                        value: `path: ${path}, method: ${method}`,
                                         short: false,
                                     },
                                 ],
@@ -39,8 +38,6 @@ export class WebhookInterceptor implements NestInterceptor {
                 }
             }),
             catchError((error) => {
-                // console.log('path=', path);
-                // console.log('method=', method);
                 Sentry.captureException(error);
                 const webhook = new IncomingWebhook(process.env.SLACK_WEBHOOK);
                 webhook.send({
@@ -59,7 +56,7 @@ export class WebhookInterceptor implements NestInterceptor {
                         },
                     ],
                 });
-                return error;
+                return throwError(() => error);
             }),
         );
     }

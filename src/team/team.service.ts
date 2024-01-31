@@ -45,8 +45,7 @@ export class TeamService {
             where: {
                 id,
             },
-            relations:  ['location', 'creator', 'members', 'homeMatch', 'awayMatch']
-        
+            relations: ['location', 'creator', 'members', 'homeMatch', 'awayMatch'],
         });
 
         if (!team) {
@@ -302,5 +301,24 @@ export class TeamService {
             console.log(err);
             throw new InternalServerErrorException('업데이트중 예기치 못한 오류가 발생하였습니다.');
         }
+    }
+
+    /**
+     * 팀 삭제하기
+     * @param teamId
+     * @param dto
+     * @returns
+     */
+    async deleteTeam(teamId: number) {
+        const team = await this.teamRepository.findOneBy({ id: teamId });
+        if (!team) {
+            throw new NotFoundException(`User with ID ${team} not found`);
+        }
+
+        console.log('teamId : ', teamId);
+        // Soft delete 처리
+        await this.teamRepository.softDelete({
+            id: teamId,
+        });
     }
 }
