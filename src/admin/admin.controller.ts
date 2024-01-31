@@ -7,6 +7,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { IsAdminGuard } from './guards/isAdmin.guard';
 import { Request } from 'express';
 import { UserService } from '../user/user.service';
+import { TeamService } from 'src/team/team.service';
 
 /**
  * 확인해야할 권한
@@ -21,6 +22,7 @@ export class AdminController {
     constructor(
         private readonly adminService: AdminService,
         private readonly userService: UserService,
+        private readonly teamService: TeamService,
     ) {}
 
     /**
@@ -45,21 +47,20 @@ export class AdminController {
         return await this.adminService.paginateUser(dto);
     }
 
-    // 추가적인 로직 필요할듯? User에 조회, 삭제 없애야할듯
     /**
-     * 유저 삭제하기
+     * 유저 삭제하기 , 팀 삭제하기
      * @param dto
      * @returns
      */
     @ApiBearerAuth()
-    @Delete('/:dataType/:userId')
-    async deleteUserById(@Param('dataType') dataType: string, @Param('userId') userId: number) {
+    @Delete('/:dataType/:id')
+    async deleteUserById(@Param('dataType') dataType: string, @Param('id') id: number) {
+        console.log('id', id);
+        console.log('dataType', dataType);
         if (dataType === 'users') {
-            console.log('userId');
-            console.log(userId);
-            return await this.userService.deleteId(userId);
+            return await this.userService.deleteId(id);
         } else if (dataType === 'teams') {
-            // return await this.adminService.deleteTeamById(userId);
+            return await this.teamService.deleteTeam(id);
         }
     }
 }
