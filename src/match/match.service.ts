@@ -1163,9 +1163,9 @@ export class MatchService {
             m.time,
             m.id AS match_id
         FROM 
-            final_db2.matches AS m
-            LEFT JOIN final_db2.team AS t ON m.away_team_id = t.id
-            LEFT JOIN final_db2.soccer_fields AS f ON m.soccer_field_id = f.id
+            matches AS m
+            LEFT JOIN team AS t ON m.away_team_id = t.id
+            LEFT JOIN soccer_fields AS f ON m.soccer_field_id = f.id
         WHERE 
             m.home_team_id = ${teamId}
         
@@ -1179,9 +1179,9 @@ export class MatchService {
             m.time,
             m.id AS match_id
         FROM 
-            final_db2.matches AS m
-            LEFT JOIN final_db2.team AS t ON m.home_team_id = t.id
-            LEFT JOIN final_db2.soccer_fields AS f ON m.soccer_field_id = f.id
+            matches AS m
+            LEFT JOIN team AS t ON m.home_team_id = t.id
+            LEFT JOIN soccer_fields AS f ON m.soccer_field_id = f.id
         WHERE 
             m.away_team_id = ${teamId}
         `);
