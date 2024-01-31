@@ -28,8 +28,8 @@ enum Time {
 }
 
 enum Gender {
-    male = 'Male',
-    female = 'Female',
+    Male = 'Male',
+    Female = 'Female',
 }
 
 function getRandomGender(): Gender {
@@ -73,7 +73,7 @@ let memberId2: number;
 let memberId3: number;
 let memberId4: number;
 
-//시나리오 1 - 팀 1 구단주 
+//시나리오 1 - 팀 1 구단주
 describe('AppController (e2e) - 시나리오 1: 팀 1구단주', () => {
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -108,7 +108,7 @@ describe('AppController (e2e) - 시나리오 1: 팀 1구단주', () => {
             weight: faker.number.int({ min: 40, max: 100 }),
             height: faker.number.int({ min: 150, max: 190 }),
             age: faker.number.int({ min: 18, max: 50 }),
-            gender: 'male',
+            gender: 'Male',
         };
 
         const response = await request(app.getHttpServer())
@@ -183,7 +183,7 @@ describe('AppController (e2e) - 시나리오 2: 구단주2', () => {
             weight: faker.number.int({ min: 40, max: 100 }),
             height: faker.number.int({ min: 150, max: 190 }),
             age: faker.number.int({ min: 18, max: 50 }),
-            gender: 'male',
+            gender: 'Male',
         };
 
         const response = await request(app.getHttpServer())
@@ -198,7 +198,7 @@ describe('AppController (e2e) - 시나리오 2: 구단주2', () => {
         const registerTeamDto = {
             name: faker.lorem.words(2),
             description: faker.lorem.text(),
-            gender: 'male',
+            gender: 'Male',
             isMixedGender: false,
             postalCode: '12344',
             address: '경기도 화성시 향납',
@@ -222,7 +222,6 @@ describe('AppController (e2e) - 시나리오 2: 구단주2', () => {
         await app.close();
     });
 });
-
 
 //시나리오 3 - 아무 소속에 없는 회원1,2 팀1에 가입시키기
 describe('AppController (e2e) - 시나리오 3 - 아무 소속에 없는 회원1,2 팀1에 가입시키기', () => {
@@ -269,12 +268,12 @@ describe('AppController (e2e) - 시나리오 3 - 아무 소속에 없는 회원1
             .set('Authorization', `Bearer ${accessToken2}`)
             .send(registerPorfileDto)
             .expect(201);
-   
+
         userId1 = response.body.data.user.id;
     });
 
-     //더미데이터 회원가입
-     it('/auth/sign-up (POST)', async () => {
+    //더미데이터 회원가입
+    it('/auth/sign-up (POST)', async () => {
         const signUpDto = {
             passwordConfirm: 'Ex@mp1e!!',
             email: faker.internet.email(),
@@ -306,28 +305,28 @@ describe('AppController (e2e) - 시나리오 3 - 아무 소속에 없는 회원1
             .set('Authorization', `Bearer ${accessToken3}`)
             .send(registerPorfileDto)
             .expect(201);
-   
+
         userId2 = response.body.data.user.id;
     });
 
-        //멤버1를 팀1에 추가
-        it('/team/:teamId/user/:userId (POST)', async () => {
-            const registerMemberDto = {
-                // preferredPosition: getRandomPosition(),
-                // weight: faker.number.int({ min: 40, max: 100 }),
-                // height: faker.number.int({ min: 150, max: 190 }),
-                // age: faker.number.int({ min: 18, max: 50 }),
-                // gender: 'Male',
-            };
-    
-            const response = await request(app.getHttpServer())
-                .post(`/team/${teamId1}/user/${userId1}`)
-                .set('Authorization', `Bearer ${accessToken1}`)
-             //   .send(registerMemberDto)
-                .expect(201);
-    
-            memberId1 = response.body.data.id;
-        });
+    //멤버1를 팀1에 추가
+    it('/team/:teamId/user/:userId (POST)', async () => {
+        const registerMemberDto = {
+            // preferredPosition: getRandomPosition(),
+            // weight: faker.number.int({ min: 40, max: 100 }),
+            // height: faker.number.int({ min: 150, max: 190 }),
+            // age: faker.number.int({ min: 18, max: 50 }),
+            // gender: 'Male',
+        };
+
+        const response = await request(app.getHttpServer())
+            .post(`/team/${teamId1}/user/${userId1}`)
+            .set('Authorization', `Bearer ${accessToken1}`)
+            //   .send(registerMemberDto)
+            .expect(201);
+
+        memberId1 = response.body.data.id;
+    });
 
     //멤버2를 팀1에 추가
     it('/team/:teamId/user/:userId (POST)', async () => {
@@ -342,7 +341,7 @@ describe('AppController (e2e) - 시나리오 3 - 아무 소속에 없는 회원1
         const response = await request(app.getHttpServer())
             .post(`/team/${teamId1}/user/${userId2}`)
             .set('Authorization', `Bearer ${accessToken1}`)
-          //  .send(registerMemberDto)
+            //  .send(registerMemberDto)
             .expect(201);
 
         memberId2 = response.body.data.id;
@@ -397,47 +396,46 @@ describe('AppController (e2e) - 시나리오 4 - 아무 소속에 없는 회원1
             .set('Authorization', `Bearer ${accessToken5}`)
             .send(registerPorfileDto)
             .expect(201);
-   
+
         userId3 = response.body.data.user.id;
     });
 
+    //더미데이터 회원가입
+    it('/auth/sign-up (POST)', async () => {
+        const signUpDto = {
+            passwordConfirm: 'Ex@mp1e!!',
+            email: faker.internet.email(),
+            password: 'Ex@mp1e!!',
+            name: faker.person.fullName(),
+        };
 
- //더미데이터 회원가입
- it('/auth/sign-up (POST)', async () => {
-    const signUpDto = {
-        passwordConfirm: 'Ex@mp1e!!',
-        email: faker.internet.email(),
-        password: 'Ex@mp1e!!',
-        name: faker.person.fullName(),
-    };
+        const response = await request(app.getHttpServer())
+            .post('/auth/sign-up')
+            .send(signUpDto)
+            .expect(201);
 
-    const response = await request(app.getHttpServer())
-        .post('/auth/sign-up')
-        .send(signUpDto)
-        .expect(201);
+        accessToken6 = response.body.data.accessToken;
+        //userId1 = response.body.data.id;
+    });
 
-    accessToken6 = response.body.data.accessToken;
-    //userId1 = response.body.data.id;
-});
+    //프로필 생성
+    it('/profile (POST)', async () => {
+        const registerPorfileDto = {
+            preferredPosition: getRandomPosition(),
+            weight: faker.number.int({ min: 40, max: 100 }),
+            height: faker.number.int({ min: 150, max: 190 }),
+            age: faker.number.int({ min: 18, max: 50 }),
+            gender: 'Male',
+        };
 
-//프로필 생성
-it('/profile (POST)', async () => {
-    const registerPorfileDto = {
-        preferredPosition: getRandomPosition(),
-        weight: faker.number.int({ min: 40, max: 100 }),
-        height: faker.number.int({ min: 150, max: 190 }),
-        age: faker.number.int({ min: 18, max: 50 }),
-        gender: 'Male',
-    };
+        const response = await request(app.getHttpServer())
+            .post('/profile')
+            .set('Authorization', `Bearer ${accessToken6}`)
+            .send(registerPorfileDto)
+            .expect(201);
 
-    const response = await request(app.getHttpServer())
-        .post('/profile')
-        .set('Authorization', `Bearer ${accessToken6}`)
-        .send(registerPorfileDto)
-        .expect(201);
-
-    userId4 = response.body.data.user.id;
-});
+        userId4 = response.body.data.user.id;
+    });
 
     //멤버3을 팀2에 추가
     it('/team/:teamId/user/:userId (POST)', async () => {
@@ -452,29 +450,29 @@ it('/profile (POST)', async () => {
         const response = await request(app.getHttpServer())
             .post(`/team/${teamId2}/user/${userId3}`)
             .set('Authorization', `Bearer ${accessToken4}`)
-          //  .send(registerMemberDto)
+            //  .send(registerMemberDto)
             .expect(201);
 
         memberId3 = response.body.data.id;
     });
 
-//멤버4를 팀2에 추가
-it('/team/:teamId/user/:userId (POST)', async () => {
-    const registerMemberDto = {
-        // preferredPosition: getRandomPosition(),
-        // weight: faker.number.int({ min: 40, max: 100 }),
-        // height: faker.number.int({ min: 150, max: 190 }),
-        // age: faker.number.int({ min: 18, max: 50 }),
-        // gender: 'Male',
-    };
+    //멤버4를 팀2에 추가
+    it('/team/:teamId/user/:userId (POST)', async () => {
+        const registerMemberDto = {
+            // preferredPosition: getRandomPosition(),
+            // weight: faker.number.int({ min: 40, max: 100 }),
+            // height: faker.number.int({ min: 150, max: 190 }),
+            // age: faker.number.int({ min: 18, max: 50 }),
+            // gender: 'Male',
+        };
 
-    const response = await request(app.getHttpServer())
-        .post(`/team/${teamId2}/user/${userId4}`)
-        .set('Authorization', `Bearer ${accessToken4}`)
-        //.send(registerMemberDto)
-        .expect(201);
-    memberId4 = response.body.data.id;
-});
+        const response = await request(app.getHttpServer())
+            .post(`/team/${teamId2}/user/${userId4}`)
+            .set('Authorization', `Bearer ${accessToken4}`)
+            //.send(registerMemberDto)
+            .expect(201);
+        memberId4 = response.body.data.id;
+    });
     afterAll(async () => {
         await app.close();
     });
@@ -491,8 +489,6 @@ describe('AppController (e2e) - 시나리오 4 - 아무 소속에 없는 회원 
 
         await app.init();
     }, 10000);
-
-   
 
     // 경기 생성
     it('/match/book/accept (POST)', async () => {
@@ -549,7 +545,6 @@ describe('AppController (e2e) - 시나리오 4 - 아무 소속에 없는 회원 
         await app.init();
     }, 10000);
 
-   
     //경기 후 팀1 기록 등록
     it('/match/:metchId/result (POST)', async () => {
         const teamResultDto = {
@@ -574,29 +569,29 @@ describe('AppController (e2e) - 시나리오 4 - 아무 소속에 없는 회원 
         console.log('match team result', response.body);
     });
 
-        //경기 후 팀2 기록 등록
-        it('/match/:metchId/result (POST)', async () => {
-            const teamResultDto = {
-                cornerKick: faker.number.int({ min: 0, max: 10 }),
-                substitions: [{ inPlayerId: `${memberId3}`, outPlayerId: `${memberId4}` }],
-                passes: faker.number.int({ min: 0, max: 100 }),
-                penaltyKick: faker.number.int({ min: 0, max: 10 }),
-                freeKick: faker.number.int({ min: 0, max: 10 }),
-            };
-    
-            const response = await request(app.getHttpServer())
-                .post(`/match/${matchId}/result`)
-                .set('Authorization', `Bearer ${accessToken4}`)
-                .send({
-                    cornerKick: teamResultDto.cornerKick,
-                    substitions: teamResultDto.substitions,
-                    passes: teamResultDto.passes,
-                    penaltykICK: teamResultDto.penaltyKick,
-                    freeKick: teamResultDto.freeKick,
-                })
-                .expect(201);
-            console.log('match team result', response.body);
-        });
+    //경기 후 팀2 기록 등록
+    it('/match/:metchId/result (POST)', async () => {
+        const teamResultDto = {
+            cornerKick: faker.number.int({ min: 0, max: 10 }),
+            substitions: [{ inPlayerId: `${memberId3}`, outPlayerId: `${memberId4}` }],
+            passes: faker.number.int({ min: 0, max: 100 }),
+            penaltyKick: faker.number.int({ min: 0, max: 10 }),
+            freeKick: faker.number.int({ min: 0, max: 10 }),
+        };
+
+        const response = await request(app.getHttpServer())
+            .post(`/match/${matchId}/result`)
+            .set('Authorization', `Bearer ${accessToken4}`)
+            .send({
+                cornerKick: teamResultDto.cornerKick,
+                substitions: teamResultDto.substitions,
+                passes: teamResultDto.passes,
+                penaltykICK: teamResultDto.penaltyKick,
+                freeKick: teamResultDto.freeKick,
+            })
+            .expect(201);
+        console.log('match team result', response.body);
+    });
 
     //경기 결과 등록 팀1 멤버1 전체 저장
     it('/match/:matchId/result/member` (POST)', async () => {
@@ -620,7 +615,7 @@ describe('AppController (e2e) - 시나리오 4 - 아무 소속에 없는 회원 
                 results: allMemberResultDto.results,
             })
             .expect(201);
-            console.log("member result=",response.body);
+        console.log('member result=', response.body);
     });
 
     //경기 결과 등록 팀1 멤버2 전체 저장
@@ -640,61 +635,61 @@ describe('AppController (e2e) - 시나리오 4 - 아무 소속에 없는 회원 
 
         const response = await request(app.getHttpServer())
             .post(`/match/${matchId}/result/member`)
-            .set('Authorization', `Bearer ${accessToken4}`)
+            .set('Authorization', `Bearer ${accessToken1}`)
             .send({
                 results: allMemberResultDto.results,
             })
             .expect(201);
     });
 
-        //경기 결과 등록 팀2 멤버3 전체 저장
-        it('/match/:matchId/result/member` (POST)', async () => {
-            const allMemberResultDto = {
-                results: [
-                    {
-                        memberId: `${memberId3}`,
-                        assists: faker.number.int({ min: 0, max: 10 }),
-                        goals: faker.number.int({ min: 0, max: 10 }),
-                        yellowCards: faker.number.int({ min: 0, max: 3 }),
-                        redCards: faker.number.int({ min: 0, max: 2 }),
-                        save: faker.number.int({ min: 0, max: 10 }),
-                    },
-                ],
-            };
-    
-            const response = await request(app.getHttpServer())
-                .post(`/match/${matchId}/result/member`)
-                .set('Authorization', `Bearer ${accessToken4}`)
-                .send({
-                    results: allMemberResultDto.results,
-                })
-                .expect(201);
-                console.log("member result=",response.body);
-        });
-    
-        //경기 결과 등록 팀2 멤버4 전체 저장
-        it('/match/:matchId/result/member` (POST)', async () => {
-            const allMemberResultDto = {
-                results: [
-                    {
-                        memberId: `${memberId4}`,
-                        assists: faker.number.int({ min: 0, max: 10 }),
-                        goals: faker.number.int({ min: 0, max: 10 }),
-                        yellowCards: faker.number.int({ min: 0, max: 3 }),
-                        redCards: faker.number.int({ min: 0, max: 2 }),
-                        save: faker.number.int({ min: 0, max: 10 }),
-                    },
-                ],
-            };
-    
-            const response = await request(app.getHttpServer())
-                .post(`/match/${matchId}/result/member`)
-                .set('Authorization', `Bearer ${accessToken4}`)
-                .send({
-                    results: allMemberResultDto.results,
-                })
-                .expect(201);
-        });
+    //경기 결과 등록 팀2 멤버3 전체 저장
+    it('/match/:matchId/result/member` (POST)', async () => {
+        const allMemberResultDto = {
+            results: [
+                {
+                    memberId: `${memberId3}`,
+                    assists: faker.number.int({ min: 0, max: 10 }),
+                    goals: faker.number.int({ min: 0, max: 10 }),
+                    yellowCards: faker.number.int({ min: 0, max: 3 }),
+                    redCards: faker.number.int({ min: 0, max: 2 }),
+                    save: faker.number.int({ min: 0, max: 10 }),
+                },
+            ],
+        };
+
+        const response = await request(app.getHttpServer())
+            .post(`/match/${matchId}/result/member`)
+            .set('Authorization', `Bearer ${accessToken4}`)
+            .send({
+                results: allMemberResultDto.results,
+            })
+            .expect(201);
+        console.log('member result=', response.body);
+    });
+
+    //경기 결과 등록 팀2 멤버4 전체 저장
+    it('/match/:matchId/result/member` (POST)', async () => {
+        const allMemberResultDto = {
+            results: [
+                {
+                    memberId: `${memberId4}`,
+                    assists: faker.number.int({ min: 0, max: 10 }),
+                    goals: faker.number.int({ min: 0, max: 10 }),
+                    yellowCards: faker.number.int({ min: 0, max: 3 }),
+                    redCards: faker.number.int({ min: 0, max: 2 }),
+                    save: faker.number.int({ min: 0, max: 10 }),
+                },
+            ],
+        };
+
+        const response = await request(app.getHttpServer())
+            .post(`/match/${matchId}/result/member`)
+            .set('Authorization', `Bearer ${accessToken4}`)
+            .send({
+                results: allMemberResultDto.results,
+            })
+            .expect(201);
+    });
 
     //경기 결과 등록 멤버 전체 저장
     //   it('/match/:matchId/result/member` (POST)', async () => {
@@ -727,4 +722,3 @@ describe('AppController (e2e) - 시나리오 4 - 아무 소속에 없는 회원 
         await app.close();
     });
 });
-
