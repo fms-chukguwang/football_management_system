@@ -10,12 +10,14 @@ import {
     Req,
     ParseIntPipe,
     Get,
+    Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { MemberService } from './member.service';
 import { UpdateMemberInfoDto } from './dtos/update-member-info-dto';
 import { IsStaffGuard } from './guard/is-staff.guard';
+import { PaginateMembersDto } from './dtos/paginate-members-dto';
 
 @ApiTags('선수')
 @Controller()
@@ -229,8 +231,8 @@ export class MemberController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @Get('/team/:teamId/members')
-    async getTeamMembers(@Req() req: Request, @Param('teamId') teamId: number) {
-        const data = await this.memberService.getTeamMembers(teamId);
+    async getTeamMembers(@Req() req: Request, @Param('teamId') teamId: number, @Query() dto: PaginateMembersDto) {
+        const data = await this.memberService.getTeamMembers(teamId,dto,dto.name);
 
         // return {
         //     statusCode: HttpStatus.OK,

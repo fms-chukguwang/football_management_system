@@ -10,7 +10,7 @@ import { EmailModule } from '../email/email.module';
 import { RedisModule } from '../redis/redis.module';
 import { TeamModel } from '../team/entities/team.entity';
 import { ChatsModule } from '../chats/chats.module';
-
+import { CommonModule } from '../common/common.module';
 
 @Module({
     imports: [
@@ -18,6 +18,7 @@ import { ChatsModule } from '../chats/chats.module';
         AuthModule,
         UserModule,
         forwardRef(() => TeamModule),
+        CommonModule,
         EmailModule,
         RedisModule,
         ChatsModule,

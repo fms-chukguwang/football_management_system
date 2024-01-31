@@ -5,7 +5,7 @@ import { FindManyOptions, Repository } from 'typeorm';
 import { PaginateUserDto } from './dto/paginate-user.dto';
 import { CommonService } from '../common/common.service';
 import { PaginateTeamDto } from './dto/paginate-team.dto';
-import { TeamModel } from 'src/team/entities/team.entity';
+import { TeamModel } from '../team/entities/team.entity';
 
 @Injectable()
 export class AdminService {
