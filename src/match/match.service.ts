@@ -1074,10 +1074,15 @@ export class MatchService {
             where: { date },
         });
 
+        const soccerFieldData = await this.soccerFieldRepository.findOne({
+            where : {location_id:locationId}
+        })
+
         const times = ['10:00:00', '12:00:00', '14:00:00', '16:00:00', '18:00:00', '20:00:00'];
         const availableTimes = times.map((time) => {
+
             const isBooked = matches.some(
-                (match) => match.time === time && match.soccer_field_id === locationId,
+                (match) => match.time === time && match.soccer_field_id === soccerFieldData.id,
             );
             return {
                 time,
@@ -1152,7 +1157,7 @@ export class MatchService {
      */
     async getTeamSchedule(teamId: number, userId: number) {
         //팀의 멤버인지 검증
-        await this.isTeamMember(teamId, userId);
+        await this.isTeamMemberByUserId(teamId, userId);
 
         const rawResults = await this.dataSource.query(`
         SELECT 
@@ -1265,6 +1270,20 @@ export class MatchService {
 
         if (!member) {
             throw new BadRequestException('멤버 정보가 없습니다.');
+        }
+
+        return member;
+    }
+
+    async isTeamMemberByUserId(teamId: number, userId: number) {
+        const member = await this.memberRepository
+            .createQueryBuilder('members')
+            .where('members.team_id = :teamId', { teamId })
+            .andWhere('members.user_id = :userId', { userId })
+            .getOne();
+
+        if (!member) {
+            throw new NotFoundException('팀의 멤버가 아닙니다.');
         }
 
         return member;
