@@ -57,6 +57,7 @@ export class TeamController {
     @Get(':teamId')
     async getTeamDetail(@Param('teamId') teamId: number) {
         const [data, count] = await this.memberService.getMemberCountByTeamId(teamId);
+
         const team = await this.teamService.getTeamDetail(teamId);
         return {
             team,
@@ -105,6 +106,12 @@ export class TeamController {
 
     //    }
 
+    /**
+     * 팀 정보 수정
+     * @param updateTeamDto
+     * @param teamId
+     * @param file
+     */
     @UseGuards(JwtAuthGuard, IsStaffGuard)
     @UseInterceptors(FileInterceptor('file'))
     @Patch(':teamId')
@@ -113,8 +120,23 @@ export class TeamController {
         @Param('teamId') teamId: number,
         @UploadedFile() file?: Express.Multer.File,
     ) {
-        await this.teamService.updateTeam(teamId, updateTeamDto, file);
+        try {
+            await this.teamService.updateTeam(teamId, updateTeamDto, file);
+
+            return {
+                message: '업데이트가 성공하였습니다.',
+                statusCode: HttpStatus.OK,
+                success: true,
+            };
+        } catch (err) {
+            return {
+                message: `업데이트가 실패하였습니다. error ${err}`,
+                statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+                success: false,
+            };
+        }
     }
+
 
     /**
      * 팀 멤버 조회
@@ -134,4 +156,9 @@ export class TeamController {
             total: count,
         };
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Get(':teamId/stats')
+    getTeamStats(@Param('teamId') teamId: number) {}
+
 }

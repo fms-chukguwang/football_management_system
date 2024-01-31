@@ -274,47 +274,40 @@ export class AuthController {
 
       /**
      * 회원가입시 인증 번호 보내기
-     * @param verifyCodeDto - 사용자 이메일 및 인증 번호 비교
+     * @param emailVerifyDto - 사용자 이메일 및 인증 번호 비교
      * @returns 인증 결과 메시지
      */
 
-    @HttpCode(HttpStatus.OK)
-    @Post('/send-code')
-    async sendCode(@Body() verifyCodeDto: VerifyCodeDto) {
-        const { email, verificationCode } = verifyCodeDto;
-
-        // 이메일 중복 체크
-        const existingUser = await this.userService.findOneByEmail(email);
-        if (existingUser) {
-            return {
-                statusCode: HttpStatus.BAD_REQUEST,
-                message: '등록된 이메일 주소입니다.',
-            };
-        }
-
-        const emailSent = await this.emailService.sendVerificationEmail(email);
-
-        if (!emailSent) {
-            return {
-                statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-                message: '이메일 전송에 실패했습니다.',
-            };
-        }
-
-        const verificationResult = await this.emailService.verifyCode(email, verificationCode);
-
-        if (verificationResult) {
-            return {
-                statusCode: HttpStatus.OK,
-                message: '인증 성공',
-            };
-        } else {
-            return {
-                statusCode: HttpStatus.BAD_REQUEST,
-                message: '인증 실패',
-            };
-        }
-    }
+       @HttpCode(HttpStatus.OK)
+       @Post('/send-code')
+       async sendCode(@Body() emailVerifyDto: EmailVerifyDto) {
+           const { email } = emailVerifyDto;
+       
+           // 이메일 중복 체크
+           const existingUser = await this.userService.findOneByEmailForVerification(email);
+           console.log(existingUser);
+           if (existingUser) {
+               return {
+                   statusCode: HttpStatus.BAD_REQUEST,
+                   message: '등록된 이메일 주소입니다.',
+               };
+           }
+       
+           const emailSent = await this.emailService.sendVerificationEmail(email);
+       
+           if (!emailSent) {
+               return {
+                   statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+                   message: '이메일 전송에 실패했습니다.',
+               };
+           }
+       
+           return {
+               statusCode: HttpStatus.OK,
+               message: '이메일 인증 코드를 전송했습니다.',
+           };
+       }
+       
 
     /**
      * 회원가입시 인증 번호 검증

@@ -32,6 +32,8 @@ import { WebhookInterceptor } from './common/interceptors/webhook.interceptor';
 import { FormationModule } from './formation/formation.module';
 import { RavenInterceptor, RavenModule } from 'nest-raven';
 import { SentryInterceptor } from './common/interceptors/sentry.interceptor';
+import { StatisticsModule } from './statistics/statistics.module';
+
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -57,6 +59,7 @@ import { SentryInterceptor } from './common/interceptors/sentry.interceptor';
         JobsModule,
         FormationModule,
         RavenModule,
+        StatisticsModule,
     ],
     controllers: [AppController],
     providers: [

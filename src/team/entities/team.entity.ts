@@ -17,7 +17,7 @@ import { Transform } from 'class-transformer';
 import { Member } from '../../member/entities/member.entity';
 import { Factory } from 'nestjs-seeder';
 import { Match } from '../../match/entities/match.entity';
-import { Chats } from 'src/chats/entities/chats.entity';
+import { Chats } from '../../chats/entities/chats.entity';
 import { MatchFormation } from '../../formation/entities/formation.entity';
 
 

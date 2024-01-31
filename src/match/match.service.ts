@@ -31,6 +31,7 @@ import { Member } from '../member/entities/member.entity';
 import { SoccerField } from './entities/soccer-field.entity';
 import { AwsService } from '../aws/aws.service';
 import { ResultMembersDto } from './dtos/result-final.dto';
+import { time } from 'console';
 
 @Injectable()
 export class MatchService {
@@ -166,40 +167,39 @@ export class MatchService {
         return match;
     }
 
-/**
- * 경기가 끝났는지 조회
- * @param matchId
- * @returns
- */
- async findIfMatchOver(matchId: number) {
-    const match = await this.matchRepository.findOne({
-        where: { id: matchId },
-    });
+    /**
+     * 경기가 끝났는지 조회
+     * @param matchId
+     * @returns
+     */
+    async findIfMatchOver(matchId: number) {
+        const match = await this.matchRepository.findOne({
+            where: { id: matchId },
+        });
 
-    if (!match) {
-        throw new NotFoundException('해당 ID의 경기 일정이 없습니다.');
+        if (!match) {
+            throw new NotFoundException('해당 ID의 경기 일정이 없습니다.');
+        }
+
+        // match.date와 match.time을 합쳐서 matchEndTime을 만듬
+        const matchEndTime = new Date(`${match.date} ${match.time}`);
+
+        // 경기 종료 시간을 2시간 더한 시간과 현재 시간을 비교하여 경기가 끝났는지 확인
+        const matchEndTimePlus2Hours = new Date(matchEndTime);
+        matchEndTimePlus2Hours.setHours(matchEndTimePlus2Hours.getHours() + 2);
+
+        const currentTime = new Date();
+
+        console.log('current Time=', currentTime);
+        console.log('match time=', match.date, match.time);
+        console.log('match end time +2 hr=', matchEndTimePlus2Hours);
+
+        if (currentTime < matchEndTimePlus2Hours) {
+            throw new NotFoundException('경기가 아직 안끝났습니다.');
+        }
+
+        return true;
     }
-
-    // match.date와 match.time을 합쳐서 matchEndTime을 만듬
-    const matchEndTime = new Date(`${match.date} ${match.time}`);
-
-    // 경기 종료 시간을 2시간 더한 시간과 현재 시간을 비교하여 경기가 끝났는지 확인
-    const matchEndTimePlus2Hours = new Date(matchEndTime);
-    matchEndTimePlus2Hours.setHours(matchEndTimePlus2Hours.getHours() + 2);
-
-    const currentTime = new Date();
-    
-    console.log("current Time=", currentTime);
-    console.log("match time=", match.date, match.time);
-    console.log("match end time +2 hr=", matchEndTimePlus2Hours);
-
-    if (currentTime < matchEndTimePlus2Hours) {
-        throw new NotFoundException('경기가 아직 안끝났습니다.');
-    }
-
-    return true;
-}
-
 
     /**
      * 경기 수정 이메일 요청(상대팀 구단주에게)
@@ -374,15 +374,15 @@ export class MatchService {
      * @param  teamId
      * @returns
      */
-    async getTeamMatchResult(matchId:number, teamId: number) {
+    async getTeamMatchResult(matchId: number, teamId: number) {
         const team = await this.matchResultRepository.findOne({
             where: {
                 match_id: matchId,
-                team_id:teamId
+                team_id: teamId,
             },
             relations: {
                 match: true,
-            }
+            },
         });
 
         if (!team) {
@@ -444,7 +444,6 @@ export class MatchService {
         await queryRunner.startTransaction();
 
         try {
-
             await queryRunner.manager.save('match_results', matchResult);
 
             await queryRunner.commitTransaction();
@@ -470,14 +469,12 @@ export class MatchService {
      * @param  matchId
      * @returns
      */
-    async getMembersMatchResult(matchId:number, teamId: number) {
-
-
+    async getMembersMatchResult(matchId: number, teamId: number) {
         const memberStats = await this.playerStatsRepository.find({
             where: {
                 match_id: matchId,
-                team_id:teamId
-            }
+                team_id: teamId,
+            },
         });
 
         if (!memberStats) {
@@ -560,7 +557,7 @@ export class MatchService {
 
         let goalsCount = 0;
 
-            const matches = await this.matchResultRepository.find({where:{match_id:matchId}});
+        const matches = await this.matchResultRepository.find({ where: { match_id: matchId } });
 
         const queryRunner = this.dataSource.createQueryRunner();
 
@@ -622,7 +619,7 @@ export class MatchService {
                 await queryRunner.manager.save(playerStats);
             }
 
-                const matchResultCount = await this.matchResultCount(matchId);
+            const matchResultCount = await this.matchResultCount(matchId);
 
             let this_clean_sheet = false;
             let other_clean_sheet = false;
@@ -1201,15 +1198,53 @@ export class MatchService {
     async getMember(userId: number) {
         const member = await this.memberRepository.findOne({
             relations: {
-                user: true,
+                user: {
+                    profile: true, 
+                },
                 team: true,
+                playerstats: {
+                    match: true, 
+                },
             },
             select: {
                 user: {
                     id: true,
+                    profile: {
+                        id: true,
+                        skillLevel: true,
+                        weight: true,
+                        height: true,
+                        preferredPosition: true,
+                        imageUrl: true,
+                        age: true,
+                        phone: true,
+                        birthdate: true,
+                        gender: true,
+                        name: true,
+                    },
                 },
                 team: {
                     id: true,
+                },
+                playerstats: {
+                    id: true,
+                    clean_sheet: true,
+                    assists: true,
+                    goals: true,
+                    yellow_cards: true,
+                    red_cards: true,
+                    substitutions: true,
+                    save: true,
+                    match_id: true,
+                    match: {
+                        id: true,
+                        date: true,
+                        time: true,
+                        soccer_field_id: true,
+                        home_team_id: true,
+                        away_team_id: true,
+                        result: true,
+                    },
                 },
             },
 

@@ -4,7 +4,7 @@ import { Message } from './entities/messages.entity';
 import { Repository } from 'typeorm';
 import { CreateMessagesDto } from './dto/create-message.dto';
 import { PaginateMessageDto } from './dto/paginate-message.dto';
-import { CommonService } from 'src/common/common.service';
+import { CommonService } from '../common/common.service';
 
 @Injectable()
 export class ChatMessagesService {
