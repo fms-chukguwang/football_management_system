@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile } from './entities/profile.entity';
-import { FindManyOptions, QueryRunner, Repository, ILike, Like, IsNull } from 'typeorm';
+import { FindManyOptions, QueryRunner, Repository, ILike, Like, IsNull, DataSource } from 'typeorm';
 import { RegisterProfileInfoDto } from './dtos/register-profile-info';
 import { User } from '../user/entities/user.entity';
 import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
@@ -11,6 +11,7 @@ import { PaginateProfileDto } from './dtos/paginate-profile-dto';
 import { CommonService } from '../common/common.service';
 import { TeamController } from 'src/team/team.controller';
 import { Gender } from 'src/enums/gender.enum';
+import { AwsService } from 'src/aws/aws.service';
 
 @Injectable()
 export class ProfileService {
@@ -22,6 +23,8 @@ export class ProfileService {
         @InjectRepository(Member)
         private readonly memberRepository: Repository<Member>,
         private readonly commonService: CommonService,
+        private readonly awsService: AwsService,
+        private readonly dataSource: DataSource,
     ) {}
 
     //   async getTeamNameByUserId(userId: string): Promise<string | null> {
@@ -53,61 +56,67 @@ export class ProfileService {
         return await this.commonService.paginate(dto, this.profileRepository, options, 'profile');
     }
 
+    async paginateProfile(userId: number, dto: PaginateProfileDto, name?: string) {
+        try {
+            const user = await this.userRepository.findOne({
+                where: { id: userId },
+                relations: ['team'],
+            });
 
-async paginateProfile(userId: number, dto: PaginateProfileDto, name?: string) {
-    try {
-        const user = await this.userRepository.findOne({ where: { id: userId }, relations: ['team'] });
+            console.log('uesr=', user);
+            if (!user || !user.team) {
+                throw new Error('User or team not found');
+            }
 
-        console.log("uesr=",user)
-        if (!user || !user.team) {
-            throw new Error('User or team not found');
-        }
+            // 팀이 혼성이 아니라면 동일한 성별의 프로필들만 보여줌
+            const mixedGenderTeam = user.team.isMixedGender;
+            let options: FindManyOptions<Profile>;
 
-        // 팀이 혼성이 아니라면 동일한 성별의 프로필들만 보여줌
-        const mixedGenderTeam = user.team.isMixedGender;
-        let options: FindManyOptions<Profile>;
-
-        if (!mixedGenderTeam) {
-            options = {
-                relations: { user: { member: { team: true } } },
-                where: {
-                    user: {
-                        profile: {
-                            gender: user.team.gender, // 팀의 성별을 기준으로 검색
-                        },
-                        member: {
-                            team: IsNull(),
-                        },
-                    },
-                },
-            };
-        } else {
-            // 혼성 팀이면 모든 프로필 허용
-            options = {
-                relations: { user: { member: { team: true } } },
-                where: {
-                    user: {
-                        member: {
-                            team: IsNull(),
+            if (!mixedGenderTeam) {
+                options = {
+                    relations: { user: { member: { team: true } } },
+                    where: {
+                        user: {
+                            profile: {
+                                gender: user.team.gender, // 팀의 성별을 기준으로 검색
+                            },
+                            member: {
+                                team: IsNull(),
+                            },
                         },
                     },
-                },
-            };
+                };
+            } else {
+                // 혼성 팀이면 모든 프로필 허용
+                options = {
+                    relations: { user: { member: { team: true } } },
+                    where: {
+                        user: {
+                            member: {
+                                team: IsNull(),
+                            },
+                        },
+                    },
+                };
+            }
+
+            if (name) {
+                options.where = { user: { name: Like(`%${name}%`) } };
+            }
+
+            const data = await this.profileRepository.find(options);
+
+            return await this.commonService.paginate(
+                dto,
+                this.profileRepository,
+                options,
+                'profile',
+            );
+        } catch (error) {
+            console.error('Error in paginateProfile:', error);
+            throw new Error('Error in paginateProfile');
         }
-
-        if (name) {
-            options.where = { user: { name: Like(`%${name}%`) } };
-        }
-
-        const data = await this.profileRepository.find(options);
-
-        return await this.commonService.paginate(dto, this.profileRepository, options, 'profile');
-    } catch (error) {
-        console.error('Error in paginateProfile:', error);
-        throw new Error('Error in paginateProfile');
     }
-}
-
 
     async searchProfile(name?: string) {
         const options: FindManyOptions<Profile> = {
@@ -179,11 +188,10 @@ async paginateProfile(userId: number, dto: PaginateProfileDto, name?: string) {
     async registerProfile(
         userId: number,
         registerProfileInfoDto: RegisterProfileInfoDto,
-        qr?: QueryRunner,
+        file: Express.Multer.File,
     ): Promise<Profile> {
-        const profileRepository = this.getProfileRepository(qr);
-        const userRepository = this.getUserRepository(qr);
-        const memberRepository = this.getMemberRepository(qr);
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
 
         const user = await this.userRepository.findOne({
             where: { id: userId },
@@ -203,21 +211,35 @@ async paginateProfile(userId: number, dto: PaginateProfileDto, name?: string) {
             user.profile = new Profile();
         }
 
-        const registeredProfile = await profileRepository.save({
-            ...registerProfileInfoDto,
-            name: user.name,
-            user,
-            member,
-        });
-        // const registeredProfile = await profileRepository.save(user.profile);
-        // throw new Error('Method not implemented.');
-        await userRepository.save({ ...user, profile: registeredProfile });
-        return registeredProfile;
+        try {
+            await queryRunner.startTransaction();
+            const imageUUID = await this.awsService.uploadFile(file);
+
+            const registeredProfile = await this.profileRepository.save({
+                ...registerProfileInfoDto,
+                name: user.name,
+                user,
+                member,
+                imageUUID,
+            });
+            // const registeredProfile = await profileRepository.save(user.profile);
+            // throw new Error('Method not implemented.');
+            await this.userRepository.save({ ...user, profile: registeredProfile });
+
+            await queryRunner.commitTransaction();
+            return registeredProfile;
+        } catch (err) {
+            console.log(err);
+            await queryRunner.rollbackTransaction();
+        } finally {
+            await queryRunner.release();
+        }
     }
 
     async updateProfileInfo(
         userId: number,
         updateProfileInfoDto: UpdateProfileInfoDto,
+        file?: Express.Multer.File,
     ): Promise<Profile> {
         try {
             console.log('Update Profile Info - UserId:', userId);
@@ -229,15 +251,11 @@ async paginateProfile(userId: number, dto: PaginateProfileDto, name?: string) {
                 relations: ['profile'],
             });
 
-            console.log('User:', user);
-
             if (!user) {
                 throw new NotFoundException('User not found');
             }
 
-            // Ensure the profile is loaded
             if (!user.profile) {
-                // Load the profile separately
                 user.profile = await this.profileRepository.findOne({
                     where: { user: { id: userId } },
                 });
@@ -247,19 +265,12 @@ async paginateProfile(userId: number, dto: PaginateProfileDto, name?: string) {
                 }
             }
 
-            console.log('User Profile:', user.profile);
+            const imageUUID = await this.awsService.uploadFile(file);
 
-            // Update profile fields
-            // user.profile.preferredPosition = updateProfileInfoDto.preferredPosition;
-            // user.profile.weight = updateProfileInfoDto.weight;
-            // user.profile.height = updateProfileInfoDto.height;
-            // user.profile.age = updateProfileInfoDto.age;
-            // user.profile.gender = updateProfileInfoDto.gender;
-
-            // Save the updated profile
             const updatedProfile = await this.profileRepository.save({
                 ...user.profile,
                 ...updateProfileInfoDto,
+                imageUUID,
             });
 
             console.log('Updated Profile:', updatedProfile);
