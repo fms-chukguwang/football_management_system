@@ -4,6 +4,7 @@ import { MatchResult } from '../match/entities/match-result.entity';
 import { TeamStats } from '../match/entities/team-stats.entity';
 import { Repository } from 'typeorm';
 import { StatisticsDto } from './dto/statistics.dto';
+import { PlayerStats } from 'src/match/entities/player-stats.entity';
 
 @Injectable()
 export class StatisticsService {
@@ -12,11 +13,13 @@ export class StatisticsService {
         private readonly teamStatsRepository: Repository<TeamStats>,
         @InjectRepository(MatchResult)
         private readonly matchResultRepository: Repository<MatchResult>,
+        @InjectRepository(PlayerStats)
+        private readonly playerStatsRepository: Repository<PlayerStats>,
     ) {}
 
     async getTeamStats(teamId: number): Promise<StatisticsDto> {
-        const getWinsAndLosesAndDraws = await this.getWinsAndLosesAndDraws(teamId);
         const goals = await this.getGoals(teamId);
+        const getWinsAndLosesAndDraws = await this.getWinsAndLosesAndDraws(teamId);
         const conceded = await this.getConceded(teamId);
         const cleanSheet = await this.getCleanSheet(teamId);
         // const count = await this.getStatsForOtherTeams(teamId);
@@ -59,15 +62,20 @@ export class StatisticsService {
      * @returns
      */
     async getGoals(teamId: number) {
-        const goals = await this.matchResultRepository
-            .createQueryBuilder('match_results')
-            .select(['SUM(match_results.goals) as totalGoals'])
-            .where('match_results.team_id = :teamId', { teamId })
+        const goals = await this.playerStatsRepository
+            .createQueryBuilder('player_statistics')
+            .select(['SUM(player_statistics.goals) as totalGoals'])
+            .where('player_statistics.team_id = :teamId', { teamId })
             .getRawOne();
 
-        return goals.totalGoals;
+        return Number(goals.totalGoals);
     }
 
+    /**
+     * 해당팀 클린시트 개수 가져오기
+     * @param teamId
+     * @returns
+     */
     async getCleanSheet(teamId: number) {
         const cleanSheet = await this.matchResultRepository
             .createQueryBuilder('match')
