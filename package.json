@@ -45,7 +45,7 @@
         "@slack/webhook": "^7.0.2",
         "@types/multer": "^1.4.11",
         "aws-sdk": "^2.1542.0",
-        "axios": "^1.6.5",
+        "axios": "^1.6.7",
         "bcrypt": "^5.1.1",
         "cache-manager": "^5.3.2",
         "cache-manager-ioredis": "^2.1.0",
