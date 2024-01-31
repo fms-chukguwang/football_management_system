@@ -16,4 +16,14 @@ export class StatisticsController {
     async getTeamStats(@Param('teamId') teamId: number) {
         return await this.statisticsService.getTeamStats(teamId);
     }
+
+        /**
+     * 개인 통계 가져오기
+     * @param memberId
+     * @returns
+     */
+         @Get('/:memberId')
+         async getMemberStats(@Param('memberId') memberId: number) {
+             return await this.statisticsService.getMemberStats(memberId);
+         }
 }
