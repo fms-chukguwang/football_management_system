@@ -1,6 +1,8 @@
 import { Controller, Get, Param } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { StatisticsService } from './statistics.service';
 
+@ApiTags('통계')
 @Controller('statistics')
 export class StatisticsController {
     constructor(private readonly statisticsService: StatisticsService) {}
