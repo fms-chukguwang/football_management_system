@@ -30,7 +30,10 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { JobsModule } from './jobs/jobs.module';
 import { WebhookInterceptor } from './common/interceptors/webhook.interceptor';
 import { FormationModule } from './formation/formation.module';
+import { RavenInterceptor, RavenModule } from 'nest-raven';
+import { SentryInterceptor } from './common/interceptors/sentry.interceptor';
 import { StatisticsModule } from './statistics/statistics.module';
+
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -55,6 +58,7 @@ import { StatisticsModule } from './statistics/statistics.module';
         ScheduleModule.forRoot(),
         JobsModule,
         FormationModule,
+        RavenModule,
         StatisticsModule,
     ],
     controllers: [AppController],
@@ -64,10 +68,14 @@ import { StatisticsModule } from './statistics/statistics.module';
             provide: APP_INTERCEPTOR,
             useClass: LogInterceptor,
         },
-        // {
-        //     provide: APP_INTERCEPTOR,
-        //     useClass: WebhookInterceptor,
-        // },
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: WebhookInterceptor,
+        },
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: SentryInterceptor,
+        },
     ],
 })
 export class AppModule implements NestModule {

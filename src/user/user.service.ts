@@ -24,11 +24,19 @@ export class UserService {
             where: {
                 id,
             },
-            relations: {
-                profile: true,
-                team: true,
-            },
+            relations: [
+                'profile',
+                'member',
+                'member.team',
+                'member.team.chat',
+                'team',
+                'team.chat',
+                'team.members',
+                'team.members.user',
+            ],
         });
+
+
 
         if (!user) {
             throw new NotFoundException('사용자를 찾을 수 없습니다.');

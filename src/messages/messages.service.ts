@@ -26,7 +26,7 @@ export class ChatMessagesService {
                 },
                 relations: ['author'],
             },
-            'messages',
+            `chats/${chatId}/messages/`,
         );
     }
 

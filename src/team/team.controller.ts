@@ -137,7 +137,28 @@ export class TeamController {
         }
     }
 
+
+    /**
+     * 팀 멤버 조회
+     * @param query
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get(':teamId/member')
+    async getTeamMembers(@Param('teamId') teamId: number) {
+        const [data, count] = await this.memberService.getMemberCountByTeamId(teamId);
+        const nameToMemberId = data.map((member) => {
+            return { name: member.user.name, memberId: member.id };
+        });
+        return {
+            data: nameToMemberId,
+            total: count,
+        };
+    }
+
     @UseGuards(JwtAuthGuard)
     @Get(':teamId/stats')
     getTeamStats(@Param('teamId') teamId: number) {}
+
 }
