@@ -115,8 +115,9 @@ export class MatchService {
         const payload = await this.jwtService.verify(creatematchDto.token, {
             secret: this.configService.get<string>('JWT_SECRET'),
         });
+
         const user = await this.userRepository.findOne({
-            where: { id: payload.userId },
+            where: { id: payload.id },
         });
 
         if (!user) {
@@ -629,6 +630,8 @@ export class MatchService {
                 // 모든 경기 결과에서 goals이 null이 아닌지 확인
                 const allGoalsNotNull = matches.every((match) => match.goals !== null);
 
+                console.log('allGoalsNotNull:',allGoalsNotNull);
+
                 if (allGoalsNotNull) {
                     // 모든 goals의 값이 null이 아닌 경우의 처리를 여기에 작성합니다.
                     throw new NotFoundException('이미 경기결과가 집계 되었습니다.');
@@ -683,6 +686,7 @@ export class MatchService {
                     await this.teamStatsRepository.update(
                         {
                             team_id: homeCreator[0].id,
+                            id:thisTeamStats.id
                         },
                         {
                             wins: thisTeamStatsWins,
@@ -721,19 +725,21 @@ export class MatchService {
 
                 // thisTeamStats가 존재하면 기존 wins 값에 this_win을 더함
                 if (otherTeamStats) {
+
                     otherTeamStatsWins = otherTeamStats.wins + other_win;
                     otherTeamStatsLoses = otherTeamStats.loses + other_lose;
                     otherTeamStatsDraws = otherTeamStats.draws + other_draw;
 
-                    await this.teamStatsRepository.update(
+                    await queryRunner.manager.update('team_statistics',
                         {
                             team_id: otherTeam.team_id,
+                            id:otherTeamStats.id
                         },
                         {
                             wins: otherTeamStatsWins,
                             loses: otherTeamStatsLoses,
                             draws: otherTeamStatsDraws,
-                            total_games: getOtherTeamStats ? getOtherTeamStats.total_games + 1 : 1,
+                            total_games: (getOtherTeamStats ? getOtherTeamStats.total_games + 1 : 1),
                         },
                     );
                 } else {
@@ -783,6 +789,7 @@ export class MatchService {
                 throw error;
             } else {
                 // 그 외의 예외
+                console.log('error:',error);
                 throw new InternalServerErrorException('서버 에러가 발생했습니다.');
             }
         } finally {
@@ -842,11 +849,12 @@ export class MatchService {
             .where('team.creator_id=:userId', { userId })
             .getMany();
 
+            console.log('userId:',userId);
+            console.log('creator:',creator);
+
         if (!creator[0]) {
             throw new BadRequestException('구단주가 아닙니다.');
         }
-
-        console.log(`creator : ${creator}`);
 
         const user = await this.getUserInfo(userId);
 
@@ -861,7 +869,6 @@ export class MatchService {
         }));
 
         return updatedCreator;
-        //return updatedCreator;
     }
 
     /**
@@ -1209,6 +1216,7 @@ export class MatchService {
             select: {
                 user: {
                     id: true,
+                    email: true,
                     profile: {
                         id: true,
                         skillLevel: true,
@@ -1266,7 +1274,7 @@ export class MatchService {
         const member = await this.memberRepository
             .createQueryBuilder('members')
             .where('members.team_id = :teamId', { teamId })
-            .andWhere('members.user_id = :memberId', { memberId })
+            .andWhere('members.id = :memberId', { memberId })
             .getOne();
 
         if (!member) {
