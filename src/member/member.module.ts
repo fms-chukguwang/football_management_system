@@ -8,9 +8,9 @@ import { UserModule } from '../user/user.module';
 import { TeamModule } from '../team/team.module';
 import { EmailModule } from '../email/email.module';
 import { RedisModule } from '../redis/redis.module';
-import { TeamModel } from 'src/team/entities/team.entity';
-import { ChatsModule } from 'src/chats/chats.module';
-import { ProfileModule } from 'src/profile/profile.module';
+import { TeamModel } from '../team/entities/team.entity';
+import { ChatsModule } from '../chats/chats.module';
+
 
 @Module({
     imports: [

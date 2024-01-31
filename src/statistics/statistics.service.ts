@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MatchResult } from 'src/match/entities/match-result.entity';
-import { TeamStats } from 'src/match/entities/team-stats.entity';
+import { MatchResult } from '../match/entities/match-result.entity';
+import { TeamStats } from '../match/entities/team-stats.entity';
 import { Repository } from 'typeorm';
 import { StatisticsDto } from './dto/statistics.dto';
 import { PlayerStats } from 'src/match/entities/player-stats.entity';

@@ -8,6 +8,7 @@ import { HttpExceptionFilter } from './common/exception-filter/http.exception-fi
 import { winstonLogger } from './configs/winston.config';
 import { LoggingService } from './logging/logging.service';
 import * as Sentry from '@sentry/node';
+import { ProfilingIntegration } from '@sentry/profiling-node';
 
 async function bootstrap() {
     const app = await NestFactory.create(
@@ -17,12 +18,33 @@ async function bootstrap() {
         // }
     );
 
+    const appInstance = app.getHttpAdapter().getInstance();
     // .env 파일을 현재 환경에 로드
     dotenv.config();
 
-    // Sentry.init({
-    //     dsn: process.env.SENTRY_DSN,
-    // });
+    Sentry.init({
+        dsn: 'https://b339c761a776126b9106d85dc91adad0@o4506635578441728.ingest.sentry.io/4506661613010944',
+        integrations: [
+            // enable HTTP calls tracing
+            new Sentry.Integrations.Http({ tracing: true }),
+            // enable Express.js middleware tracing
+            new Sentry.Integrations.Express({ app: appInstance }),
+            new ProfilingIntegration(),
+        ],
+        // Performance Monitoring
+        tracesSampleRate: 1.0, //  Capture 100% of the transactions
+        // Set sampling rate for profiling - this is relative to tracesSampleRate
+        profilesSampleRate: 1.0,
+    });
+
+    // The request handler must be the first middleware on the app
+    app.use(Sentry.Handlers.requestHandler());
+
+    // TracingHandler creates a trace for every incoming request
+    app.use(Sentry.Handlers.tracingHandler());
+
+    // The error handler must be registered before any other error middleware and after all controllers
+    app.use(Sentry.Handlers.errorHandler());
 
     const configService = app.get(ConfigService);
     const port = configService.get<number>('SERVER_PORT');

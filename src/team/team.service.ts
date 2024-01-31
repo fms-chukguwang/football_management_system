@@ -21,9 +21,9 @@ import {
 import { UpdateTeamDto } from './dtos/update-team.dto';
 import { PaginateTeamDto } from './dtos/paginate-team-dto';
 import { CommonService } from '../common/common.service';
-import { RedisService } from 'src/redis/redis.service';
-import { ChatsService } from 'src/chats/chats.service';
-import { CreateChatDto } from 'src/chats/dto/create-chat.dto';
+import { RedisService } from '../redis/redis.service';
+import { ChatsService } from '../chats/chats.service';
+import { CreateChatDto } from '../chats/dto/create-chat.dto';
 
 @Injectable()
 export class TeamService {
@@ -45,14 +45,8 @@ export class TeamService {
             where: {
                 id,
             },
-            relations: [
-                'location',
-                'creator',
-                'members',
-                'homeMatch',
-                'awayMatch',
-                'matchFormation',
-            ],
+            relations:  ['location', 'creator', 'members', 'homeMatch', 'awayMatch']
+        
         });
 
         if (!team) {

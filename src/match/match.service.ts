@@ -1198,9 +1198,13 @@ export class MatchService {
     async getMember(userId: number) {
         const member = await this.memberRepository.findOne({
             relations: {
-                user: true,
+                user: {
+                    profile: true, 
+                },
                 team: true,
-                playerstats: true,
+                playerstats: {
+                    match: true, 
+                },
             },
             select: {
                 user: {

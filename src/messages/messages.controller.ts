@@ -12,7 +12,9 @@ export class MessagesController {
     // }
 
     @Get()
-    paginateMessages(@Query() dto: PaginateMessageDto, @Param('chatId') chatId: number) {
-        return this.chatMessagesService.paginateMessages(dto, chatId);
+    async paginateMessages(@Query() dto: PaginateMessageDto, @Param('chatId') chatId: number) {
+        const data = await this.chatMessagesService.paginateMessages(dto, chatId);
+        console.log('paginate= ', data);
+        return data;
     }
 }

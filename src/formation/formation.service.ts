@@ -27,15 +27,15 @@ export class FormationService {
      * @param  matchId
      * @returns
      */
-    async getMatchFormation(teamId: number,matchId: number,position?: string) {
+    async getMatchFormation(teamId: number,matchId: number,id?: number) {
         const whereCondition = {
             team_id: teamId,
             match_id: matchId,
           };
         
           // position 변수가 제공되면 where 조건에 추가
-          if (position) {
-            whereCondition['position'] = position;
+          if (id) {
+            whereCondition['member_id'] = id;
           }
         
           const matchFormation = await this.matchFormationRepository.find({
@@ -85,60 +85,26 @@ export class FormationService {
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
-        // TODO: 인원 중복 입력시 저장 안되게
-
         try{
-            
-            for(const updateformationDto of updateFormationDto.playerPositions){
 
-                const matchFormationAndPosition = await this.getMatchFormation(teamId,matchId,updateformationDto.position);
+            // 조회한 모든 기존 포메이션 정보를 삭제
+            if (matchFormation.length > 0) {
+                await queryRunner.manager.delete('match_formations', {
+                    team_id: teamId,
+                    match_id: matchId
+                });
+            }
 
-                // 팀별 포메이션 정보가 없으면 insert
-                if(matchFormation.length===0 || matchFormationAndPosition.length===0){
-
-                    // DTO를 사용하여 데이터베이스에 저장
-                    const playerFormation = this.matchFormationRepository.create({
-                        team_id: teamId,
-                        match_id: matchId,
-                        member_id: updateformationDto.id,
-                        formation: updateFormationDto.currentFormation,
-                        position: updateformationDto.position,
-                    });
-
-                    await queryRunner.manager.save(playerFormation);
-
-                }else{
-
-                    console.log('updateformationDto.id:',updateformationDto.id);
-                    console.log('matchFormation[0].id:',matchFormationAndPosition[0].id);
-
-                    if (matchFormationAndPosition.length > 0 && updateformationDto.id !== matchFormationAndPosition[0].id) {
-                        // 포지션이 변경된 경우, 기존 포메이션 삭제
-                        await queryRunner.manager.remove(matchFormationAndPosition[0]);
-
-                        const playerFormation = this.matchFormationRepository.create({
-                            team_id: teamId,
-                            match_id: matchId,
-                            member_id: updateformationDto.id,
-                            formation: updateFormationDto.currentFormation,
-                            position: updateformationDto.position,
-                        });
-    
-                        await queryRunner.manager.save(playerFormation);
-
-                    }
-    
-                    // DTO를 사용하여 데이터베이스에 저장
-                    await queryRunner.manager.update('match_formations',{
-                        team_id:teamId,
-                        match_id:matchId,
-                        member_id: updateformationDto.id
-                    },{
-                        formation: updateFormationDto.currentFormation,
-                        position: updateformationDto.position,
-                    });
-
-                }
+            // 새 포메이션 정보 삽입
+            for (const playerPosition of updateFormationDto.playerPositions) {
+                const playerFormation = this.matchFormationRepository.create({
+                    team_id: teamId,
+                    match_id: matchId,
+                    member_id: playerPosition.id,
+                    formation: updateFormationDto.currentFormation,
+                    position: playerPosition.position,
+                });
+                await queryRunner.manager.save(playerFormation);
             }
 
             await queryRunner.commitTransaction();

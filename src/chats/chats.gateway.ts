@@ -211,7 +211,6 @@ export class ChatsGateway implements OnGatewayConnection {
         @ConnectedSocket() socket: Socket,
     ) {
         const chatExists = await this.chatsService.checkIdChatExists(creatMessagesDto.chatId);
-
         if (!chatExists) {
             throw new WsException({
                 statusCode: 404,
