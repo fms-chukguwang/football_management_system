@@ -233,8 +233,12 @@ export class MemberController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @Get('/team/:teamId/members')
-    async getTeamMembers(@Req() req: Request, @Param('teamId') teamId: number, @Query() dto: PaginateMembersDto) {
-        const data = await this.memberService.getTeamMembers(teamId,dto,dto.name);
+    async getTeamMembers(
+        @Req() req: Request,
+        @Param('teamId') teamId: number,
+        @Query() dto: PaginateMembersDto,
+    ) {
+        const data = await this.memberService.getTeamMembers(teamId, dto, dto.name);
 
         // return {
         //     statusCode: HttpStatus.OK,

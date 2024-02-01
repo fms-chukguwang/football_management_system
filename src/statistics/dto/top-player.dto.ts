@@ -7,6 +7,7 @@ export class TopPlayerDto {
         memberId: number;
         userName: string;
         totalGoals: number;
+        image: string;
     }>;
 
     @ApiHideProperty()
@@ -15,6 +16,7 @@ export class TopPlayerDto {
         memberId: number;
         userName: string;
         totalAssists: number;
+        image: string;
     }>;
 
     @ApiHideProperty()
@@ -23,6 +25,7 @@ export class TopPlayerDto {
         memberId: number;
         userName: string;
         joining: number;
+        image: string;
     }>;
 
     @ApiHideProperty()
@@ -31,6 +34,7 @@ export class TopPlayerDto {
         memberId: number;
         userName: string;
         totalSave: number;
+        image: string;
     }>;
 
     @ApiHideProperty()
@@ -39,5 +43,6 @@ export class TopPlayerDto {
         memberId: number;
         userName: string;
         attactPoint: number;
+        image: string;
     }>;
 }
