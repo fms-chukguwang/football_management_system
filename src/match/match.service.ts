@@ -420,7 +420,7 @@ export class MatchService {
         }
 
         // 경기 결과 멤버 체크
-        await this.chkResultMember(userId, matchId, creatematchResultDto);
+        //await this.chkResultMember(userId, matchId, creatematchResultDto);
 
         //경기 결과
         const matchResult = this.matchResultRepository.create({
