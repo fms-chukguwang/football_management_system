@@ -10,11 +10,8 @@ import {
     Req,
     ParseIntPipe,
     Get,
-<<<<<<< HEAD
     BadRequestException,
-=======
     Query,
->>>>>>> f0b394f129abb07ce27b08078c7edd476711dc8e
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
