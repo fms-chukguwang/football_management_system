@@ -115,8 +115,9 @@ export class MatchService {
         const payload = await this.jwtService.verify(creatematchDto.token, {
             secret: this.configService.get<string>('JWT_SECRET'),
         });
+
         const user = await this.userRepository.findOne({
-            where: { id: payload.userId },
+            where: { id: payload.id },
         });
 
         if (!user) {
@@ -419,7 +420,7 @@ export class MatchService {
         }
 
         // 경기 결과 멤버 체크
-        await this.chkResultMember(userId, matchId, creatematchResultDto);
+        //await this.chkResultMember(userId, matchId, creatematchResultDto);
 
         //경기 결과
         const matchResult = this.matchResultRepository.create({
@@ -629,6 +630,8 @@ export class MatchService {
                 // 모든 경기 결과에서 goals이 null이 아닌지 확인
                 const allGoalsNotNull = matches.every((match) => match.goals !== null);
 
+                console.log('allGoalsNotNull:',allGoalsNotNull);
+
                 if (allGoalsNotNull) {
                     // 모든 goals의 값이 null이 아닌 경우의 처리를 여기에 작성합니다.
                     throw new NotFoundException('이미 경기결과가 집계 되었습니다.');
@@ -683,6 +686,7 @@ export class MatchService {
                     await this.teamStatsRepository.update(
                         {
                             team_id: homeCreator[0].id,
+                            id:thisTeamStats.id
                         },
                         {
                             wins: thisTeamStatsWins,
@@ -721,19 +725,21 @@ export class MatchService {
 
                 // thisTeamStats가 존재하면 기존 wins 값에 this_win을 더함
                 if (otherTeamStats) {
+
                     otherTeamStatsWins = otherTeamStats.wins + other_win;
                     otherTeamStatsLoses = otherTeamStats.loses + other_lose;
                     otherTeamStatsDraws = otherTeamStats.draws + other_draw;
 
-                    await this.teamStatsRepository.update(
+                    await queryRunner.manager.update('team_statistics',
                         {
                             team_id: otherTeam.team_id,
+                            id:otherTeamStats.id
                         },
                         {
                             wins: otherTeamStatsWins,
                             loses: otherTeamStatsLoses,
                             draws: otherTeamStatsDraws,
-                            total_games: getOtherTeamStats ? getOtherTeamStats.total_games + 1 : 1,
+                            total_games: (getOtherTeamStats ? getOtherTeamStats.total_games + 1 : 1),
                         },
                     );
                 } else {
@@ -783,6 +789,7 @@ export class MatchService {
                 throw error;
             } else {
                 // 그 외의 예외
+                console.log('error:',error);
                 throw new InternalServerErrorException('서버 에러가 발생했습니다.');
             }
         } finally {
@@ -842,11 +849,12 @@ export class MatchService {
             .where('team.creator_id=:userId', { userId })
             .getMany();
 
+            console.log('userId:',userId);
+            console.log('creator:',creator);
+
         if (!creator[0]) {
             throw new BadRequestException('구단주가 아닙니다.');
         }
-
-        console.log(`creator : ${creator}`);
 
         const user = await this.getUserInfo(userId);
 
@@ -861,7 +869,6 @@ export class MatchService {
         }));
 
         return updatedCreator;
-        //return updatedCreator;
     }
 
     /**
@@ -1067,10 +1074,15 @@ export class MatchService {
             where: { date },
         });
 
+        const soccerFieldData = await this.soccerFieldRepository.findOne({
+            where : {location_id:locationId}
+        })
+
         const times = ['10:00:00', '12:00:00', '14:00:00', '16:00:00', '18:00:00', '20:00:00'];
         const availableTimes = times.map((time) => {
+
             const isBooked = matches.some(
-                (match) => match.time === time && match.soccer_field_id === locationId,
+                (match) => match.time === time && match.soccer_field_id === soccerFieldData.id,
             );
             return {
                 time,
@@ -1145,7 +1157,7 @@ export class MatchService {
      */
     async getTeamSchedule(teamId: number, userId: number) {
         //팀의 멤버인지 검증
-        await this.isTeamMember(teamId, userId);
+        await this.isTeamMemberByUserId(teamId, userId);
 
         const rawResults = await this.dataSource.query(`
         SELECT 
@@ -1156,9 +1168,9 @@ export class MatchService {
             m.time,
             m.id AS match_id
         FROM 
-            final_db2.matches AS m
-            LEFT JOIN final_db2.team AS t ON m.away_team_id = t.id
-            LEFT JOIN final_db2.soccer_fields AS f ON m.soccer_field_id = f.id
+            matches AS m
+            LEFT JOIN team AS t ON m.away_team_id = t.id
+            LEFT JOIN soccer_fields AS f ON m.soccer_field_id = f.id
         WHERE 
             m.home_team_id = ${teamId}
         
@@ -1172,9 +1184,9 @@ export class MatchService {
             m.time,
             m.id AS match_id
         FROM 
-            final_db2.matches AS m
-            LEFT JOIN final_db2.team AS t ON m.home_team_id = t.id
-            LEFT JOIN final_db2.soccer_fields AS f ON m.soccer_field_id = f.id
+            matches AS m
+            LEFT JOIN team AS t ON m.home_team_id = t.id
+            LEFT JOIN soccer_fields AS f ON m.soccer_field_id = f.id
         WHERE 
             m.away_team_id = ${teamId}
         `);
@@ -1209,6 +1221,8 @@ export class MatchService {
             select: {
                 user: {
                     id: true,
+                    email: true,
+                    name: true,
                     profile: {
                         id: true,
                         skillLevel: true,
@@ -1262,11 +1276,61 @@ export class MatchService {
         return member;
     }
 
+    /**
+     * 경기별 팀별 멤버 조회
+     * @returns
+     */
+    async getTeamMembers(matchId:number, teamId: number) {
+        const findMembers = await this.memberRepository.find({
+            select: {
+                id:true,
+                user: {
+                    id: true,
+                    name: true,
+                    email: true,
+                },
+                matchformation: {
+                    position: true,
+                }
+            },
+            where: {
+                team: {
+                    id: teamId,
+                },
+                matchformation: {
+                    team_id: teamId,
+                    match_id:matchId
+                }
+            },
+            relations: {
+                team: true,
+                user: true,
+                matchformation: true,
+            },
+        });
+        
+        return findMembers;
+    }
+
+    async isTeamMemberByUserId(teamId: number, userId: number) {
+        const member = await this.memberRepository
+            .createQueryBuilder('members')
+            .where('members.team_id = :teamId', { teamId })
+            .andWhere('members.user_id = :userId', { userId })
+            .getOne();
+
+        if (!member) {
+            throw new NotFoundException('팀의 멤버가 아닙니다.');
+        }
+
+        return member;
+    }
+
     async isTeamMember(teamId: number, memberId: number) {
         const member = await this.memberRepository
             .createQueryBuilder('members')
             .where('members.team_id = :teamId', { teamId })
-            .andWhere('members.user_id = :memberId', { memberId })
+            .andWhere('members.id = :memberId', { memberId })
             .getOne();
 
         if (!member) {

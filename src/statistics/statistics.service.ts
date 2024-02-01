@@ -51,6 +51,21 @@ export class StatisticsService {
         }
     }
 
+    async getMemberStats(teamId: number) {
+        const getWinsAndLosesAndDraws = await this.getWinsAndLosesAndDraws(teamId);
+        const goals = await this.getGoals(teamId);
+        const conceded = await this.getConceded(teamId);
+        const cleanSheet = await this.getCleanSheet(teamId);
+        // const count = await this.getStatsForOtherTeams(teamId);
+
+        return {
+            ...getWinsAndLosesAndDraws,
+            goals,
+            conceded,
+            cleanSheet,
+        };
+    }
+
     /**
      * 해당 팀 전체 실점 가져오기
      * @param teamId

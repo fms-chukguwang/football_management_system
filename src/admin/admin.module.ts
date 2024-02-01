@@ -5,10 +5,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../user/entities/user.entity';
 import { CommonModule } from '../common/common.module';
 import { UserModule } from '../user/user.module';
+import { TeamModel } from '../team/entities/team.entity';
+import { TeamModule } from '../team/team.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), CommonModule, UserModule],
-  controllers: [AdminController],
-  providers: [AdminService],
+    imports: [TypeOrmModule.forFeature([User, TeamModel]), CommonModule, UserModule, TeamModule],
+    controllers: [AdminController],
+    providers: [AdminService],
 })
 export class AdminModule {}

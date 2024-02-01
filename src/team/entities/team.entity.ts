@@ -1,5 +1,6 @@
 import {
     Column,
+    DeleteDateColumn,
     Entity,
     JoinColumn,
     ManyToOne,
@@ -19,7 +20,6 @@ import { Factory } from 'nestjs-seeder';
 import { Match } from '../../match/entities/match.entity';
 import { Chats } from '../../chats/entities/chats.entity';
 import { MatchFormation } from '../../formation/entities/formation.entity';
-
 
 @Entity('team')
 export class TeamModel extends BaseModel {
@@ -107,7 +107,6 @@ export class TeamModel extends BaseModel {
     @OneToMany(() => Match, (match) => match.awayteam)
     awayMatch: Match[];
 
-
     @OneToOne(() => Chats, (chat) => chat.team)
     @JoinColumn()
     chat: Chats;
@@ -115,4 +114,8 @@ export class TeamModel extends BaseModel {
     @OneToMany(() => MatchFormation, (matchformation) => matchformation.team)
     matchformation: MatchFormation[];
 
+    @DeleteDateColumn({
+        nullable: true,
+    })
+    deletedAt: Date;
 }

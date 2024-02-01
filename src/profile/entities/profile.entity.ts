@@ -1,12 +1,5 @@
 import { Exclude } from 'class-transformer';
-import {
-    IsDate,
-    IsEmail,
-    IsEnum,
-    IsNotEmpty,
-    IsString,
-    IsStrongPassword,
-} from 'class-validator';
+import { IsDate, IsEmail, IsEnum, IsNotEmpty, IsString, IsStrongPassword } from 'class-validator';
 import { UserStatus } from '../../enums/user-status.enum';
 import { Gender } from '../../enums/gender.enum';
 import {
@@ -58,9 +51,9 @@ export class Profile {
     height: number;
 
     /**
-   * 포지션
-   * @example "Attacking Midfielder"
-   */
+     * 포지션
+     * @example "Attacking Midfielder"
+     */
     @IsEnum(Position)
     @Column({
         type: 'enum',
@@ -121,32 +114,31 @@ export class Profile {
      * 유저 아이디
      * @example 1
      */
-     @OneToOne(() => User, (user) => user.profile)
-     @JoinColumn()
-     user: User;
+    @OneToOne(() => User, (user) => user.profile)
+    @JoinColumn()
+    user: User;
 
     /**
      * 선수 이름
      * @example "김메시"
      */
-     @IsString()
-     @Column()
-     name: string;
+    @IsString()
+    @Column()
+    name: string;
 
+    @BeforeInsert()
+    @BeforeUpdate()
+    async generateUserName() {
+        if (this.user) {
+            // Profile에 연결된 User가 존재하면 User의 이름을 가져와서 user_name 속성에 할당
+            this.name = this.user.name;
+        }
+    }
 
-     @BeforeInsert()
-     @BeforeUpdate()
-     async generateUserName() {
-       if (this.user) {
-         // Profile에 연결된 User가 존재하면 User의 이름을 가져와서 user_name 속성에 할당
-         this.name = this.user.name;
-       }
-     }
+    @ManyToOne(() => Member, (member) => member.profile)
+    @JoinColumn()
+    member: Member;
 
-     @ManyToOne(() => Member, (member) => member.profile)
-     @JoinColumn()
-     member: Member;
-     
     @CreateDateColumn()
     createdAt: Date;
 
@@ -155,4 +147,9 @@ export class Profile {
 
     @Column({ type: 'timestamp', nullable: true, default: null })
     deletedAt: Date;
+
+    @Column({
+        name: 'image_uuid',
+    })
+    imageUUID: string;
 }
