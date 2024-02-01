@@ -105,7 +105,7 @@ let matchId: number;
     it('/auth/sign-in (POST)', async () => {
         const SignInDto = {
             //email: "example2@example.com",
-            email: "codzero00@gmail.com",
+            email: "Oliver62@hotmail.com",
             password: 'Ex@mp1e!!',
         };
 

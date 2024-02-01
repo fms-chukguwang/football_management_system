@@ -2,7 +2,7 @@ import { DataFactory, Seeder } from 'nestjs-seeder';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { LocationModel } from '../Location/entities/Location.entity';
+import { LocationModel } from '../location/entities/location.entity';
 
 @Injectable()
 export class LocationSeed implements Seeder {
