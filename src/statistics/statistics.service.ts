@@ -1,10 +1,13 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MatchResult } from '../match/entities/match-result.entity';
 import { TeamStats } from '../match/entities/team-stats.entity';
 import { Repository } from 'typeorm';
 import { StatisticsDto } from './dto/statistics.dto';
 import { PlayerStats } from 'src/match/entities/player-stats.entity';
+import { TopPlayerDto } from './dto/top-player.dto';
+import { Member } from 'src/member/entities/member.entity';
+import { PlayersDto } from './dto/players.dto';
 
 @Injectable()
 export class StatisticsService {
@@ -15,21 +18,37 @@ export class StatisticsService {
         private readonly matchResultRepository: Repository<MatchResult>,
         @InjectRepository(PlayerStats)
         private readonly playerStatsRepository: Repository<PlayerStats>,
+        @InjectRepository(Member)
+        private readonly memberRepository: Repository<Member>,
     ) {}
 
+    /**
+     * 팀 스탯 + 다른 팀 스탯 가져오기
+     * @param teamId
+     * @returns
+     */
     async getTeamStats(teamId: number): Promise<StatisticsDto> {
-        const goals = await this.getGoals(teamId);
-        const getWinsAndLosesAndDraws = await this.getWinsAndLosesAndDraws(teamId);
-        const conceded = await this.getConceded(teamId);
-        const cleanSheet = await this.getCleanSheet(teamId);
-        // const count = await this.getStatsForOtherTeams(teamId);
+        try {
+            const goals = await this.getGoals(teamId);
+            const getWinsAndLosesAndDraws = await this.getWinsAndLosesAndDraws(teamId);
+            const conceded = await this.getConceded(teamId);
+            const cleanSheet = await this.getCleanSheet(teamId);
+            const assists = await this.getAssists(teamId);
+            const otherTeamStats = await this.getStatsForOtherTeams(teamId);
 
-        return {
-            ...getWinsAndLosesAndDraws,
-            goals,
-            conceded,
-            cleanSheet,
-        };
+            return {
+                ...getWinsAndLosesAndDraws,
+                goals,
+                conceded,
+                cleanSheet,
+                assists,
+                otherTeam: {
+                    ...otherTeamStats,
+                },
+            };
+        } catch (err) {
+            console.log(err);
+        }
     }
 
     /**
@@ -38,22 +57,23 @@ export class StatisticsService {
      * @returns
      */
     async getConceded(teamId: number) {
-        const conceded = await this.matchResultRepository
-            .createQueryBuilder('match_results')
-            .select('match_results.goals')
-            .where(
-                'match_results.match_id IN (SELECT match_id FROM match_results WHERE team_id = :teamId)',
-                {
-                    teamId,
-                },
-            )
-            .andWhere('match_results.team_id <> :teamId', { teamId })
-            .getMany();
+        const subQuery = this.playerStatsRepository
+            .createQueryBuilder('sub_stats')
+            .select('sub_stats.match_id')
+            .where('sub_stats.team_id = :teamId', { teamId });
 
-        let sum = 0;
-        conceded.forEach((data) => (sum += Number(data.goals)));
+        const conceded = await this.playerStatsRepository
+            .createQueryBuilder('stats')
+            .select('SUM(stats.goals) as goals')
+            .where(`stats.match_id IN (${subQuery.getQuery()})`, {
+                teamId,
+            })
+            .andWhere('stats.team_id <> :teamId', { teamId })
+            .setParameters(subQuery.getParameters())
+            .getRawOne();
 
-        return sum;
+        console.log('실점입니다, ', conceded.goals);
+        return conceded?.goals ? parseInt(conceded?.goals) : 0;
     }
 
     /**
@@ -62,13 +82,30 @@ export class StatisticsService {
      * @returns
      */
     async getGoals(teamId: number) {
+        console.log('팀아이디는 : ', teamId);
         const goals = await this.playerStatsRepository
             .createQueryBuilder('player_statistics')
             .select(['SUM(player_statistics.goals) as totalGoals'])
             .where('player_statistics.team_id = :teamId', { teamId })
             .getRawOne();
 
-        return Number(goals.totalGoals);
+        console.log(goals);
+        return goals?.totalGoals ? parseInt(goals.totalGoals) : 0;
+    }
+
+    /**
+     * 해당팀 어시스트 가져오기
+     * @param teamId
+     * @returns
+     */
+    async getAssists(teamId: number) {
+        const assists = await this.playerStatsRepository
+            .createQueryBuilder('stats')
+            .select('SUM(stats.assists) as totalAssists')
+            .where('stats.team_id = :teamId', { teamId })
+            .getRawOne();
+
+        return assists?.totalAssists ? parseInt(assists.totalAssists) : 0;
     }
 
     /**
@@ -84,7 +121,7 @@ export class StatisticsService {
             .andWhere('match.clean_sheet = true')
             .getRawOne();
 
-        return Number(cleanSheet.count);
+        return cleanSheet?.count ? parseInt(cleanSheet.count) : 0;
     }
 
     /**
@@ -100,10 +137,10 @@ export class StatisticsService {
         });
 
         return {
-            wins: stats.wins,
-            loses: stats.loses,
-            draws: stats.draws,
-            totalGames: stats.total_games,
+            wins: stats?.wins ?? 0,
+            loses: stats?.loses ?? 0,
+            draws: stats?.draws ?? 0,
+            totalGames: stats?.total_games ?? 0,
         };
     }
 
@@ -112,32 +149,236 @@ export class StatisticsService {
      * @param myTeamId
      */
     async getStatsForOtherTeams(myTeamId: number) {
-        const { count } = await this.matchResultRepository
-            .createQueryBuilder('match')
-            .select('COUNT(match.id) as count')
-            .where('match.team_id = :myTeamId', { myTeamId })
-            .orderBy('match.created_at', 'DESC')
-            .getRawOne();
+        /**
+         * 1) 우리팀 경기수보다 다른팀 경기수가 더 많지 않은지 체크(경기수를 맞춰서 정확한 통계를 위함)
+         * 2) 우리팀의 경기수만큼 다른팀 데이터를 뽑아온다 (골, 어시스트, 클린시트)
+         */
+        try {
+            const { myTeamGameCount } = await this.playerStatsRepository
+                .createQueryBuilder('stats')
+                .select('COUNT(DISTINCT match_id) as myTeamGameCount')
+                .where('stats.team_id = :myTeamId', { myTeamId })
+                .orderBy('stats.created_at', 'DESC')
+                .getRawOne();
 
-        if (count < 3) {
-            throw new HttpException(
-                '최소 3경기를 진행하셔야 통계에 반영됩니다.',
-                HttpStatus.BAD_REQUEST,
-            );
+            const { otherTeamGameCount } = await this.playerStatsRepository
+                .createQueryBuilder('stats')
+                .select('COUNT(DISTINCT match_id) as otherTeamGameCount')
+                .where('stats.team_id != :myTeamId', { myTeamId })
+                .orderBy('stats.created_at', 'DESC')
+                .getRawOne();
+
+            if (myTeamGameCount > otherTeamGameCount) {
+                throw new BadRequestException(
+                    `내팀 경기수 ${myTeamGameCount}와 상태팀 경기수 ${otherTeamGameCount}가 맞지 않습니다.`,
+                );
+            }
+
+            const total = await this.playerStatsRepository
+                .createQueryBuilder('sub_stats')
+                .select([
+                    'SUM(sub_stats.goals) as totalGoals',
+                    'SUM(sub_stats.assists) as totalAssists',
+                    'SUM(sub_stats.clean_sheet) as totalCleanSheets',
+                ])
+                .where('sub_stats.team_id != :myTeamId', { myTeamId })
+                .groupBy('sub_stats.match_id')
+                .orderBy('sub_stats.created_at', 'DESC')
+                .limit(myTeamGameCount)
+                .getRawMany();
+
+            let totalGoals = 0;
+            let totalAssists = 0;
+            let totalCleanSheet = 0;
+
+            total.forEach((data) => {
+                totalGoals += parseInt(data.totalGoals);
+                totalAssists += parseInt(data.totalAssists);
+                totalCleanSheet += parseInt(data.totalCleanSheets);
+            });
+
+            return {
+                totalGoals,
+                totalAssists,
+                totalCleanSheet,
+            };
+        } catch (err) {
+            console.log(err);
         }
+    }
 
-        const { goals, cleanSheet, totalGames } = await this.matchResultRepository
-            .createQueryBuilder('match')
+    /**
+     * 스탯별 상위선수 가져오기
+     * @param teamId
+     * @returns
+     */
+    async getTopPlayer(teamId: number): Promise<TopPlayerDto> {
+        const topGoalsMembers = await this.getTopGoalsMembers(teamId);
+        const topAssistsMembers = await this.getTopAssistsMembers(teamId);
+        const topJoiningMembers = await this.getTopJoiningMembers(teamId);
+        const topSaveMembers = await this.getTopSaveMembers(teamId);
+        const topAttactPointMembers = await this.getTopAttactPoint(teamId);
+
+        return {
+            topGoals: topGoalsMembers,
+            topAssists: topAssistsMembers,
+            topJoining: topJoiningMembers,
+            topSave: topSaveMembers,
+            topAttactPoint: topAttactPointMembers,
+        };
+    }
+
+    /**
+     * 우리팀 득점 랭킹 가져오기
+     * @param teamId
+     * @returns
+     */
+    async getTopGoalsMembers(teamId: number) {
+        const rankGoalsMembers = await this.playerStatsRepository
+            .createQueryBuilder('stats')
             .select([
-                'SUM(match.goals) as goals',
-                'SUM(match.clean_sheet) as cleanSheet',
-                'COUNT(id) as totalGames',
+                'stats.team_id as teamId',
+                'SUM(stats.goals) as totalGoals',
+                'stats.member_id as memberId',
+                'users.name userName',
             ])
-            .where('match.team_id <> :myTeamId', { myTeamId })
-            .orderBy('match.created_at', 'DESC')
-            .limit(Number(count))
-            .getRawOne();
+            .innerJoin('members', 'members', 'stats.member_id = members.id')
+            .innerJoin('users', 'users', 'members.user_id = users.id')
+            .where('stats.team_id = :teamId', { teamId })
+            .groupBy('stats.member_id')
+            .orderBy('stats.goals', 'DESC')
+            .limit(3)
+            .getRawMany();
 
-        console.log(goals, cleanSheet, totalGames);
+        return rankGoalsMembers;
+    }
+
+    /**
+     * 어시스트 랭킹 가져오기
+     * @param teamId
+     * @returns
+     */
+    async getTopAssistsMembers(teamId: number) {
+        const rankAssistsMembers = await this.playerStatsRepository
+            .createQueryBuilder('stats')
+            .select([
+                'stats.team_id as teamId',
+                'SUM(stats.assists) as totalAssists',
+                'stats.member_id as memberId',
+                'users.name as userName',
+            ])
+            .innerJoin('members', 'members', 'stats.member_id = members.id')
+            .innerJoin('users', 'users', 'members.user_id = users.id')
+            .where('stats.team_id = :teamId', { teamId })
+            .groupBy('stats.member_id')
+            .orderBy('stats.assists', 'DESC')
+            .limit(3)
+            .getRawMany();
+
+        return rankAssistsMembers;
+    }
+
+    /**
+     * 경기수 랭킹 가져오기
+     * @param teamId
+     * @returns
+     */
+    async getTopJoiningMembers(teamId: number) {
+        const rankJoiningMembers = await this.playerStatsRepository
+            .createQueryBuilder('stats')
+            .select([
+                'stats.team_id as teamId',
+                'count(stats.member_id) as joining',
+                'stats.member_id as memberId',
+                'users.name as userName',
+            ])
+            .innerJoin('members', 'members', 'stats.member_id = members.id')
+            .innerJoin('users', 'users', 'members.user_id = users.id')
+            .where('stats.team_id = :teamId', { teamId })
+            .groupBy('stats.member_id')
+            .orderBy('joining', 'DESC')
+            .limit(3)
+            .getRawMany();
+
+        return rankJoiningMembers;
+    }
+
+    /**
+     * 세이브수 랭킹 가져오기
+     * @param teamId
+     * @returns
+     */
+    async getTopSaveMembers(teamId: number) {
+        const rankSaveMembers = await this.playerStatsRepository
+            .createQueryBuilder('stats')
+            .select([
+                'stats.team_id as teamId',
+                'SUM(stats.save) as totalSave',
+                'stats.member_id as memberId',
+                'users.name as userName',
+            ])
+            .innerJoin('members', 'members', 'stats.member_id = members.id')
+            .innerJoin('users', 'users', 'members.user_id = users.id')
+            .where('stats.team_id = :teamId', { teamId })
+            .groupBy('stats.member_id')
+            .orderBy('stats.save', 'DESC')
+            .limit(3)
+            .getRawMany();
+
+        return rankSaveMembers;
+    }
+    /**
+     * 공격 포인트 랭킹 가져오기
+     * @param teamId
+     * @returns
+     */
+
+    async getTopAttactPoint(teamId: number) {
+        const rankAttactPoint = await this.playerStatsRepository
+            .createQueryBuilder('stats')
+            .select([
+                'stats.team_id teamId',
+                'SUM(stats.goals) + SUM(stats.assists) as attactPoint ',
+                'stats.member_id memberId',
+                'users.name userName',
+            ])
+            .innerJoin('members', 'members', 'stats.member_id = members.id')
+            .innerJoin('users', 'users', 'members.user_id = users.id')
+            .where('stats.team_id = :teamId', { teamId })
+            .groupBy('stats.member_id')
+            .orderBy('attactPoint', 'DESC')
+            .limit(3)
+            .getRawMany();
+
+        return rankAttactPoint;
+    }
+
+    async getPlayers(teamId: number): Promise<PlayersDto> {
+        const players = await this.memberRepository
+            .createQueryBuilder('members')
+            .select([
+                'members.id as memberId',
+                'users.name as userName',
+                'profile.image_url as image',
+                'COUNT(members.id) as totalGames',
+                'SUM(stats.goals) as totalGoals',
+                'SUM(stats.assists) as totalAssists',
+                'SUM(stats.goals) + SUM(stats.assists) as attactPoint',
+                'SUM(stats.yellow_cards) as totalYellowCards',
+                'SUM(stats.red_cards) as totalRedCards',
+                'SUM(stats.clean_sheet) as totalÇleanSheet',
+                'SUM(stats.save) as totalSave',
+            ])
+            .leftJoin('player_statistics', 'stats', 'members.id = stats.member_id')
+            .leftJoin('users', 'users', 'members.user_id = users.id')
+            .leftJoin('profile', 'profile', 'users.id = profile.user_id')
+            .where('members.team_id = :teamId', { teamId })
+            .groupBy('members.id')
+            .orderBy('members.created_at', 'ASC')
+            .getRawMany();
+
+        return {
+            players: [...players],
+        };
     }
 }

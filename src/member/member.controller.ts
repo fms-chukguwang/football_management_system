@@ -10,6 +10,7 @@ import {
     Req,
     ParseIntPipe,
     Get,
+    BadRequestException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -40,6 +41,7 @@ export class MemberController {
             success: true,
         };
     }
+
     //TODO TESTING
     /**
      * 많은 멤버 팀에 추가하기

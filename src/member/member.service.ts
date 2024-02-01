@@ -67,7 +67,6 @@ export class MemberService {
     async registerMember(teamId: number, userId: number): Promise<Member> {
         const user = await this.userService.findOneById(userId);
         const existMember = await this.findMemberForUserId(user.id);
-
         const team = await this.teamRepository.findOne({
             where: { id: teamId },
             relations: ['chat'],
@@ -94,6 +93,7 @@ export class MemberService {
                 id: teamId,
             },
         });
+
         const chatId = team.chat.id;
         await this.chatsService.inviteChat(chatId, userId);
 
