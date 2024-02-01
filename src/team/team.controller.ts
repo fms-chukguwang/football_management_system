@@ -137,7 +137,6 @@ export class TeamController {
         }
     }
 
-
     /**
      * 팀 멤버 조회
      * @param query
@@ -148,6 +147,7 @@ export class TeamController {
     @Get(':teamId/member')
     async getTeamMembers(@Param('teamId') teamId: number) {
         const [data, count] = await this.memberService.getMemberCountByTeamId(teamId);
+        console.log('data=', data);
         const nameToMemberId = data.map((member) => {
             return { name: member.user.name, memberId: member.id };
         });
@@ -160,5 +160,4 @@ export class TeamController {
     @UseGuards(JwtAuthGuard)
     @Get(':teamId/stats')
     getTeamStats(@Param('teamId') teamId: number) {}
-
 }
