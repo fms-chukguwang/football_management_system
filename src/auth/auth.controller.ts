@@ -86,9 +86,10 @@ export class AuthController {
 
         // 리다이렉션 여부에 따라 처리
         if (shouldRedirect) {
-            return res.redirect(process.env.CODE_REDIRECT_URI);
+            //return res.redirect(`http://localhost:3001/kakaoSuccess?code=${kakaoCode}`);
+            return res.redirect(`${process.env.FRONT_HOST}:${process.env.FRONT_PORT || 3001}/kakaoSuccess?code=${kakaoCode}`);
         } else {
-            return res.redirect(`${process.env.SERVER_HOST}:${process.env.FRONT_PORT || 3001}/login`);
+            return res.redirect(`${process.env.FRONT_HOST}:${process.env.FRONT_PORT || 3001}/login`);
             //return res.redirect(`http://localhost:3001/login?code=${kakaoCode}`);
         }
     }
