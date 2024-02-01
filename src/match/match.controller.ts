@@ -237,6 +237,25 @@ export class MatchController {
     }
 
     /**
+     * 경기별 팀별 멤버 조회
+     * @param req
+     * @param teamId
+     */
+        @ApiBearerAuth()
+        @UseGuards(JwtAuthGuard)
+        @Get('/:matchId/team/:teamId/members')
+        async getTeamMembers(@Param('matchId') matchId: number,@Param('teamId') teamId: number) {
+            const data = await this.matchService.getTeamMembers(matchId,teamId);
+    
+            // return {
+            //     statusCode: HttpStatus.OK,
+            //     data,
+            //     success: true,
+            // };
+            return data;
+        }
+
+    /**
      * 팀별 일정 조회
      * @param req
      * @returns

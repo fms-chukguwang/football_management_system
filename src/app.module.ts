@@ -68,10 +68,10 @@ import { StatisticsModule } from './statistics/statistics.module';
             provide: APP_INTERCEPTOR,
             useClass: LogInterceptor,
         },
-        {
-            provide: APP_INTERCEPTOR,
-            useClass: WebhookInterceptor,
-        },
+        // {
+        //     provide: APP_INTERCEPTOR,
+        //     useClass: WebhookInterceptor,
+        // },
         {
             provide: APP_INTERCEPTOR,
             useClass: SentryInterceptor,

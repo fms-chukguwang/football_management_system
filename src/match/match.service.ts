@@ -1222,6 +1222,7 @@ export class MatchService {
                 user: {
                     id: true,
                     email: true,
+                    name: true,
                     profile: {
                         id: true,
                         skillLevel: true,
@@ -1273,6 +1274,42 @@ export class MatchService {
         }
 
         return member;
+    }
+
+    /**
+     * 경기별 팀별 멤버 조회
+     * @returns
+     */
+    async getTeamMembers(matchId:number, teamId: number) {
+        const findMembers = await this.memberRepository.find({
+            select: {
+                id:true,
+                user: {
+                    id: true,
+                    name: true,
+                    email: true,
+                },
+                matchformation: {
+                    position: true,
+                }
+            },
+            where: {
+                team: {
+                    id: teamId,
+                },
+                matchformation: {
+                    team_id: teamId,
+                    match_id:matchId
+                }
+            },
+            relations: {
+                team: true,
+                user: true,
+                matchformation: true,
+            },
+        });
+        
+        return findMembers;
     }
 
     async isTeamMemberByUserId(teamId: number, userId: number) {
