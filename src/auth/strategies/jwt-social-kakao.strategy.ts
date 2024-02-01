@@ -7,9 +7,7 @@ export class JwtKakaoStrategy extends PassportStrategy(Strategy, 'kakao') {
     super({
       clientID: process.env.KAKAO_CLIENT_ID,
       clientSecret: process.env.KAKAO_CLIENT_SECRET,
-      callbackURL: `${process.env.SERVER_HOST}:${
-        process.env.SERVER_PORT || 443
-      }/api/auth/kakao/callback`,
+      callbackURL: process.env.CODE_REDIRECT_URI,
       scope: ['account_email', 'profile_nickname'],
     });
   }
