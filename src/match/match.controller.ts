@@ -161,16 +161,16 @@ export class MatchController {
     }
 
     /**
-     * 경기 결과 조회 (팀내 선수 전체)
+     * 팀내 선수 전체 조회
      * @param req
      * @returns
      */
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @Get(':matchId/result/team/:teamId/members')
-    async getMembersMatchResult(@Request() req, @Param('matchId') matchId: number,@Param('teamId') teamId: number) {
+    @Get('team/:teamId/members')
+    async getMembersMatchResult(@Param('teamId') teamId: number) {
 
-        const data = await this.matchService.getMembersMatchResult(matchId,teamId);
+        const data = await this.matchService.getMembers(teamId);
     
         return {
             statusCode: HttpStatus.OK,

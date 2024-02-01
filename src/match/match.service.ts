@@ -486,6 +486,37 @@ export class MatchService {
     }
 
     /**
+     * (팀내 선수 전체) 정보 가져오기
+     * @param  teamId
+     * @returns
+     */
+        async getMembers(teamId: number) {
+            const members = await this.memberRepository.find({
+                relations:{
+                    team:true,
+                    user:true
+                },
+                select :{
+                    id: true,
+                    user:{
+                        name:true
+                    }
+                },
+                where: {
+                    team:{
+                        id:teamId
+                    }
+                },
+            });
+    
+            if (!members) {
+                throw new BadRequestException('멤버 정보가 없습니다.');
+            }
+    
+            return members;
+        }
+
+    /**
      * 경기 후 선수 기록 등록
      * @param  userId
      * @param  matchId
