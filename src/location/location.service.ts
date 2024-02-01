@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { LocationModel } from './entities/location.entity';
 import { Repository } from 'typeorm';
 import { CreateAddressDto } from './dtos/create-address.dto';
+import { SoccerFieldModel } from '../soccerfield/entities/soccerfield.entity';
 
 @Injectable()
 export class LocationService {
@@ -41,10 +42,7 @@ export class LocationService {
     /**
      * 지역 등록하기
      */
-    registerLocation(
-        address: string,
-        extractLocation: CreateAddressDto,
-    ): Promise<LocationModel> {
+    registerLocation(address: string, extractLocation: CreateAddressDto): Promise<LocationModel> {
         return this.locationRepository.save({
             address,
             ...extractLocation,

@@ -1,28 +1,32 @@
 import { Transform, Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import {
+    IsArray,
+    IsBoolean,
+    IsInt,
+    IsNotEmpty,
+    IsNumber,
+    IsOptional,
+    IsString,
+    ValidateNested,
+} from 'class-validator';
 
 export class userCountDto {
+    @IsNotEmpty({ message: '선수를 입력해주세요.' })
+    playerId: number;
 
-  @IsNotEmpty({ message: '선수를 입력해주세요.' })
-  playerId: number;
-
-  @IsNotEmpty({ message: '횟수 입력해주세요.' })
-  count: number;
+    @IsNotEmpty({ message: '횟수 입력해주세요.' })
+    count: number;
 }
 
 export class substitionsDto {
+    @IsNotEmpty({ message: '교체 투입선수를 입력해주세요.' })
+    inPlayerId: number;
 
-  @IsNotEmpty({ message: '교체 투입선수를 입력해주세요.' })
-  inPlayerId: number;
-
-  @IsNotEmpty({ message: '교체후 들어간 선수 입력해주세요.' })
-  outPlayerId: number;
-
+    @IsNotEmpty({ message: '교체후 들어간 선수 입력해주세요.' })
+    outPlayerId: number;
 }
 
-
 export class createMatchResultDto {
-
     /**
      * 코너킥
      * @example 5
@@ -52,7 +56,7 @@ export class createMatchResultDto {
     passes: number;
 
     /**
-     * 패널티킥 
+     * 패널티킥
      * @example 0
      */
     @IsNumber()
@@ -68,4 +72,4 @@ export class createMatchResultDto {
     @IsOptional()
     @Transform(({ value }) => value ?? 0)
     freeKick: number;
-  }
+}

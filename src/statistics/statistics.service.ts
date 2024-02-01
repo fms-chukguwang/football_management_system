@@ -256,9 +256,11 @@ export class StatisticsService {
                 'SUM(stats.goals) as totalGoals',
                 'stats.member_id as memberId',
                 'users.name userName',
+                'profile.image_uuid as image',
             ])
             .innerJoin('members', 'members', 'stats.member_id = members.id')
             .innerJoin('users', 'users', 'members.user_id = users.id')
+            .innerJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
             .orderBy('stats.goals', 'DESC')
@@ -281,9 +283,11 @@ export class StatisticsService {
                 'SUM(stats.assists) as totalAssists',
                 'stats.member_id as memberId',
                 'users.name as userName',
+                'profile.image_uuid as image',
             ])
             .innerJoin('members', 'members', 'stats.member_id = members.id')
             .innerJoin('users', 'users', 'members.user_id = users.id')
+            .innerJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
             .orderBy('stats.assists', 'DESC')
@@ -306,9 +310,11 @@ export class StatisticsService {
                 'count(stats.member_id) as joining',
                 'stats.member_id as memberId',
                 'users.name as userName',
+                'profile.image_uuid as image',
             ])
             .innerJoin('members', 'members', 'stats.member_id = members.id')
             .innerJoin('users', 'users', 'members.user_id = users.id')
+            .innerJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
             .orderBy('joining', 'DESC')
@@ -331,9 +337,11 @@ export class StatisticsService {
                 'SUM(stats.save) as totalSave',
                 'stats.member_id as memberId',
                 'users.name as userName',
+                'profile.image_uuid as image',
             ])
             .innerJoin('members', 'members', 'stats.member_id = members.id')
             .innerJoin('users', 'users', 'members.user_id = users.id')
+            .innerJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
             .orderBy('stats.save', 'DESC')
@@ -356,9 +364,11 @@ export class StatisticsService {
                 'SUM(stats.goals) + SUM(stats.assists) as attactPoint ',
                 'stats.member_id memberId',
                 'users.name userName',
+                'profile.image_uuid as image',
             ])
             .innerJoin('members', 'members', 'stats.member_id = members.id')
             .innerJoin('users', 'users', 'members.user_id = users.id')
+            .innerJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
             .orderBy('attactPoint', 'DESC')
@@ -374,7 +384,7 @@ export class StatisticsService {
             .select([
                 'members.id as memberId',
                 'users.name as userName',
-                'profile.image_url as image',
+                'profile.image_uuid as image',
                 'COUNT(members.id) as totalGames',
                 'SUM(stats.goals) as totalGoals',
                 'SUM(stats.assists) as totalAssists',

@@ -9,9 +9,9 @@ import { LocationModel } from '../location/entities/location.entity';
 import { Member } from '../member/entities/member.entity';
 import { PaginateProfileDto } from './dtos/paginate-profile-dto';
 import { CommonService } from '../common/common.service';
-import { TeamController } from 'src/team/team.controller';
-import { Gender } from 'src/enums/gender.enum';
-import { AwsService } from 'src/aws/aws.service';
+import { TeamController } from '../team/team.controller';
+import { Gender } from '../enums/gender.enum';
+import { AwsService } from '../aws/aws.service';
 
 @Injectable()
 export class ProfileService {

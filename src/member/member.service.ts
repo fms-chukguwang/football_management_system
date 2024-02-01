@@ -357,59 +357,56 @@ export class MemberService {
         try {
             const options: FindManyOptions<Member> = {
                 select: {
-                  id: true,
-                  team: {
                     id: true,
-                  },
-                  user: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    profile: {
-                      preferredPosition: true,
-                      imageUrl: true,
-                      age: true,
+                    team: {
+                        id: true,
                     },
-                  },
-                  matchformation: {
-                    position: true,
-                  },
-                  createdAt: true, // 추가된 부분
+                    user: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        profile: {
+                            preferredPosition: true,
+                            imageUrl: true,
+                            age: true,
+                        },
+                    },
+                    matchformation: {
+                        position: true,
+                    },
+                    createdAt: true, // 추가된 부분
                 },
                 where: {
-                  team: {
-                    id: teamId,
-                  },
+                    team: {
+                        id: teamId,
+                    },
                 },
                 relations: {
-                  team: true,
-                  user: { profile: true },
-                  matchformation: true,
+                    team: true,
+                    user: { profile: true },
+                    matchformation: true,
                 },
-              };
-              
-      
-          if (name) {
-            options.where = {
-              ...options.where,
-              user: {
-                name: Like(`%${name}%`),
-              },
             };
-          }
-      
-          const findMembers = await this.memberRepository.find(options);
-      
-          console.log('findMembers:', findMembers);
-      
-          return await this.commonService.paginate(dto, this.memberRepository, options, 'member');
+
+            if (name) {
+                options.where = {
+                    ...options.where,
+                    user: {
+                        name: Like(`%${name}%`),
+                    },
+                };
+            }
+
+            const findMembers = await this.memberRepository.find(options);
+
+            console.log('findMembers:', findMembers);
+
+            return await this.commonService.paginate(dto, this.memberRepository, options, 'member');
         } catch (error) {
-          console.error('Error fetching team members:', error);
-          throw new Error('Failed to fetch team members');
+            console.error('Error fetching team members:', error);
+            throw new Error('Failed to fetch team members');
         }
-      }
-      
-    
+    }
 
     async getMemberCountByTeamId(teamId: number) {
         const findMembers = await this.memberRepository.findAndCount({
@@ -418,6 +415,7 @@ export class MemberService {
                     id: teamId,
                 },
             },
+            relations: ['team', 'user', 'user.profile'],
         });
 
         return findMembers;
