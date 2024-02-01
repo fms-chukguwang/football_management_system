@@ -11,6 +11,7 @@ import {
     HttpStatus,
     UseInterceptors,
     Query,
+    UploadedFile,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -23,6 +24,7 @@ import { TransactionInterceptor } from '../common/interceptors/transaction.inter
 import { qr } from '../common/decorators/qr.decorator';
 import { PaginateProfileDto } from './dtos/paginate-profile-dto';
 import { IsStaffGuard } from '../member/guard/is-staff.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 @ApiTags('프로필')
 @Controller('profile')
 export class ProfileController {
@@ -55,23 +57,23 @@ export class ProfileController {
         };
     }
 
-        /**
+    /**
      * 팀없는 프로필 정보 조회
      * @param req
      * @returns
      */
-         @ApiBearerAuth()
-         @UseGuards(JwtAuthGuard)
-         @Get('/available/')
-         async findAvailableProfiles(@Request() req, @Query() dto: PaginateProfileDto) {
-             const userId = req.user.id;
-             const data = await this.profileService.paginateProfile(userId, dto, dto.name);
-             return {
-                 statusCode: HttpStatus.OK,
-                 message: '팀없는 프로필 정보 조회에 성공했습니다.',
-                 data,
-             };
-         }
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get('/available/')
+    async findAvailableProfiles(@Request() req, @Query() dto: PaginateProfileDto) {
+        const userId = req.user.id;
+        const data = await this.profileService.paginateProfile(userId, dto, dto.name);
+        return {
+            statusCode: HttpStatus.OK,
+            message: '팀없는 프로필 정보 조회에 성공했습니다.',
+            data,
+        };
+    }
 
     //   @Get('search')
     //   async searchProfiles( @Query('name') name: string) {
@@ -105,18 +107,21 @@ export class ProfileController {
      * @returns
      */
     @ApiBearerAuth()
+    @Post()
     @UseGuards(JwtAuthGuard)
-    @UseInterceptors(TransactionInterceptor)
-    @Post('')
+    // @UseInterceptors(Transa3ctionInterceptor)
+    @UseInterceptors(FileInterceptor('file'))
     async registerprofile(
         @Request() req,
-        @Body() registerProfileInfoDto: RegisterProfileInfoDto,
-        @qr() qr?: QueryRunner,
+        @Body() registerProfileInfoDto: any,
+        @UploadedFile() file: Express.Multer.File,
     ) {
+        console.log('data from frontend', registerProfileInfoDto);
+        console.log('file from frontend', file);
         const data = await this.profileService.registerProfile(
             req.user.id,
             registerProfileInfoDto,
-            qr,
+            file,
         );
 
         return {
@@ -135,8 +140,18 @@ export class ProfileController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @Put(':profileId')
-    async updateprofileInfo(@Request() req, @Body() updateProfileInfoDto: UpdateProfileInfoDto) {
-        const data = await this.profileService.updateProfileInfo(req.user.id, updateProfileInfoDto);
+    @UseInterceptors(FileInterceptor('file'))
+    async updateprofileInfo(
+        @Request() req,
+        @Body() updateProfileInfoDto: any,
+        @UploadedFile() file: Express.Multer.File,
+    ) {
+        console.log('updateProfileInfoDto', updateProfileInfoDto);
+        const data = await this.profileService.updateProfileInfo(
+            req.user.id,
+            updateProfileInfoDto,
+            file,
+        );
 
         return {
             statusCode: HttpStatus.OK,

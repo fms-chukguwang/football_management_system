@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Member } from './entities/member.entity';
-import { Repository } from 'typeorm';
+import { DataSource, FindManyOptions, Like, Repository } from 'typeorm';
 import { UpdateMemberInfoDto } from './dtos/update-member-info-dto';
 import { UserService } from '../user/user.service';
 import { TeamService } from '../team/team.service';
@@ -20,7 +20,8 @@ import { ProfileService } from '../profile/profile.service';
 import { TeamModel } from '../team/entities/team.entity';
 import { consoleSandbox } from '@sentry/utils';
 import { ChatsService } from '../chats/chats.service';
-
+import { PaginateTeamDto } from '../admin/dto/paginate-team.dto';
+import { CommonService } from '../common/common.service';
 @Injectable()
 export class MemberService {
     constructor(
@@ -32,6 +33,7 @@ export class MemberService {
         private readonly eamilService: EmailService,
         private readonly redisService: RedisService,
         private readonly chatsService: ChatsService,
+        private readonly commonService: CommonService,
         @InjectRepository(TeamModel)
         private readonly teamRepository: Repository<TeamModel>,
     ) {}
@@ -67,7 +69,6 @@ export class MemberService {
     async registerMember(teamId: number, userId: number): Promise<Member> {
         const user = await this.userService.findOneById(userId);
         const existMember = await this.findMemberForUserId(user.id);
-
         const team = await this.teamRepository.findOne({
             where: { id: teamId },
             relations: ['chat'],
@@ -94,6 +95,7 @@ export class MemberService {
                 id: teamId,
             },
         });
+
         const chatId = team.chat.id;
         await this.chatsService.inviteChat(chatId, userId);
 
@@ -351,41 +353,59 @@ export class MemberService {
         await this.redisService.deleteTeamJoinMailToken(token);
     }
 
-    async getTeamMembers(teamId: number) {
-        const findMembers = await this.memberRepository.find({
-            select: {
-                team: {
+    async getTeamMembers(teamId: number, dto: PaginateTeamDto, name?: string) {
+        try {
+            const options: FindManyOptions<Member> = {
+                select: {
                     id: true,
+                    team: {
+                        id: true,
+                    },
+                    user: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        profile: {
+                            preferredPosition: true,
+                            imageUrl: true,
+                            age: true,
+                        },
+                    },
+                    matchformation: {
+                        position: true,
+                    },
+                    createdAt: true, // 추가된 부분
                 },
-                user: {
-                    id: true,
-                    name: true,
-                    email: true,
+                where: {
+                    team: {
+                        id: teamId,
+                    },
                 },
-                matchformation: {
-                    position: true,
+                relations: {
+                    team: true,
+                    user: { profile: true },
+                    matchformation: true,
                 },
-                profile: {
-                    preferredPosition: true,
-                    imageUrl: true,
-                    age: true,
-                },
-            },
-            where: {
-                team: {
-                    id: teamId,
-                },
-            },
-            relations: {
-                team: true,
-                user: true,
-                matchformation: true,
-                profile: true,
-            },
-        });
+            };
 
-        console.log('findMembers:', findMembers);
-        return findMembers;
+            if (name) {
+                options.where = {
+                    ...options.where,
+                    user: {
+                        name: Like(`%${name}%`),
+                    },
+                };
+            }
+
+            const findMembers = await this.memberRepository.find(options);
+
+            console.log('findMembers:', findMembers);
+
+            return await this.commonService.paginate(dto, this.memberRepository, options, 'member');
+        } catch (error) {
+            console.error('Error fetching team members:', error);
+            throw new Error('Failed to fetch team members');
+        }
     }
 
     async getMemberCountByTeamId(teamId: number) {
@@ -395,6 +415,7 @@ export class MemberService {
                     id: teamId,
                 },
             },
+            relations: ['team', 'user', 'user.profile'],
         });
 
         return findMembers;

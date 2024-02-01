@@ -2,7 +2,7 @@ import { DataFactory, Seeder } from 'nestjs-seeder';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Member } from '../Member/entities/Member.entity';
+import { Member } from '../member/entities/member.entity';
 
 @Injectable()
 export class MemberSeed implements Seeder {
