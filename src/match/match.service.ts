@@ -96,7 +96,7 @@ export class MatchService {
             awayTeamId: createrequestDto.awayTeamId,
             fieldId: createrequestDto.fieldId,
             senderName: `${homeCreator[0].name} 구단주`,
-            url: `http://localhost:${process.env.SERVER_PORT || 3000}/api/match/book/accept`,
+            url: `${process.env.SERVER_HOST}:${process.env.FRONT_PORT || 3001}/api/match/book/accept`,
             chk: 'create',
             token: token,
         };
@@ -234,7 +234,7 @@ export class MatchService {
             awayTeamId: 0,
             fieldId: 0,
             senderName: `${homeCreator[0].name} 구단주`,
-            url: `http://localhost:${process.env.SERVER_PORT || 3000}/api/match/${matchId}/update`,
+            url: `${process.env.SERVER_HOST}:${process.env.FRONT_PORT || 3001}/api/match/${matchId}/update`,
             chk: 'update',
             token: token,
         };
@@ -310,7 +310,7 @@ export class MatchService {
             awayTeamId: 0,
             fieldId: 0,
             senderName: `${homeCreator[0].name} 구단주`,
-            url: `http://localhost:${process.env.SERVER_PORT || 3000}/api/match/${matchId}/delete`,
+            url: `${process.env.SERVER_HOST}:${process.env.FRONT_PORT || 3001}/api/match/${matchId}/delete`,
             chk: 'delete',
             token: token,
         };
