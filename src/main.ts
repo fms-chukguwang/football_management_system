@@ -51,8 +51,8 @@ async function bootstrap() {
 
     //const FRONT_PORT = configService.get<number>('FRONT_PORT');
   const corsOptions = {
-        //origin: [`${process.env.FRONT_HOST}:${process.env.FRONT_PORT || 3001}`,process.env.FRONT_HOST],
-        origin: `${process.env.FRONT_HOST}:${process.env.FRONT_PORT || 3001}`,
+        origin: [`${process.env.FRONT_HOST}:${process.env.FRONT_PORT || 3001}`,process.env.FRONT_HOST],
+        //origin: `${process.env.FRONT_HOST}:${process.env.FRONT_PORT || 3001}`,
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true,
         allowedHeaders: 'Origin,X-Requested-With,Content-Type,Accept,Authorization',
