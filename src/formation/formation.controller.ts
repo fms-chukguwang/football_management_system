@@ -3,14 +3,47 @@ import { FormationService } from './formation.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UpdateFormationDto } from './dtos/update-formation.dto';
+import { DataSource } from 'typeorm';
 
 @ApiTags('전술')
 @Controller('formation')
 export class FormationController {
 
     constructor(
-        private readonly formationService: FormationService
+        private readonly formationService: FormationService,
+        private readonly dataSource: DataSource
     ) {}
+
+
+    /**
+     * 인기 포메이션 조회
+     * @param req
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get('popular')
+    async getPopularFormation() {
+
+        const data = await this.formationService.getPopularFormation();
+    
+        return data;
+    }
+
+    /**
+     * 최근 3경기간 최다 누적 경고자 조회
+     * @param req
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get('warning/:teamId')
+    async getWarningmember(@Param('teamId') teamId: number) {
+
+        const data = await this.formationService.getWarningmember(teamId);
+    
+        return data;
+    }
 
     /**
      * 팀별 포메이션 조회
@@ -19,7 +52,7 @@ export class FormationController {
      */
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @Get(':teamId/:matchId')
+    @Get(':teamId/match/:matchId/')
     async getMatchFormation(@Param('teamId') teamId: number,@Param('matchId') matchId: number) {
 
         const data = await this.formationService.getMatchFormation(teamId,matchId);
@@ -41,9 +74,6 @@ export class FormationController {
     @Post(':teamId/:matchId')
     async saveMatchFormation(@Param('teamId') teamId: number,@Param('matchId') matchId: number,@Body() updateFormationDto:UpdateFormationDto) {
 
-        console.log('cccccc data:',updateFormationDto);
-        console.log('homeTeamId:',teamId);
-        console.log('matchId:',matchId);
         const data = await this.formationService.saveMatchFormation(teamId,matchId,updateFormationDto);
     
         return {
