@@ -210,8 +210,7 @@ export class MemberService {
      */
     async updateIsStaff(teamId: number, memberId: number, dto: UpdateMemberInfoDto) {
         const findMember = await this.findMember(memberId, teamId);
-        console.log(memberId, teamId);
-        console.log(findMember);
+
         if (!findMember) {
             throw new BadRequestException('해당 팀원이 존재하지 않습니다.');
         }
