@@ -29,7 +29,6 @@ export class AwsService {
      */
     async uploadFile(file: Express.Multer.File) {
         const uuid = v4();
-
         const uploadCommend = new PutObjectCommand({
             Bucket: this.configService.get('AWS_BUCKET_NAME'),
             Key: uuid,
@@ -56,8 +55,6 @@ export class AwsService {
             });
 
             await this.awsS3.send(command);
-
-          
         } catch (err) {
             throw new NotFoundException('이미지가 존재하지 않습니다.');
         }

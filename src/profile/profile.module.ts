@@ -9,6 +9,7 @@ import { UserModule } from '../user/user.module';
 import { MemberModule } from '../member/member.module';
 import { Member } from '../member/entities/member.entity';
 import { CommonModule } from '../common/common.module';
+import { AwsModule } from 'src/aws/aws.module';
 
 @Module({
     imports: [
@@ -17,6 +18,7 @@ import { CommonModule } from '../common/common.module';
         UserModule,
         MemberModule,
         CommonModule,
+        AwsModule,
     ],
     controllers: [ProfileController],
     providers: [ProfileService],
