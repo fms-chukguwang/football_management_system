@@ -53,7 +53,7 @@ export class CommonService {
             result.length > 0 && result.length === dto.take ? result[result.length - 1] : null;
 
         // nextUrl 만들기
-        const nextUrl = lastItem && new URL(`http://localhost:3000/api/${path}`);
+        const nextUrl = lastItem && new URL(`${process.env.SERVER_HOST}:${process.env.FRONT_PORT || 3001}/api/${path}`);
         if (nextUrl) {
             for (const key of Object.keys(dto)) {
                 if (dto[key]) {
