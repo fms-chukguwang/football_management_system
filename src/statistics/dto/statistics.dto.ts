@@ -6,4 +6,10 @@ export class StatisticsDto {
     goals: number;
     conceded: number;
     cleanSheet: number;
+    assists: number;
+    otherTeam: {
+        totalGoals: number;
+        totalAssists: number;
+        totalCleanSheet: number;
+    };
 }
