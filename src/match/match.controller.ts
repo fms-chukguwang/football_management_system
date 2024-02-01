@@ -174,7 +174,7 @@ export class MatchController {
     }
 
     /**
-     * 경기 결과 조회 (팀내 선수 전체)
+     * 경기별 팀내 선수 전체 조회
      * @param req
      * @returns
      */
@@ -188,6 +188,25 @@ export class MatchController {
     ) {
         const data = await this.matchService.getMembersMatchResult(matchId, teamId);
 
+        return {
+            statusCode: HttpStatus.OK,
+            success: true,
+            data,
+        };
+    }
+
+    /**
+     * 팀내 선수 전체 조회
+     * @param req
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get(':matchId/result/team/:teamId/members')
+    async getMembers(@Param('teamId') teamId: number) {
+
+        const data = await this.matchService.getMembers(teamId);
+    
         return {
             statusCode: HttpStatus.OK,
             success: true,
