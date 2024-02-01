@@ -33,6 +33,7 @@ import { FormationModule } from './formation/formation.module';
 import { RavenInterceptor, RavenModule } from 'nest-raven';
 import { SentryInterceptor } from './common/interceptors/sentry.interceptor';
 import { StatisticsModule } from './statistics/statistics.module';
+import { SoccerfieldModule } from './soccerfield/soccerfield.module';
 
 @Module({
     imports: [
@@ -60,6 +61,7 @@ import { StatisticsModule } from './statistics/statistics.module';
         FormationModule,
         RavenModule,
         StatisticsModule,
+        SoccerfieldModule,
     ],
     controllers: [AppController],
     providers: [

@@ -23,6 +23,7 @@
         "test:e2e": "jest --config ./test/jest-e2e.json",
         "test:match": "jest --config test/match/jest-match.json",
         "test:seed2": "for /L %i in (1,1,10) do jest --config ./test/match/jest-match.json --runInBand --forceExit --detectOpenHandles",
+        "test:seed2Mac": "for i in {1..10}; do jest --config ./test/match/jest-match.json --runInBand --forceExit --detectOpenHandles; done",
         "test:seed2Jo": "for i in {1..50}; do jest --config  ./test/match/jest-match.json  --runInBand --forceExit --detectOpenHandles; done",
         "seed": "ts-node src/seed.ts"
     },

@@ -420,6 +420,9 @@ export class MatchService {
         }
 
         // 경기 결과 멤버 체크
+        console.log('here');
+        await this.chkResultMember(userId, matchId, creatematchResultDto);
+        console.log('here2');
         //await this.chkResultMember(userId, matchId, creatematchResultDto);
 
         //경기 결과
@@ -630,7 +633,7 @@ export class MatchService {
                 // 모든 경기 결과에서 goals이 null이 아닌지 확인
                 const allGoalsNotNull = matches.every((match) => match.goals !== null);
 
-                console.log('allGoalsNotNull:',allGoalsNotNull);
+                console.log('allGoalsNotNull:', allGoalsNotNull);
 
                 if (allGoalsNotNull) {
                     // 모든 goals의 값이 null이 아닌 경우의 처리를 여기에 작성합니다.
@@ -686,7 +689,7 @@ export class MatchService {
                     await this.teamStatsRepository.update(
                         {
                             team_id: homeCreator[0].id,
-                            id:thisTeamStats.id
+                            id: thisTeamStats.id,
                         },
                         {
                             wins: thisTeamStatsWins,
@@ -725,21 +728,21 @@ export class MatchService {
 
                 // thisTeamStats가 존재하면 기존 wins 값에 this_win을 더함
                 if (otherTeamStats) {
-
                     otherTeamStatsWins = otherTeamStats.wins + other_win;
                     otherTeamStatsLoses = otherTeamStats.loses + other_lose;
                     otherTeamStatsDraws = otherTeamStats.draws + other_draw;
 
-                    await queryRunner.manager.update('team_statistics',
+                    await queryRunner.manager.update(
+                        'team_statistics',
                         {
                             team_id: otherTeam.team_id,
-                            id:otherTeamStats.id
+                            id: otherTeamStats.id,
                         },
                         {
                             wins: otherTeamStatsWins,
                             loses: otherTeamStatsLoses,
                             draws: otherTeamStatsDraws,
-                            total_games: (getOtherTeamStats ? getOtherTeamStats.total_games + 1 : 1),
+                            total_games: getOtherTeamStats ? getOtherTeamStats.total_games + 1 : 1,
                         },
                     );
                 } else {
@@ -789,7 +792,7 @@ export class MatchService {
                 throw error;
             } else {
                 // 그 외의 예외
-                console.log('error:',error);
+                console.log('error:', error);
                 throw new InternalServerErrorException('서버 에러가 발생했습니다.');
             }
         } finally {
@@ -849,8 +852,8 @@ export class MatchService {
             .where('team.creator_id=:userId', { userId })
             .getMany();
 
-            console.log('userId:',userId);
-            console.log('creator:',creator);
+        console.log('userId:', userId);
+        console.log('creator:', creator);
 
         if (!creator[0]) {
             throw new BadRequestException('구단주가 아닙니다.');
@@ -1020,11 +1023,12 @@ export class MatchService {
             this.isTeamMember(teamId, x);
         });*/
 
-        // 교체 멤버 체크
-        creatematchResultDto.substitions.forEach((x) => {
-            this.isTeamMember(teamId, x.inPlayerId);
-            this.isTeamMember(teamId, x.outPlayerId);
-        });
+        // 교체 멤버 체크 ?? 교체 멤버가 없는 경우는??
+        console.log('교체 체크');
+        // creatematchResultDto.substitions.forEach((x) => {
+        //     this.isTeamMember(teamId, x.inPlayerId);
+        //     this.isTeamMember(teamId, x.outPlayerId);
+        // });
 
         /*
         // 선방 멤버 체크
@@ -1075,12 +1079,11 @@ export class MatchService {
         });
 
         const soccerFieldData = await this.soccerFieldRepository.findOne({
-            where : {location_id:locationId}
-        })
+            where: { location_id: locationId },
+        });
 
         const times = ['10:00:00', '12:00:00', '14:00:00', '16:00:00', '18:00:00', '20:00:00'];
         const availableTimes = times.map((time) => {
-
             const isBooked = matches.some(
                 (match) => match.time === time && match.soccer_field_id === soccerFieldData.id,
             );
@@ -1211,11 +1214,11 @@ export class MatchService {
         const member = await this.memberRepository.findOne({
             relations: {
                 user: {
-                    profile: true, 
+                    profile: true,
                 },
                 team: true,
                 playerstats: {
-                    match: true, 
+                    match: true,
                 },
             },
             select: {
@@ -1280,10 +1283,10 @@ export class MatchService {
      * 경기별 팀별 멤버 조회
      * @returns
      */
-    async getTeamMembers(matchId:number, teamId: number) {
+    async getTeamMembers(matchId: number, teamId: number) {
         const findMembers = await this.memberRepository.find({
             select: {
-                id:true,
+                id: true,
                 user: {
                     id: true,
                     name: true,
@@ -1291,7 +1294,7 @@ export class MatchService {
                 },
                 matchformation: {
                     position: true,
-                }
+                },
             },
             where: {
                 team: {
@@ -1299,8 +1302,8 @@ export class MatchService {
                 },
                 matchformation: {
                     team_id: teamId,
-                    match_id:matchId
-                }
+                    match_id: matchId,
+                },
             },
             relations: {
                 team: true,
@@ -1308,7 +1311,7 @@ export class MatchService {
                 matchformation: true,
             },
         });
-        
+
         return findMembers;
     }
 
