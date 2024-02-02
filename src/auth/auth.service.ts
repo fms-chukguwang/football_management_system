@@ -103,7 +103,8 @@ export class AuthService {
         // 리프레시 토큰을 제거하려면 다음과 같이 Redis 또는 다른 저장소에서 제거
         await this.redisService.deleteRefreshToken(id);
 
-        // 사용자 업데이트를 위한 코드 -> 로그인/회원가입할때 리프레시토큰 다시 생성해서 필요없음
+        // 사용자 업데이트를 위한 코드 ->
+        // 회원가입할때 리프레시토큰 다시 생성해서 필요없음
         // this.userRepository.update(id, { refreshToken: '' });
 
         console.log(await this.userRepository.findOne({ where: { id } }));
@@ -189,7 +190,7 @@ export class AuthService {
     }
 
     //유저 아이디 필요한가? -> 그 유저 전용 토큰 만들어야해서 필요함
-    async verifyKakaoCode({code}: VerifyKakaoCodeDto) {
+    async verifyKakaoCode({ code }: VerifyKakaoCodeDto) {
         console.log('verifyKakaoCode called');
         const userId = await this.redisService.getUserId(code);
         if (userId) {
