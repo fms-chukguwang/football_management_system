@@ -492,10 +492,11 @@ export class MatchController {
         const data = await this.matchService.getMatchResultByMatchId(matchId, teamId);
 
         // 매치에 속해있는 팀의 경기 결과 반환
-        return {
-            statusCode: HttpStatus.OK,
-            success: true,
-            data,
-        };
+        return data;
+        // return {
+        //     statusCode: HttpStatus.OK,
+        //     success: true,
+        //     data,
+        // };
     }
 }

@@ -1443,6 +1443,7 @@ export class MatchService {
                 assists: true,
                 yellow_cards: true,
                 red_cards: true,
+                saves: true,
             },
         });
         const match = await this.matchRepository.findOne({
@@ -1453,13 +1454,54 @@ export class MatchService {
         const date = match.date;
         const time = match.time;
 
-        if (!result || (teamId !== homeTeamId && teamId !== awayTeamId)) {
+        if (!result) {
             throw new NotFoundException('경기 결과가 없습니다.');
         }
 
-        console.log('result', result);
+        result.map((rs) => {
+            if (rs.team_id === homeTeamId) {
+                rs['home_team_id'] = homeTeamId;
+                rs['away_team_id'] = awayTeamId;
+            } else if (rs.team_id === awayTeamId) {
+                rs['home_team_id'] = awayTeamId;
+                rs['away_team_id'] = homeTeamId;
+            }
+            // 골 정보
+            let goals = 0;
+            for (let i = 0; i < rs.goals.length; i++) {
+                goals += rs.goals[i].count;
+            }
 
-        console.log('match', match);
-        return result;
+            let saves = 0;
+            for (let i = 0; i < rs.saves.length; i++) {
+                saves += rs.saves[i].count;
+            }
+
+            rs['counted_goals'] = goals;
+            rs['counted_yellow_cards'] = rs.yellow_cards.length;
+            rs['counted_red_cards'] = rs.red_cards.length;
+            rs['counted_saves'] = saves;
+            delete rs.goals;
+            delete rs.yellow_cards;
+            delete rs.red_cards;
+            delete rs.saves;
+            delete rs.assists;
+            delete rs.substitions;
+            delete rs.corner_kick;
+            delete rs.match;
+        });
+
+        let formattedResult = {};
+        result.map((rs) => {
+            if (rs.team_id === homeTeamId) {
+                formattedResult['home'] = rs;
+            } else if (rs.team_id === awayTeamId) {
+                formattedResult['away'] = rs;
+            }
+        });
+        formattedResult['date'] = date;
+        formattedResult['time'] = time;
+
+        return formattedResult;
     }
 }
