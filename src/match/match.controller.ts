@@ -202,7 +202,7 @@ export class MatchController {
      */
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @Get(':matchId/result/team/:teamId/members')
+    @Get('team/:teamId/members')
     async getMembers(@Param('teamId') teamId: number) {
 
         const data = await this.matchService.getMembers(teamId);
