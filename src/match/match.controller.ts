@@ -204,9 +204,8 @@ export class MatchController {
     @UseGuards(JwtAuthGuard)
     @Get('team/:teamId/members')
     async getMembers(@Param('teamId') teamId: number) {
-
         const data = await this.matchService.getMembers(teamId);
-    
+
         return {
             statusCode: HttpStatus.OK,
             success: true,
@@ -294,19 +293,19 @@ export class MatchController {
      * @param req
      * @param teamId
      */
-        @ApiBearerAuth()
-        @UseGuards(JwtAuthGuard)
-        @Get('/:matchId/team/:teamId/members')
-        async getTeamMembers(@Param('matchId') matchId: number,@Param('teamId') teamId: number) {
-            const data = await this.matchService.getTeamMembers(matchId,teamId);
-    
-            // return {
-            //     statusCode: HttpStatus.OK,
-            //     data,
-            //     success: true,
-            // };
-            return data;
-        }
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get('/:matchId/team/:teamId/members')
+    async getTeamMembers(@Param('matchId') matchId: number, @Param('teamId') teamId: number) {
+        const data = await this.matchService.getTeamMembers(matchId, teamId);
+
+        // return {
+        //     statusCode: HttpStatus.OK,
+        //     data,
+        //     success: true,
+        // };
+        return data;
+    }
 
     /**
      * 팀별 일정 조회
@@ -467,6 +466,32 @@ export class MatchController {
     async findMatches(@Param('matchId') matchId: number) {
         const data = await this.matchService.findOneMatch(matchId);
 
+        return {
+            statusCode: HttpStatus.OK,
+            success: true,
+            data,
+        };
+    }
+
+    /**
+     * 경기 일정 전체 조회
+     * @param req
+     * @returns
+     */
+    @Get('/:matchId/result')
+    @UseGuards(JwtAuthGuard)
+    async getMatchResultByMatchId(
+        @Body('teamId') teamId: number,
+        @Param('matchId') matchId: number,
+    ) {
+        // 유저의 팀이 매치에 속해있는지 확인
+
+        console.log('teamId', teamId);
+        console.log('matchId', matchId);
+
+        const data = await this.matchService.getMatchResultByMatchId(matchId, teamId);
+
+        // 매치에 속해있는 팀의 경기 결과 반환
         return {
             statusCode: HttpStatus.OK,
             success: true,
