@@ -101,7 +101,7 @@ describe('AppController (match) - 시나리오 1: 홈팀 구단주 로그인 후
     it('/auth/sign-in (POST)', async () => {
         const SignInDto = {
             //email: "example2@example.com",
-            email: 'Ariane14@gmail.com',
+            email: 'Oliver62@hotmail.com',
             password: 'Ex@mp1e!!',
         };
 

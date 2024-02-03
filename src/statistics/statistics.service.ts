@@ -4,9 +4,9 @@ import { MatchResult } from '../match/entities/match-result.entity';
 import { TeamStats } from '../match/entities/team-stats.entity';
 import { Repository } from 'typeorm';
 import { StatisticsDto } from './dto/statistics.dto';
-import { PlayerStats } from 'src/match/entities/player-stats.entity';
+import { PlayerStats } from '../match/entities/player-stats.entity';
 import { TopPlayerDto } from './dto/top-player.dto';
-import { Member } from 'src/member/entities/member.entity';
+import { Member } from '../member/entities/member.entity';
 import { PlayersDto } from './dto/players.dto';
 
 @Injectable()
