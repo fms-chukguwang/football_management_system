@@ -110,21 +110,7 @@ export class Profile {
     @JoinColumn()
     location: LocationModel;
 
-         /**
-     * 위도
-     * @example 37.5665
-     */
-          @IsNumber()
-          @IsNotEmpty({ message: 'Please provide latitude' })
-          latitude: number;
-      
-          /**
-           * 경도
-           * @example 126.9780
-           */
-          @IsNumber()
-          @IsNotEmpty({ message: 'Please provide longitude' })
-          longitude: number;
+
           
     /**
      * 유저 아이디
