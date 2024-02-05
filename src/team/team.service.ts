@@ -7,10 +7,11 @@ import {
     InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+
 import { AwsService } from '../aws/aws.service';
 import { LocationService } from '../location/location.service';
 import { MemberService } from '../member/member.service';
-import { DataSource, FindManyOptions, getManager, Like, Repository } from 'typeorm';
+import { DataSource, FindManyOptions, getManager, Like, Repository, Connection } from 'typeorm';
 import { CreateTeamDto } from './dtos/create-team.dto';
 import { TeamModel } from './entities/team.entity';
 import {
@@ -39,6 +40,7 @@ export class TeamService {
         private readonly commonService: CommonService,
         private readonly chatService: ChatsService,
         private readonly redisService: RedisService,
+        private readonly connection: Connection,
     ) {}
 
     async findOneById(id: number) {
@@ -105,7 +107,7 @@ export class TeamService {
         const createChatDto: CreateChatDto = { userIds: [userId] };
         const chat = await this.chatService.createChat(createChatDto);
     
-        const team = this.teamRepository.create({
+        const team = await this.teamRepository.save({
             ...createTeamDto,
             imageUUID: imageUUID,
             location: {
@@ -116,10 +118,10 @@ export class TeamService {
         });
     
         try {
-            await getManager().transaction(async (transactionalEntityManager) => {
-                const savedTeam = await transactionalEntityManager.save(TeamModel, team);
-                await this.memberService.registerCreaterMember(savedTeam.id, userId);
-            });
+            // await this.connection.transaction(async (transactionalEntityManager) => {
+            //     const savedTeam = await transactionalEntityManager.save(TeamModel, team);
+                await this.memberService.registerCreaterMember(team.id, userId);
+           // });
     
             return team;
         } catch (err) {
