@@ -143,14 +143,10 @@ export class ProfileService {
         return profiles;
     }
 
-    async findOneById(id: number) {
+    async findOneById(id: number): Promise<Profile | null> {
         const profile = await this.profileRepository.findOne({ where: { id } });
-
-        if (!profile) {
-            throw new NotFoundException('프로필을 찾을 수 없습니다.');
-        }
-
-        return profile;
+    
+        return profile || null; // 프로필이 존재하지 않으면 null 반환
     }
 
     async findOneByUserId(id: number) {
@@ -165,11 +161,11 @@ export class ProfileService {
 
     async findOneByName(name: string): Promise<Profile | null> {
         const profile = await this.profileRepository.findOne({ where: { name } });
-
+    
         if (!profile) {
-            throw new NotFoundException(`이름을 찾을 수 없습니다.`);
+            return null;
         }
-
+    
         return profile;
     }
 
@@ -240,47 +236,57 @@ export class ProfileService {
         userId: number,
         updateProfileInfoDto: UpdateProfileInfoDto,
         file?: Express.Multer.File,
-    ): Promise<Profile> {
+      ): Promise<Profile> {
         try {
-            console.log('Update Profile Info - UserId:', userId);
-            console.log('Update Profile Info DTO:', updateProfileInfoDto);
-
-            // Fetch the user along with the profile
-            const user = await this.userRepository.findOne({
-                where: { id: userId },
-                relations: ['profile'],
+          console.log('Update Profile Info - UserId:', userId);
+          console.log('Update Profile Info DTO:', updateProfileInfoDto);
+      
+          // Fetch the user along with the profile
+          const user = await this.userRepository.findOne({
+            where: { id: userId },
+            relations: ['profile'],
+          });
+      
+          if (!user) {
+            throw new NotFoundException('User not found');
+          }
+      
+          if (!user.profile) {
+            user.profile = await this.profileRepository.findOne({
+              where: { user: { id: userId } },
             });
-
-            if (!user) {
-                throw new NotFoundException('User not found');
-            }
-
+      
             if (!user.profile) {
-                user.profile = await this.profileRepository.findOne({
-                    where: { user: { id: userId } },
-                });
-
-                if (!user.profile) {
-                    throw new NotFoundException('Profile not found');
-                }
+              throw new NotFoundException('Profile not found');
             }
-
-            const imageUUID = await this.awsService.uploadFile(file);
-
-            const updatedProfile = await this.profileRepository.save({
-                ...user.profile,
-                ...updateProfileInfoDto,
-                imageUUID,
-            });
-
-            console.log('Updated Profile:', updatedProfile);
-
-            return updatedProfile;
+          }
+      
+          const imageUUID = file ? await this.awsService.uploadFile(file) : null;
+      
+          // Update profile fields
+          user.profile.preferredPosition = updateProfileInfoDto.preferredPosition;
+          user.profile.weight = updateProfileInfoDto.weight;
+          user.profile.height = updateProfileInfoDto.height;
+          user.profile.age = updateProfileInfoDto.age;
+          user.profile.gender = updateProfileInfoDto.gender;
+      
+          // Update image UUID if provided
+          if (file) {
+            user.profile.imageUUID = imageUUID;
+          }
+      
+          // Save the updated profile
+          const updatedProfile = await this.profileRepository.save(user.profile);
+      
+          console.log('Updated Profile:', updatedProfile);
+      
+          return updatedProfile;
         } catch (error) {
-            console.error('Error updating profile info:', error.message);
-            throw new Error('Failed to update profile info');
+          console.error('Error updating profile info:', error.message);
+          throw new Error('Failed to update profile info');
         }
-    }
+      }
+      
 
     async deleteProfile(id: number) {
         const profile = await this.profileRepository.findOne({ where: { id } });

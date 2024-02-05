@@ -1,5 +1,5 @@
 import { Exclude } from 'class-transformer';
-import { IsDate, IsEmail, IsEnum, IsNotEmpty, IsString, IsStrongPassword } from 'class-validator';
+import { IsDate, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsString, IsStrongPassword } from 'class-validator';
 import { UserStatus } from '../../enums/user-status.enum';
 import { Gender } from '../../enums/gender.enum';
 import {
@@ -110,6 +110,22 @@ export class Profile {
     @JoinColumn()
     location: LocationModel;
 
+         /**
+     * 위도
+     * @example 37.5665
+     */
+          @IsNumber()
+          @IsNotEmpty({ message: 'Please provide latitude' })
+          latitude: number;
+      
+          /**
+           * 경도
+           * @example 126.9780
+           */
+          @IsNumber()
+          @IsNotEmpty({ message: 'Please provide longitude' })
+          longitude: number;
+          
     /**
      * 유저 아이디
      * @example 1

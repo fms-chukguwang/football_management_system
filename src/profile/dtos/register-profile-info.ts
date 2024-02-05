@@ -4,6 +4,21 @@ import { Gender } from '../../enums/gender.enum';
 import { Column } from 'typeorm';
 
 export class RegisterProfileInfoDto {
+      /**
+     * 위도
+     * @example 37.5665
+     */
+       @IsNumber()
+       @IsNotEmpty({ message: 'Please provide latitude' })
+       latitude: number;
+   
+       /**
+        * 경도
+        * @example 126.9780
+        */
+       @IsNumber()
+       @IsNotEmpty({ message: 'Please provide longitude' })
+       longitude: number;
     /**
      * 포지션
      * @example "Center Back"
