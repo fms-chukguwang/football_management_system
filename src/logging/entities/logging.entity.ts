@@ -2,16 +2,15 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 export type LoggingDocument = Logging & Document;
 
-@Schema({ timestamps: { createdAt: 'timestamp', updatedAt: false } })
+@Schema({ timestamps: { createdAt: 'timestamp', updatedAt: false } }) // createdAt을 timestamp로 변경 생성된 시간을 저장할 예정이고, 로그는 수정되지 않으므로 updatedAt은 false로 설정
 export class Logging {
-  @Prop()
-  level: string;
+    @Prop()
+    level: string;
 
-  @Prop({ required: true }) //to specify relation to another model
-  message: string;
+    @Prop({ required: true })
+    message: string;
 }
 
-// 위의 작성한 클래스를 바탕으로 Mongoose에서 사용하는 스키마 클래스를 만들어준다.
 const schema = SchemaFactory.createForClass(Logging);
-schema.index({ timestamp: -1 });
+schema.index({ createdAt: -1 });
 export const LoggingSchema = schema;

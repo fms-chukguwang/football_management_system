@@ -116,7 +116,6 @@ export class AuthService {
             select: { id: true, password: true },
         });
         const isPasswordMatched = bcrypt.compareSync(password, user?.password ?? '');
-
         if (!user || !isPasswordMatched) {
             return null;
         }

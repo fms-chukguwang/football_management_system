@@ -70,10 +70,10 @@ import { SoccerfieldModule } from './soccerfield/soccerfield.module';
             provide: APP_INTERCEPTOR,
             useClass: LogInterceptor,
         },
-        // {
-        //     provide: APP_INTERCEPTOR,
-        //     useClass: WebhookInterceptor,
-        // },
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: WebhookInterceptor,
+        },
         {
             provide: APP_INTERCEPTOR,
             useClass: SentryInterceptor,

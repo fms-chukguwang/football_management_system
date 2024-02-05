@@ -7,14 +7,19 @@ import * as Sentry from '@sentry/node';
 @Injectable()
 export class WebhookInterceptor implements NestInterceptor {
     intercept(context: ExecutionContext, next: CallHandler) /** : Observable<any>*/ {
+        const now = new Date(); // 현재 시간과 날짜
+        const hour = now.getHours(); // 현재 시간
         const req = context.switchToHttp().getRequest();
         const method = req.method;
         const [, , path] = req.originalUrl.split('/');
 
         return next.handle().pipe(
             tap(() => {
+                const isBetween2and6am = hour >= 2 && hour < 6;
+
                 if (
                     path === 'admin' &&
+                    isBetween2and6am &&
                     (method === 'POST' || method === 'PUT' || method === 'DELETE')
                 ) {
                     const webhook = new IncomingWebhook(process.env.SLACK_WEBHOOK);
@@ -22,7 +27,7 @@ export class WebhookInterceptor implements NestInterceptor {
                         attachments: [
                             {
                                 color: 'danger',
-                                text: '어드민 계정으로 DB에 접근했습니다.',
+                                text: '경고: 2-6 am에 어드민 계정으로 DB에 접근했습니다!',
                                 fields: [
                                     {
                                         title: `Request Message: ${JSON.stringify(req.body)}`,
