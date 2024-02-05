@@ -13,16 +13,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
             | { message: any; statusCode: number; error: number }
             | { error: number; statusCode: 400; message: string[] }; // class-validator 타이핑
 
-        this.myLogger.error(
-            ' method : ' +
-                req.method +
-                'status : ' +
-                status +
-                ' error : ' +
-                err.message +
-                ' path : ' +
-                req.url,
-        );
+        this.myLogger.error(`[ERR] ${req.method} ${req.url} ${new Date().toLocaleString('ko-KR', {
+            timeZone: 'Asia/Seoul',
+        })},
+Status: ${status}
+Message: ${err.message}                    
+Exception: ${err.error}
+Stack: ${exception.stack}
+`);
 
         res.status(status).json({
             statusCode: status,

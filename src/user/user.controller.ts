@@ -19,9 +19,7 @@ export class UserController {
     @Get('/me')
     async findMe(@Request() req) {
         const userId = req.user.id;
-
         const data = await this.userService.findOneById(userId);
-        console.log(data);
         return {
             statusCode: HttpStatus.OK,
             message: '내 정보 조회에 성공했습니다.',
