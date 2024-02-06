@@ -5,7 +5,8 @@ import { Repository } from 'typeorm';
 import { CreateMessagesDto } from './dto/create-message.dto';
 import { PaginateMessageDto } from './dto/paginate-message.dto';
 import { CommonService } from '../common/common.service';
-
+import { badWordsList } from '../chats/bad-words/badWordsList.kr';
+import { create } from 'domain';
 @Injectable()
 export class ChatMessagesService {
     constructor(
@@ -13,6 +14,14 @@ export class ChatMessagesService {
         private readonly messageRepository: Repository<Message>,
         private readonly commonService: CommonService,
     ) {}
+
+    private filterBadWords(message: string): string {
+        badWordsList.forEach((badWord) => {
+            const regex = new RegExp(`${badWord}`, 'gi');
+            message = message.replace(regex, '❤️'.repeat(badWord.length));
+        });
+        return message;
+    }
 
     async paginateMessages(dto: PaginateMessageDto, chatId: number) {
         return await this.commonService.paginate(
@@ -61,6 +70,7 @@ export class ChatMessagesService {
     }
 
     async createMessage(createMessageDto: CreateMessagesDto, authorId: number) {
+        const filterdMessage = this.filterBadWords(createMessageDto.message);
         const message = await this.messageRepository.save({
             chat: {
                 id: createMessageDto.chatId,
@@ -68,7 +78,7 @@ export class ChatMessagesService {
             author: {
                 id: authorId,
             },
-            message: createMessageDto.message,
+            message: filterdMessage,
         });
 
         return await this.messageRepository.findOne({
