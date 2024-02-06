@@ -22,6 +22,8 @@ export class ProfileService {
         private readonly userRepository: Repository<User>,
         @InjectRepository(Member)
         private readonly memberRepository: Repository<Member>,
+        @InjectRepository(LocationModel)
+        private readonly locationRepository: Repository<LocationModel>,
         private readonly commonService: CommonService,
         private readonly awsService: AwsService,
         private readonly dataSource: DataSource,
@@ -188,104 +190,122 @@ export class ProfileService {
     ): Promise<Profile> {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
-
+    
         const user = await this.userRepository.findOne({
             where: { id: userId },
             relations: ['profile'],
         });
-
+    
         const member = await this.memberRepository.findOne({
             where: { user: { id: userId } },
             relations: ['profile'],
         });
-
+    
+        const location = await this.locationRepository.save({
+            latitude: registerProfileInfoDto.latitude,
+            longitude: registerProfileInfoDto.longitude,
+            state: registerProfileInfoDto.state,
+            city: registerProfileInfoDto.city,
+            district: registerProfileInfoDto.district,
+            address: registerProfileInfoDto.address,
+        });
+    
         if (!user) {
             throw new NotFoundException('User not found');
         }
-
+    
         if (!user.profile) {
             user.profile = new Profile();
         }
-
+    
         try {
             await queryRunner.startTransaction();
             const imageUUID = await this.awsService.uploadFile(file);
-
+    
             const registeredProfile = await this.profileRepository.save({
                 ...registerProfileInfoDto,
-                name: user.name,
-                user,
-                member,
-                imageUUID,
+                user: user,
+                member: member,
+                location: location,
+                imageUUID: imageUUID,
             });
-            // const registeredProfile = await profileRepository.save(user.profile);
-            // throw new Error('Method not implemented.');
-            await this.userRepository.save({ ...user, profile: registeredProfile });
-
+    
+            user.profile = registeredProfile; 
+    
+            await this.userRepository.save(user); 
+    
             await queryRunner.commitTransaction();
             return registeredProfile;
         } catch (err) {
             console.log(err);
             await queryRunner.rollbackTransaction();
+            throw new Error('Failed to register profile');
         } finally {
             await queryRunner.release();
         }
     }
+    
 
     async updateProfileInfo(
         userId: number,
         updateProfileInfoDto: UpdateProfileInfoDto,
         file?: Express.Multer.File,
-      ): Promise<Profile> {
+    ): Promise<Profile> {
         try {
-          console.log('Update Profile Info - UserId:', userId);
-          console.log('Update Profile Info DTO:', updateProfileInfoDto);
-      
-          // Fetch the user along with the profile
-          const user = await this.userRepository.findOne({
-            where: { id: userId },
-            relations: ['profile'],
-          });
-      
-          if (!user) {
-            throw new NotFoundException('User not found');
-          }
-      
-          if (!user.profile) {
-            user.profile = await this.profileRepository.findOne({
-              where: { user: { id: userId } },
+            // 사용자 및 해당 프로필 가져오기
+            const user = await this.userRepository.findOne({
+                where: { id: userId },
+                relations: ['profile','profile.location'],
             });
-      
-            if (!user.profile) {
-              throw new NotFoundException('Profile not found');
+
+            if (!user) {
+                throw new NotFoundException('User not found');
             }
-          }
-      
-          const imageUUID = file ? await this.awsService.uploadFile(file) : null;
-      
-          // Update profile fields
-          user.profile.preferredPosition = updateProfileInfoDto.preferredPosition;
-          user.profile.weight = updateProfileInfoDto.weight;
-          user.profile.height = updateProfileInfoDto.height;
-          user.profile.age = updateProfileInfoDto.age;
-          user.profile.gender = updateProfileInfoDto.gender;
-      
-          // Update image UUID if provided
-          if (file) {
-            user.profile.imageUUID = imageUUID;
-          }
-      
-          // Save the updated profile
-          const updatedProfile = await this.profileRepository.save(user.profile);
-      
-          console.log('Updated Profile:', updatedProfile);
-      
-          return updatedProfile;
+    
+            if (!user.profile) {
+                throw new NotFoundException('Profile not found');
+            }
+    
+            const imageUUID = file ? await this.awsService.uploadFile(file) : null;
+    
+            // 프로필 정보 업데이트
+            user.profile.preferredPosition = updateProfileInfoDto.preferredPosition;
+            user.profile.weight = updateProfileInfoDto.weight;
+            user.profile.height = updateProfileInfoDto.height;
+            user.profile.age = updateProfileInfoDto.age;
+            user.profile.gender = updateProfileInfoDto.gender;
+    
+            // 사용자 프로필의 location 속성 초기화 확인
+            if (!user.profile.location) {
+                user.profile.location = new LocationModel(); 
+            }
+    
+            // 주소 및 위치 정보 업데이트
+            user.profile.location.address = updateProfileInfoDto.address;
+            user.profile.location.city = updateProfileInfoDto.city;
+            user.profile.location.latitude = updateProfileInfoDto.latitude;
+            user.profile.location.longitude = updateProfileInfoDto.longitude;
+            user.profile.location.district = updateProfileInfoDto.district;
+    
+            // 파일이 제공되었다면 이미지 UUID 업데이트
+            if (file) {
+                user.profile.imageUUID = imageUUID;
+            }
+    
+            // 업데이트된 프로필 저장
+            const updatedProfile = await this.profileRepository.save(user.profile);
+    
+            console.log('Updated Profile:', updatedProfile);
+    
+            return updatedProfile;
         } catch (error) {
-          console.error('Error updating profile info:', error.message);
-          throw new Error('Failed to update profile info');
+            console.error('Error updating profile info:', error.message);
+            throw new Error('Failed to update profile info');
         }
-      }
+    }
+    
+    
+    
       
 
     async deleteProfile(id: number) {

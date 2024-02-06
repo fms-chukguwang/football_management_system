@@ -106,11 +106,11 @@ export class Profile {
      * 위치
      * @example "Location_id"
      */
-    @OneToOne(() => LocationModel, (location) => location.profile)
+    @OneToOne(() => LocationModel, (location) => location.profile, {
+        cascade: true, 
+    })
     @JoinColumn()
     location: LocationModel;
-
-
           
     /**
      * 유저 아이디

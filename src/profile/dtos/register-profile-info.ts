@@ -2,6 +2,7 @@ import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import { Position } from '../../enums/position.enum';
 import { Gender } from '../../enums/gender.enum';
 import { Column } from 'typeorm';
+import { Factory } from 'nestjs-seeder';
 
 export class RegisterProfileInfoDto {
       /**
@@ -58,4 +59,36 @@ export class RegisterProfileInfoDto {
     @IsEnum(Gender, { message: 'Please provide a valid gender value' })
     @IsNotEmpty({ message: 'Please provide gender' })
     gender: Gender;
+
+     /**
+     * 지역
+     * @example "경기"
+     */
+      @Factory((faker) => faker.location.state())
+      @Column()
+      state: string;
+  
+      /**
+       * 도시
+       * @example "수원시"
+       */
+      @Factory((faker) => faker.location.city())
+      @Column()
+      city: string;
+  
+      /**
+       * 구
+       * @example "권선구"
+       */
+      @Column()
+      @Factory((faker) => faker.location.county())
+      district: string;
+  
+      /**
+       * 주소
+       * @example "경기 수원시 권선구"
+       */
+      @Column()
+      @Factory((faker) => faker.location.street())
+      address: string;
 }

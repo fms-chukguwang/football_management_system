@@ -26,16 +26,16 @@ export class LocationModel extends BaseModel {
      * 위도
      * @example 37.5665
      */
-    @IsNumber()
-    @IsNotEmpty({ message: 'Please provide latitude' })
+
+    @Column()
     latitude: number;
 
     /**
      * 경도
      * @example 126.9780
      */
-    @IsNumber()
-    @IsNotEmpty({ message: 'Please provide longitude' })
+
+    @Column()
     longitude: number;
 
     /**
