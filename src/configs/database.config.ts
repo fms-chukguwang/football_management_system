@@ -16,6 +16,6 @@ export const typeOrmModuleOptions: TypeOrmModuleAsyncOptions = {
         synchronize: configService.get<boolean>('DB_SYNC'),
 
         autoLoadEntities: true,
-        // logging: true,
+        logging: true,
     }),
 };
