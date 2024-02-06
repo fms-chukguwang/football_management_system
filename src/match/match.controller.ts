@@ -499,4 +499,20 @@ export class MatchController {
         //     data,
         // };
     }
+
+    /**
+     * 경기 결과 있는지 확인
+     * @param matchId
+     */
+    @Get('/:matchId/result/exist')
+    @UseGuards(JwtAuthGuard)
+    async getMatchResultExist(@Param('matchId') matchId: number) {
+        const data = await this.matchService.getMatchResultExist(matchId);
+
+        return {
+            statusCode: HttpStatus.OK,
+            success: true,
+            data,
+        };
+    }
 }
