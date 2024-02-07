@@ -8,6 +8,7 @@ import { PlayerStats } from 'src/match/entities/player-stats.entity';
 import { TopPlayerDto } from './dto/top-player.dto';
 import { Member } from 'src/member/entities/member.entity';
 import { PlayersDto } from './dto/players.dto';
+import { YellowAndRedCardsDto } from './dto/yellow-and-red-cards.dto';
 
 @Injectable()
 export class StatisticsService {
@@ -378,6 +379,11 @@ export class StatisticsService {
         return rankAttactPoint;
     }
 
+    /**
+     * 플레이어 목록 가져오기
+     * @param teamId
+     * @returns
+     */
     async getPlayers(teamId: number): Promise<PlayersDto> {
         const players = await this.memberRepository
             .createQueryBuilder('members')
@@ -404,6 +410,54 @@ export class StatisticsService {
 
         return {
             players: [...players],
+        };
+    }
+
+    /**
+     * 최근 5경기 옐로우카드, 레드카드 통계 가져오기
+     * @param teamId
+     */
+    async getYellowAndRedCards(teamId: number): Promise<YellowAndRedCardsDto> {
+        const matchCount = this.playerStatsRepository
+            .createQueryBuilder('players')
+            .select('COUNT(DISTINCT DATE(players.created_at)) as count')
+            .where('players.team_id = :teamId', { teamId });
+
+        let { count } = await matchCount.getRawOne();
+
+        if (+count > 5) {
+            count -= 5;
+        } else {
+            count = 0;
+        }
+
+        const rawYellowAndRedCards = await this.playerStatsRepository
+            .createQueryBuilder('players')
+            .select([
+                'players.yellow_cards as yellow',
+                'players.red_cards as red',
+                'DATE(players.created_at) as created',
+            ])
+            .where('players.team_id = :teamId', { teamId })
+            .groupBy('created')
+            .orderBy('created', 'ASC')
+            .offset(count)
+            .limit(5)
+            .getRawMany();
+
+        const yellowAndRedCards = rawYellowAndRedCards.map((item) => {
+            const convertDate = new Date(item.created);
+
+            return {
+                ...item,
+                created: convertDate.toLocaleDateString(),
+            };
+        });
+
+        console.log(yellowAndRedCards);
+
+        return {
+            yellowAndRedCards: [...yellowAndRedCards],
         };
     }
 }
