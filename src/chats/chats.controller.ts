@@ -8,13 +8,11 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 export class ChatsController {
     constructor(private readonly chatsService: ChatsService) {}
 
-    // @Get()
-    // async getAllChats() {
-    //   return await this.chatsService.getAllChats();
-    // }
     @Get()
     async paginateChat(@Query() dto: PaginateChatDto, @Req() req) {
-        return await this.chatsService.paginateChat(dto, req.user.id);
+        return await this.chatsService.paginateChat(dto, req.user.id).catch((e) => {
+            throw e;
+        });
     }
 
     @Get(':userId')

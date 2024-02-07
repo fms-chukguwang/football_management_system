@@ -4,9 +4,9 @@ import { CommonController } from './common.controller';
 import { LoggingModule } from '../logging/logging.module';
 
 @Module({
-  imports: [LoggingModule],
-  exports: [CommonService],
-  controllers: [CommonController],
-  providers: [CommonService],
+    imports: [LoggingModule],
+    exports: [CommonService],
+    controllers: [CommonController],
+    providers: [CommonService],
 })
 export class CommonModule {}

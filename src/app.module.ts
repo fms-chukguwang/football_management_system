@@ -17,7 +17,7 @@ import * as mongoose from 'mongoose';
 import { LoggingService } from './logging/logging.service';
 import { MatchModule } from './match/match.module';
 import { AdminModule } from './admin/admin.module';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { LogInterceptor } from './common/interceptors/log.interceptor';
 import { ProfileController } from './profile/profile.controller';
 import { ProfileService } from './profile/profile.service';
@@ -34,6 +34,7 @@ import { RavenInterceptor, RavenModule } from 'nest-raven';
 import { SentryInterceptor } from './common/interceptors/sentry.interceptor';
 import { StatisticsModule } from './statistics/statistics.module';
 import { SoccerfieldModule } from './soccerfield/soccerfield.module';
+import { HttpExceptionFilter } from './common/exception-filter/http.exception-filter';
 
 @Module({
     imports: [
@@ -70,19 +71,22 @@ import { SoccerfieldModule } from './soccerfield/soccerfield.module';
             provide: APP_INTERCEPTOR,
             useClass: LogInterceptor,
         },
-        // {
-        //     provide: APP_INTERCEPTOR,
-        //     useClass: WebhookInterceptor,
-        // },
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: WebhookInterceptor,
+        },
         {
             provide: APP_INTERCEPTOR,
             useClass: SentryInterceptor,
+        },
+        {
+            provide: APP_FILTER,
+            useClass: HttpExceptionFilter,
         },
     ],
 })
 export class AppModule implements NestModule {
     configure(consumer: MiddlewareConsumer) {
-        consumer.apply(LoggerMiddleware).forRoutes({ path: '*', method: RequestMethod.ALL });
         mongoose.set('debug', true);
     }
 }

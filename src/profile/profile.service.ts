@@ -190,35 +190,36 @@ export class ProfileService {
     ): Promise<Profile> {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
-
-        const user = await this.userRepository.findOne({
-            where: { id: userId },
-            relations: ['profile'],
-        });
-
-        const member = await this.memberRepository.findOne({
-            where: { user: { id: userId } },
-            relations: ['profile'],
-        });
-
-        const location = await this.locationRepository.save({
-            latitude: registerProfileInfoDto.latitude,
-            longitude: registerProfileInfoDto.longitude,
-            state: registerProfileInfoDto.state,
-            city: registerProfileInfoDto.city,
-            district: registerProfileInfoDto.district,
-            address: registerProfileInfoDto.address,
-        });
-
-        if (!user) {
-            throw new NotFoundException('User not found');
-        }
-
-        if (!user.profile) {
-            user.profile = new Profile();
-        }
-
+        
         try {
+
+            const user = await this.userRepository.findOne({
+                where: { id: userId },
+                relations: ['profile'],
+            });
+        
+            const member = await this.memberRepository.findOne({
+                where: { user: { id: userId } },
+                relations: ['profile'],
+            });
+        
+            const location = await this.locationRepository.save({
+                latitude: registerProfileInfoDto.latitude,
+                longitude: registerProfileInfoDto.longitude,
+                state: registerProfileInfoDto.state,
+                city: registerProfileInfoDto.city,
+                district: registerProfileInfoDto.district,
+                address: registerProfileInfoDto.address,
+            });
+        
+            if (!user) {
+                throw new NotFoundException('User not found');
+            }
+        
+            if (!user.profile) {
+                user.profile = new Profile();
+            }
+
             await queryRunner.startTransaction();
             const imageUUID = await this.awsService.uploadFile(file);
 
@@ -229,11 +230,11 @@ export class ProfileService {
                 location: location,
                 imageUUID: imageUUID,
             });
-
-            user.profile = registeredProfile;
-
-            await this.userRepository.save(user);
-
+    
+            //user.profile = registeredProfile; 
+    
+            //await this.userRepository.save(user); 
+    
             await queryRunner.commitTransaction();
             return registeredProfile;
         } catch (err) {

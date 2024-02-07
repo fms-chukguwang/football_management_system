@@ -1504,4 +1504,16 @@ export class MatchService {
 
         return formattedResult;
     }
+
+    async getMatchResultExist(matchId: number) {
+        const result = await this.matchResultRepository.findOne({
+            where: { match_id: matchId },
+        });
+
+        if (!result) {
+            throw new NotFoundException('경기 결과가 없습니다.');
+        }
+        console.log('result= ', result);
+        return result;
+    }
 }

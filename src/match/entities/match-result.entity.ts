@@ -27,25 +27,25 @@ export class MatchResult {
     team_id: number;
 
     @Column({ type: 'json', nullable: true })
-    goals: { playerId: number; count: number }[];
+    goals: { memberId: number; count: number }[];
 
     @Column({ type: 'int', nullable: false })
     corner_kick: number;
 
     @Column({ type: 'json', nullable: true })
-    red_cards: { playerId: number; count: number }[];
+    red_cards: { memberId: number; count: number }[];
 
-    @Column({ type: 'simple-array', nullable: true })
-    yellow_cards: number[];
+    @Column({ type: 'json', nullable: true })
+    yellow_cards: { memberId: number; count: number }[];
 
     @Column({ type: 'json', nullable: true })
     substitions: { inPlayerId: number; outPlayerId: number }[];
 
     @Column({ type: 'json', nullable: true })
-    saves: { playerId: number; count: number }[];
+    saves: { memberId: number; count: number }[];
 
     @Column({ type: 'json', nullable: true })
-    assists: { playerId: number; count: number }[];
+    assists: { memberId: number; count: number }[];
 
     @Column({ type: 'int', nullable: false })
     passes: number;
