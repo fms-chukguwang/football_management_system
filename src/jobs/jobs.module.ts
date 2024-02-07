@@ -5,8 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SoccerField } from '../match/entities/soccer-field.entity';
 import { LocationModel } from '../location/entities/location.entity';
 
-
 @Module({
+    exports: [JobsService],
     imports: [TypeOrmModule.forFeature([SoccerField, LocationModel])],
     providers: [JobsService],
     controllers: [JobsController],

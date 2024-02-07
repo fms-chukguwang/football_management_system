@@ -40,9 +40,9 @@ export class TournamentModel extends BaseModel {
     @JoinTable()
     teams: TeamModel[];
 
-    @OneToOne(() => LocationModel, (location) => location.tournament, {
-        cascade: true,
+    @IsBoolean()
+    @Column({
+        default: false,
     })
-    @JoinColumn()
-    location: LocationModel;
+    isCancelled: boolean;
 }

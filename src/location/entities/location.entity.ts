@@ -88,8 +88,4 @@ export class LocationModel extends BaseModel {
 
     @OneToMany(() => SoccerField, (soccerfield) => soccerfield.locationfield)
     soccerfield: SoccerField[];
-
-    @OneToOne(() => TournamentModel, (tournament) => tournament.location)
-    @JoinColumn()
-    tournament: TournamentModel;
 }

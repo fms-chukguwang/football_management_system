@@ -1,12 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { In, Repository } from 'typeorm';
+import { In, LessThan, Repository } from 'typeorm';
 import { TournamentModel } from './entities/tournament.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateTournamentDto } from './dtos/create-tournament.dto';
 import { LoggingService } from 'src/logging/logging.service';
 import { TeamModel } from 'src/team/entities/team.entity';
-import { CompressionType } from '@aws-sdk/client-s3';
 import { UpdateTournamentDto } from './dtos/update-tournament.dto';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class TournamentService {
@@ -116,5 +116,26 @@ export class TournamentService {
         await this.tournamentRepository.update(tournamentId, updateTournamentDto);
 
         return '수정이 완료되었습니다.';
+    }
+
+    // 인원 미달 && 참가 데드라인 끝난 토너먼트 종료 처리
+    @Cron(CronExpression.EVERY_HOUR)
+    async closeFinishedTournaments() {
+        console.log('인원 미달 && 참가 데드라인 끝난 토너먼트 종료 처리');
+        const currentDate = new Date();
+        const tournaments = await this.tournamentRepository.find({
+            where: {
+                registerDeadline: LessThan(currentDate),
+                isFinished: false,
+            },
+            relations: ['teams'],
+        });
+        tournaments.forEach(async (tournament) => {
+            if (tournament.teams.length < tournament.teamLimit) {
+                tournament.isFinished = true;
+                tournament.isCancelled = true;
+                await this.tournamentRepository.save(tournament);
+            }
+        });
     }
 }
