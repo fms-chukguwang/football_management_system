@@ -10,15 +10,18 @@ import { MemberModule } from '../member/member.module';
 import { Member } from '../member/entities/member.entity';
 import { CommonModule } from '../common/common.module';
 import { AwsModule } from '../aws/aws.module';
+import { LocationModule } from 'src/location/location.module';
+import { LocationModel } from 'src/location/entities/location.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Profile, Member]),
+        TypeOrmModule.forFeature([Profile, Member,LocationModel]),
         AuthModule,
         UserModule,
         forwardRef(() => MemberModule),
         CommonModule,
         AwsModule,
+        LocationModule
     ],
     controllers: [ProfileController],
     providers: [ProfileService],

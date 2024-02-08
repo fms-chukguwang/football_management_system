@@ -26,6 +26,7 @@ export class UserService {
             },
             relations: [
                 'profile',
+                'profile.location',
                 'member',
                 'member.team',
                 'member.team.chat',

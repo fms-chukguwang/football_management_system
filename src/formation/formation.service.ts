@@ -165,12 +165,12 @@ export class FormationService {
             FROM(
                 SELECT member_id, SUM(yellow_cards) yellowCards
                 FROM player_statistics
-                WHERE team_id = ${teamId} AND match_id IN (
+                WHERE team_id = ? AND match_id IN (
                 SELECT match_id
                 FROM (
                     SELECT DISTINCT match_id
                     FROM player_statistics
-                    WHERE team_id = ${teamId}
+                    WHERE team_id = ?
                     ORDER BY match_id DESC
                     LIMIT 3
                 ) AS subquery
@@ -181,7 +181,7 @@ export class FormationService {
             WHERE yellowCards > 0
             LIMIT 3
 
-        `);
+        `,[teamId,teamId]);
 
         const result = await Promise.all(
             rawResults.map(async (member) => {

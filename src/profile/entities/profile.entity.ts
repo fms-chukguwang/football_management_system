@@ -1,5 +1,5 @@
 import { Exclude } from 'class-transformer';
-import { IsDate, IsEmail, IsEnum, IsNotEmpty, IsString, IsStrongPassword } from 'class-validator';
+import { IsDate, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsString, IsStrongPassword } from 'class-validator';
 import { UserStatus } from '../../enums/user-status.enum';
 import { Gender } from '../../enums/gender.enum';
 import {
@@ -106,10 +106,12 @@ export class Profile {
      * 위치
      * @example "Location_id"
      */
-    @OneToOne(() => LocationModel, (location) => location.profile)
+    @OneToOne(() => LocationModel, (location) => location.profile, {
+        cascade: true, 
+    })
     @JoinColumn()
     location: LocationModel;
-
+          
     /**
      * 유저 아이디
      * @example 1

@@ -5,18 +5,12 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as dotenv from 'dotenv';
 import { HttpExceptionFilter } from './common/exception-filter/http.exception-filter';
-import { winstonLogger } from './configs/winston.config';
 import { LoggingService } from './logging/logging.service';
 import * as Sentry from '@sentry/node';
 import { ProfilingIntegration } from '@sentry/profiling-node';
 
 async function bootstrap() {
-    const app = await NestFactory.create(
-        AppModule,
-        //   {
-        //   logger: winstonLogger,
-        // }
-    );
+    const app = await NestFactory.create(AppModule);
 
     const appInstance = app.getHttpAdapter().getInstance();
     // .env 파일을 현재 환경에 로드
@@ -50,13 +44,16 @@ async function bootstrap() {
     const port = configService.get<number>('SERVER_PORT');
 
     //const FRONT_PORT = configService.get<number>('FRONT_PORT');
-  const corsOptions = {
-        origin: `${process.env.SERVER_HOST}:${process.env.FRONT_PORT || 3001}`,
+    const corsOptions = {
+        origin: [
+            `${process.env.FRONT_HOST}:${process.env.FRONT_PORT || 3001}`,
+            process.env.FRONT_HOST,
+        ],
+        //origin: `${process.env.FRONT_HOST}:${process.env.FRONT_PORT || 3001}`,
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true,
         allowedHeaders: 'Origin,X-Requested-With,Content-Type,Accept,Authorization',
     };
-
 
     app.enableCors(corsOptions);
 

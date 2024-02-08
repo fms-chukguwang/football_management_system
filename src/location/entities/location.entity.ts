@@ -1,4 +1,4 @@
-import { IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import { BaseModel } from '../../common/entities/base.entity';
 import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { TeamModel } from '../../team/entities/team.entity';
@@ -10,7 +10,7 @@ import { SoccerField } from '../../match/entities/soccer-field.entity';
 export class LocationModel extends BaseModel {
     @PrimaryGeneratedColumn()
     id: number;
-    
+
     /**
      * 우편 번호
      * @example 16661
@@ -21,6 +21,22 @@ export class LocationModel extends BaseModel {
     // })
     // @IsNumber()
     // postalCode: number;
+
+    /**
+     * 위도
+     * @example 37.5665
+     */
+
+    @Column()
+    latitude: number;
+
+    /**
+     * 경도
+     * @example 126.9780
+     */
+
+    @Column()
+    longitude: number;
 
     /**
      * 지역
@@ -34,7 +50,7 @@ export class LocationModel extends BaseModel {
      * 도시
      * @example "수원시"
      */
-     @Factory((faker) => faker.location.city())
+    @Factory((faker) => faker.location.city())
     @Column()
     city: string;
 
@@ -45,6 +61,14 @@ export class LocationModel extends BaseModel {
     @Column()
     @Factory((faker) => faker.location.county())
     district: string;
+
+    /**
+     * 동
+     * @example "권선구"
+     */
+    @Column()
+    @Factory((faker) => faker.location.county())
+    dong: string;
 
     /**
      * 주소

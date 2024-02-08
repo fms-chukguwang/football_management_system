@@ -489,6 +489,37 @@ export class MatchService {
     }
 
     /**
+     * (팀내 선수 전체) 정보 가져오기
+     * @param  teamId
+     * @returns
+     */
+    async getMembers(teamId: number) {
+        const members = await this.memberRepository.find({
+            relations: {
+                team: true,
+                user: true,
+            },
+            select: {
+                id: true,
+                user: {
+                    name: true,
+                },
+            },
+            where: {
+                team: {
+                    id: teamId,
+                },
+            },
+        });
+
+        if (!members) {
+            throw new BadRequestException('멤버 정보가 없습니다.');
+        }
+
+        return members;
+    }
+
+    /**
      * 경기 후 선수 기록 등록
      * @param  userId
      * @param  matchId
@@ -1232,7 +1263,7 @@ export class MatchService {
                         weight: true,
                         height: true,
                         preferredPosition: true,
-                        imageUrl: true,
+                        imageUUID: true,
                         age: true,
                         phone: true,
                         birthdate: true,
@@ -1266,9 +1297,7 @@ export class MatchService {
             },
 
             where: {
-                user: {
-                    id: userId,
-                },
+                id: userId,
             },
         });
 
@@ -1393,5 +1422,98 @@ export class MatchService {
         }
 
         return { count, team };
+    }
+
+    async getMatchResultByMatchId(matchId: number, teamId: number) {
+        const result = await this.matchResultRepository.find({
+            where: { match_id: matchId },
+            relations: {
+                match: true,
+            },
+            select: {
+                match_id: true,
+                team_id: true,
+                corner_kick: true,
+                substitions: true,
+                passes: true,
+                penalty_kick: true,
+                free_kick: true,
+                clean_sheet: true,
+                goals: true,
+                assists: true,
+                yellow_cards: true,
+                red_cards: true,
+                saves: true,
+            },
+        });
+        const match = await this.matchRepository.findOne({
+            where: { id: matchId },
+        });
+        const homeTeamId = match.home_team_id;
+        const awayTeamId = match.away_team_id;
+        const date = match.date;
+        const time = match.time;
+
+        if (!result) {
+            throw new NotFoundException('경기 결과가 없습니다.');
+        }
+
+        result.map((rs) => {
+            if (rs.team_id === homeTeamId) {
+                rs['home_team_id'] = homeTeamId;
+                rs['away_team_id'] = awayTeamId;
+            } else if (rs.team_id === awayTeamId) {
+                rs['home_team_id'] = awayTeamId;
+                rs['away_team_id'] = homeTeamId;
+            }
+            // 골 정보
+            let goals = 0;
+            for (let i = 0; i < rs.goals.length; i++) {
+                goals += rs.goals[i].count;
+            }
+
+            let saves = 0;
+            for (let i = 0; i < rs.saves.length; i++) {
+                saves += rs.saves[i].count;
+            }
+
+            rs['counted_goals'] = goals;
+            rs['counted_yellow_cards'] = rs.yellow_cards.length;
+            rs['counted_red_cards'] = rs.red_cards.length;
+            rs['counted_saves'] = saves;
+            delete rs.goals;
+            delete rs.yellow_cards;
+            delete rs.red_cards;
+            delete rs.saves;
+            delete rs.assists;
+            delete rs.substitions;
+            delete rs.corner_kick;
+            delete rs.match;
+        });
+
+        let formattedResult = {};
+        result.map((rs) => {
+            if (rs.team_id === homeTeamId) {
+                formattedResult['home'] = rs;
+            } else if (rs.team_id === awayTeamId) {
+                formattedResult['away'] = rs;
+            }
+        });
+        formattedResult['date'] = date;
+        formattedResult['time'] = time;
+
+        return formattedResult;
+    }
+
+    async getMatchResultExist(matchId: number) {
+        const result = await this.matchResultRepository.findOne({
+            where: { match_id: matchId },
+        });
+
+        if (!result) {
+            throw new NotFoundException('경기 결과가 없습니다.');
+        }
+        console.log('result= ', result);
+        return result;
     }
 }

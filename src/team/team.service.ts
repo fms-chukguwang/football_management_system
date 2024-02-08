@@ -7,10 +7,11 @@ import {
     InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+
 import { AwsService } from '../aws/aws.service';
 import { LocationService } from '../location/location.service';
 import { MemberService } from '../member/member.service';
-import { DataSource, FindManyOptions, Like, Repository } from 'typeorm';
+import { DataSource, FindManyOptions, getManager, Like, Repository, Connection } from 'typeorm';
 import { CreateTeamDto } from './dtos/create-team.dto';
 import { TeamModel } from './entities/team.entity';
 import {
@@ -24,6 +25,7 @@ import { CommonService } from '../common/common.service';
 import { RedisService } from '../redis/redis.service';
 import { ChatsService } from '../chats/chats.service';
 import { CreateChatDto } from '../chats/dto/create-chat.dto';
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 @Injectable()
 export class TeamService {
@@ -38,6 +40,7 @@ export class TeamService {
         private readonly commonService: CommonService,
         private readonly chatService: ChatsService,
         private readonly redisService: RedisService,
+        private readonly connection: Connection,
     ) {}
 
     async findOneById(id: number) {
@@ -68,9 +71,6 @@ export class TeamService {
      */
     //@Transactional()
     async createTeam(createTeamDto: CreateTeamDto, userId: number, file: Express.Multer.File) {
-        const queryRunner = this.dataSource.createQueryRunner();
-        await queryRunner.connect();
-
         const existTeam = await this.teamRepository.findOne({
             where: {
                 creator: {
@@ -78,62 +78,58 @@ export class TeamService {
                 },
             },
         });
+    
         if (existTeam) {
             throw new BadRequestException(EXIST_CREATOR);
         }
-
+    
         const existTeamName = await this.teamRepository.exists({
             where: {
                 name: createTeamDto.name,
             },
         });
+    
         if (existTeamName) {
             throw new BadRequestException(DUPLICATE_TEAM_NAME);
         }
-
+    
+        const extractLocation = this.locationService.extractAddress(createTeamDto.address);
+    
+        let findLocation = await this.locationService.findOneLocation(extractLocation);
+    
+        if (!findLocation) {
+            findLocation = await this.locationService.registerLocation(createTeamDto.address, extractLocation);
+        }
+    
+        const imageUUID = await this.awsService.uploadFile(file);
+    
+        // 채팅방 생성
+        const createChatDto: CreateChatDto = { userIds: [userId] };
+        const chat = await this.chatService.createChat(createChatDto);
+    
+        const team = await this.teamRepository.save({
+            ...createTeamDto,
+            imageUUID: imageUUID,
+            location: {
+                id: findLocation.id,
+            },
+            creator: { id: userId },
+            chat,
+        });
+    
         try {
-            await queryRunner.startTransaction();
-
-            const extractLocation = this.locationService.extractAddress(createTeamDto.address);
-
-            let findLocation = await this.locationService.findOneLocation(extractLocation);
-            if (!findLocation) {
-                findLocation = await this.locationService.registerLocation(
-                    createTeamDto.address,
-                    extractLocation,
-                );
-            }
-
-            const imageUUID = await this.awsService.uploadFile(file);
-
-            // 채팅방 생성
-            const createChatDto: CreateChatDto = { userIds: [userId] };
-            const chat = await this.chatService.createChat(createChatDto);
-
-            const result = this.teamRepository.create({
-                ...createTeamDto,
-                imageUUID: imageUUID,
-                location: {
-                    id: findLocation.id,
-                },
-                creator: { id: userId },
-                chat,
-            });
-
-            const savedTeam = await this.teamRepository.save(result);
-            await this.memberService.registerCreaterMember(savedTeam.id, userId);
-
-            await queryRunner.commitTransaction();
-
-            return savedTeam;
+            // await this.connection.transaction(async (transactionalEntityManager) => {
+            //     const savedTeam = await transactionalEntityManager.save(TeamModel, team);
+                await this.memberService.registerCreaterMember(team.id, userId);
+           // });
+    
+            return team;
         } catch (err) {
-            console.log(err);
-            await queryRunner.rollbackTransaction();
-        } finally {
-            await queryRunner.release();
+            console.error(err);
+            throw new InternalServerErrorException('팀 생성 중 오류가 발생했습니다.');
         }
     }
-
+    
     /**
      * 팀 상세조회
      * @param teamId
@@ -172,41 +168,50 @@ export class TeamService {
      * 팀 전체조회
      * @returns
      */
-
-    async getTeams() {
-        const teams = await this.teamRepository.find();
+     async getTeams() {
+        const teams = await this.teamRepository.find({
+            relations: ['location'],
+        });
+    
         const teamWithCounts = await Promise.all(
             teams.map(async (team) => {
                 const [data, count] = await this.memberService.getMemberCountByTeamId(team.id);
                 return {
-                    team,
+                    team: {
+                        ...team,
+                        location: team.location, 
+                    },
                     totalMember: count,
                 };
             }),
         );
-
+    
         return teamWithCounts;
     }
+    
+    
 
     //호영님 코드 수정중
-
     async getTeam(dto: PaginateTeamDto, name?: string) {
         const options: FindManyOptions<TeamModel> = {};
         if (name) {
             options.where = { name: Like(`%${name}%`) };
         }
-
-        const data = await this.teamRepository.find(options);
-
+    
+        options.relations = ['location']; 
+    
         const result = await this.commonService.paginate(dto, this.teamRepository, options, 'team');
-
+    
         if ('total' in result) {
             const { data, total } = result;
             const teamWithCounts = await Promise.all(
                 data.map(async (team) => {
                     const [data, count] = await this.memberService.getMemberCountByTeamId(team.id);
                     return {
-                        team,
+                        team: {
+                            ...team,
+                            location: team.location,  
+                        },
                         totalMember: count,
                     };
                 }),
@@ -214,7 +219,7 @@ export class TeamService {
             return { data: teamWithCounts, total };
         }
     }
-
+    
     async getTeamByGender(userId, dto: PaginateTeamDto, name?: string) {
         const options: FindManyOptions<TeamModel> = {};
         if (name) {
@@ -282,26 +287,37 @@ export class TeamService {
      * @param file
      * @returns
      */
-    async updateTeam(teamId: number, dto: UpdateTeamDto, file: Express.Multer.File) {
+     async updateTeam(teamId: number, updateTeamDto: UpdateTeamDto, file: Express.Multer.File) {
         try {
+            const { latitude, longitude, ...rest } = updateTeamDto;
+    
+            // Location 업데이트를 위한 수정
+            const locationUpdate = {
+                type: 'Point',
+                coordinates: [longitude, latitude],
+            };
+    
+            const updatedTeam = {
+                ...rest,
+                location: locationUpdate,
+            } as QueryDeepPartialEntity<TeamModel>;
+    
             if (file) {
-                console.log('저장전 : ', dto['imageUrl']);
-                dto['imageUUID'] = await this.awsService.uploadFile(file);
+                console.log('저장전 : ', updateTeamDto.imageUrl);
+                updatedTeam.imageUUID = await this.awsService.uploadFile(file);
             }
-
-            await this.teamRepository.update(
-                { id: teamId },
-                {
-                    ...dto,
-                },
-            );
-
+    
+            await this.teamRepository.update({ id: teamId }, updatedTeam);
+    
             await this.redisService.delTeamDetail(teamId);
         } catch (err) {
-            console.log(err);
-            throw new InternalServerErrorException('업데이트중 예기치 못한 오류가 발생하였습니다.');
+            console.error(err);
+            throw new InternalServerErrorException('팀 업데이트 중 예기치 못한 오류가 발생했습니다.');
         }
     }
+    
+    
+    
 
     /**
      * 팀 삭제하기
