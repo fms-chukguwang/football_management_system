@@ -7,4 +7,9 @@ export class PaginateFieldDto extends BasePaginationDto {
     @IsString()
     @IsOptional()
     name?:string;
+
+
+    @IsString()
+    @IsOptional()
+    region?: string;
 }

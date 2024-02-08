@@ -9,18 +9,12 @@ import { SoccerField } from '../match/entities/soccer-field.entity';
 @Injectable()
 export class SoccerfieldService {
     constructor(
-
         @InjectRepository(SoccerField)
         private soccerFieldRepository: Repository<SoccerField>,
-        
         private readonly dataSource: DataSource,
         private readonly commonService: CommonService
-        
-        
-        ) {}
-    /**
-     * 경기장 가져오기
-     */
+    ) {}
+
     async findOneStadium(soccer_field_id: number) {
         const stadium = await this.dataSource
             .getRepository(SoccerFieldModel)
@@ -31,54 +25,27 @@ export class SoccerfieldService {
         return stadium;
     }
 
-    /**
-     * 경기장 전체 조회
-     * @returns
-     */
-    async findAllStadium(userId: number, dto: PaginateFieldDto, name?: string) {
-
-        // const queryOptions = {
-        //     relations: {
-        //         locationfield: true,
-        //     },
-        //     select: {
-        //         locationfield: {
-        //             address: true,
-        //             state: true,
-        //             city: true,
-        //             district: true,
-        //         },
-        //     },
-        // };
-    
-        // // name 값이 제공되었다면 where 조건 추가
-        // if (name) {
-        //     queryOptions['where'] = {
-        //         field_name: Like(`%${name}%`)
-        //     };
-        // }
-
-        // const soccerField = await this.soccerFieldRepository.find(queryOptions);
-
-        console.log('dto:',dto);
-        console.log('name:',name);
-
+    async findAllStadium(userId: number, dto: PaginateFieldDto, region?: string, name?: string) {
         const options: FindManyOptions<SoccerField> = {
-            relations: {
-                locationfield: true,
-            }
+            relations: ['locationfield'],
         };
 
+        // 이름 필터링
         if (name) {
-            options.where = {  field_name: Like(`%${name}%`)  };
-        }
-        
-
-        if (!options) {
-            throw new NotFoundException('등록된 경기장 목록이 없습니다.');
+            options.where = { field_name: Like(`%${name}%`) };
         }
 
-        //return soccerField;
+        // 지역 필터링
+        if (region) {
+            options.where = {
+                ...options.where,
+                locationfield: {
+                    state: region
+                }
+            };
+        }
+
+        // 페이지네이션 처리 및 필터링된 결과 반환
         return await this.commonService.paginate(dto, this.soccerFieldRepository, options, 'soccerfield');
     }
 }
