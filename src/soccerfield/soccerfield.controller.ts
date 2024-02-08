@@ -19,7 +19,7 @@ export class SoccerfieldController {
     async findAllStadium(@Request() req, @Query() dto: PaginateFieldDto) {
         const userId = req.user.id;
 
-        const data = await this.soccerfieldService.findAllStadium(userId, dto, dto.name);
+        const data = await this.soccerfieldService.findAllStadium(userId, dto, dto.region, dto.name);
 
         return data;
     }
