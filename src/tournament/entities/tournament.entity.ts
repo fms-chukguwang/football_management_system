@@ -2,7 +2,16 @@ import { IsBoolean, IsDate, IsNumber, IsString } from 'class-validator';
 import { BaseModel } from 'src/common/entities/base.entity';
 import { LocationModel } from 'src/location/entities/location.entity';
 import { TeamModel } from 'src/team/entities/team.entity';
-import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToOne } from 'typeorm';
+import {
+    Column,
+    Entity,
+    JoinColumn,
+    JoinTable,
+    ManyToMany,
+    ManyToOne,
+    OneToOne,
+    VersionColumn,
+} from 'typeorm';
 
 @Entity('tournament')
 export class TournamentModel extends BaseModel {
@@ -45,4 +54,8 @@ export class TournamentModel extends BaseModel {
         default: false,
     })
     isCancelled: boolean;
+
+    @OneToOne(() => LocationModel, (location) => location.tournament)
+    @JoinColumn()
+    location: LocationModel;
 }
