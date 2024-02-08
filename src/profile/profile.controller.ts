@@ -3,28 +3,21 @@ import {
     Controller,
     Delete,
     Get,
+    HttpStatus,
     Param,
     Post,
     Put,
-    UseGuards,
-    Request,
-    HttpStatus,
-    UseInterceptors,
     Query,
+    Request,
     UploadedFile,
+    UseGuards,
+    UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { ProfileService } from './profile.service';
-import { request } from 'express';
-import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
-import { RegisterProfileInfoDto } from './dtos/register-profile-info';
-import { QueryRunner } from 'typeorm';
-import { TransactionInterceptor } from '../common/interceptors/transaction.interceptor';
-import { qr } from '../common/decorators/qr.decorator';
 import { PaginateProfileDto } from './dtos/paginate-profile-dto';
-import { IsStaffGuard } from '../member/guard/is-staff.guard';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { ProfileService } from './profile.service';
 @ApiTags('프로필')
 @Controller('profile')
 export class ProfileController {

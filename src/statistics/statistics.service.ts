@@ -391,7 +391,7 @@ export class StatisticsService {
                 'members.id as memberId',
                 'users.name as userName',
                 'profile.image_uuid as image',
-                'COUNT(members.id) as totalGames',
+                'COUNT(stats.member_id) as totalGames',
                 'SUM(stats.goals) as totalGoals',
                 'SUM(stats.assists) as totalAssists',
                 'SUM(stats.goals) + SUM(stats.assists) as attactPoint',
@@ -405,9 +405,10 @@ export class StatisticsService {
             .leftJoin('profile', 'profile', 'users.id = profile.user_id')
             .where('members.team_id = :teamId', { teamId })
             .groupBy('members.id')
-            .orderBy('members.created_at', 'ASC')
+            .orderBy('members.join_date', 'ASC')
             .getRawMany();
 
+        console.log(players, '플레이어 목록');
         return {
             players: [...players],
         };

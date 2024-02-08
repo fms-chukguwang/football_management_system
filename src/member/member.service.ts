@@ -22,6 +22,8 @@ import { consoleSandbox } from '@sentry/utils';
 import { ChatsService } from '../chats/chats.service';
 import { PaginateTeamDto } from '../admin/dto/paginate-team.dto';
 import { CommonService } from '../common/common.service';
+import { ResponseMemberDto } from './dtos/response-member.dto';
+
 @Injectable()
 export class MemberService {
     constructor(
@@ -36,6 +38,7 @@ export class MemberService {
         private readonly commonService: CommonService,
         @InjectRepository(TeamModel)
         private readonly teamRepository: Repository<TeamModel>,
+        private readonly profileService: ProfileService,
     ) {}
 
     async findAllPlayers() {
@@ -50,8 +53,23 @@ export class MemberService {
     }
 
     async findOneById(id: number) {
-        const Player = await this.memberRepository.findOneBy({ id });
-        console.log('Player=', Player);
+        const Player = await this.memberRepository.findOne({
+            select: {
+                team: {
+                    id: true,
+                },
+                user: {
+                    id: true,
+                },
+            },
+            where: {
+                id,
+            },
+            relations: {
+                team: true,
+                user: true,
+            },
+        });
 
         if (!Player) {
             throw new NotFoundException('선수를 찾을 수 없습니다.');
@@ -422,5 +440,51 @@ export class MemberService {
         });
 
         return findMembers;
+    }
+
+    async getMember(temaId: number, memberId: number): Promise<ResponseMemberDto> {
+        const findMember = await this.memberRepository.findOne({
+            select: {
+                team: {
+                    id: true,
+                    name: true,
+                },
+                user: {
+                    id: true,
+                    name: true,
+                },
+            },
+            where: {
+                id: memberId,
+                team: {
+                    id: temaId,
+                },
+            },
+            relations: {
+                team: true,
+                user: true,
+            },
+        });
+        if (!findMember) {
+            throw new NotFoundException('회원을 찾을수 없습니다.');
+        }
+
+        const findProfile = await this.profileService.getProfileByUserId(findMember.user.id);
+        if (!findProfile) {
+            throw new NotFoundException('프로필을 찾을수 없습니다.');
+        }
+
+        return {
+            id: findMember.id,
+            joinDate: findMember.joinDate,
+            teamName: findMember.team.name,
+            userName: findMember.user.name,
+            weight: findProfile.weight,
+            height: findProfile.height,
+            preferredPosition: findProfile.preferredPosition,
+            imageUUID: findProfile.imageUUID,
+            gender: findProfile.gender,
+            age: findProfile.age,
+        };
     }
 }

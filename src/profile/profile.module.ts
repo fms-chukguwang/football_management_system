@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Profile } from './entities/profile.entity';
@@ -16,7 +16,7 @@ import { AwsModule } from '../aws/aws.module';
         TypeOrmModule.forFeature([Profile, Member]),
         AuthModule,
         UserModule,
-        MemberModule,
+        forwardRef(() => MemberModule),
         CommonModule,
         AwsModule,
     ],
