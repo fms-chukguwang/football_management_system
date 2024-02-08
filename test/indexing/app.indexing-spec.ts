@@ -5,7 +5,7 @@ import { AppModule } from '../../src/app.module';
 import { faker } from '@faker-js/faker';
 import { SignUpDto } from '../../src/auth/dtos/sign-up.dto';
 import { SignInDto } from 'src/auth/dtos/sign-in.dto';
-import { RegisterProfileInfoDto } from 'src/profile/dtos/register-profile-info';
+import { RegisterProfileInfoDto } from 'src/profile/dtos/register-profile-info-dto';
 import { CannotGetEntityManagerNotConnectedError } from 'typeorm';
 
 enum Position {

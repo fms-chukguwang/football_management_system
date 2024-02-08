@@ -18,7 +18,6 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ProfileService } from './profile.service';
 import { request } from 'express';
 import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
-import { RegisterProfileInfoDto } from './dtos/register-profile-info';
 import { QueryRunner } from 'typeorm';
 import { TransactionInterceptor } from '../common/interceptors/transaction.interceptor';
 import { qr } from '../common/decorators/qr.decorator';
