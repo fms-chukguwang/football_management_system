@@ -147,7 +147,7 @@ export class ProfileService {
 
     async findOneById(id: number): Promise<Profile | null> {
         const profile = await this.profileRepository.findOne({ where: { id } });
-    
+
         return profile || null; // 프로필이 존재하지 않으면 null 반환
     }
 
@@ -163,11 +163,11 @@ export class ProfileService {
 
     async findOneByName(name: string): Promise<Profile | null> {
         const profile = await this.profileRepository.findOne({ where: { name } });
-    
+
         if (!profile) {
             return null;
         }
-    
+
         return profile;
     }
 
@@ -222,7 +222,7 @@ export class ProfileService {
 
             await queryRunner.startTransaction();
             const imageUUID = await this.awsService.uploadFile(file);
-    
+
             const registeredProfile = await this.profileRepository.save({
                 ...registerProfileInfoDto,
                 user: user,
@@ -245,7 +245,6 @@ export class ProfileService {
             await queryRunner.release();
         }
     }
-    
 
     async updateProfileInfo(
         userId: number,
@@ -256,58 +255,55 @@ export class ProfileService {
             // 사용자 및 해당 프로필 가져오기
             const user = await this.userRepository.findOne({
                 where: { id: userId },
-                relations: ['profile','profile.location'],
+                relations: ['profile', 'profile.location'],
             });
 
             if (!user) {
                 throw new NotFoundException('User not found');
             }
-    
+
             if (!user.profile) {
                 throw new NotFoundException('Profile not found');
             }
-    
+
             const imageUUID = file ? await this.awsService.uploadFile(file) : null;
-    
+
             // 프로필 정보 업데이트
             user.profile.preferredPosition = updateProfileInfoDto.preferredPosition;
             user.profile.weight = updateProfileInfoDto.weight;
             user.profile.height = updateProfileInfoDto.height;
             user.profile.age = updateProfileInfoDto.age;
             user.profile.gender = updateProfileInfoDto.gender;
-    
+
             // 사용자 프로필의 location 속성 초기화 확인
             if (!user.profile.location) {
-                user.profile.location = new LocationModel(); 
+                user.profile.location = new LocationModel();
             }
-    
+
             // 주소 및 위치 정보 업데이트
             user.profile.location.address = updateProfileInfoDto.address;
+            user.profile.location.state = updateProfileInfoDto.state;
             user.profile.location.city = updateProfileInfoDto.city;
             user.profile.location.latitude = updateProfileInfoDto.latitude;
             user.profile.location.longitude = updateProfileInfoDto.longitude;
             user.profile.location.district = updateProfileInfoDto.district;
-    
+
             // 파일이 제공되었다면 이미지 UUID 업데이트
             if (file) {
                 user.profile.imageUUID = imageUUID;
             }
-    
+
             // 업데이트된 프로필 저장
             const updatedProfile = await this.profileRepository.save(user.profile);
-    
+
             console.log('Updated Profile:', updatedProfile);
-    
+
             return updatedProfile;
         } catch (error) {
             console.error('Error updating profile info:', error.message);
             throw new Error('Failed to update profile info');
         }
     }
-    
-    
-    
-      
 
     async deleteProfile(id: number) {
         const profile = await this.profileRepository.findOne({ where: { id } });

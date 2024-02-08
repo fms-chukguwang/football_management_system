@@ -8,6 +8,7 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    Index,
     JoinColumn,
     JoinTable,
     ManyToMany,
@@ -25,6 +26,7 @@ import { Position } from '../../enums/position.enum';
 import { Member } from '../../member/entities/member.entity';
 
 @Entity('profile')
+@Index("idx_user_id", ["user"], { unique: true }) 
 export class Profile {
     @PrimaryGeneratedColumn()
     id: number;

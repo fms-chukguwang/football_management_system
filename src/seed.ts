@@ -6,7 +6,10 @@ import { configModuleValidationSchema } from './configs/env-validation.config';
 import { LocationModel } from './location/entities/location.entity';
 import { Member } from './member/entities/member.entity';
 import { Message } from './messages/entities/messages.entity';
+import { Profile } from './profile/entities/profile.entity';
+import { LocationSeed } from './seed/location.seed';
 import { MemberSeed } from './seed/member.seed';
+import { ProfileSeed } from './seed/profile.seed';
 import { TeamSeed } from './seed/team.seed';
 import { UserSeed } from './seed/user.seed';
 import { TeamModel } from './team/entities/team.entity';
@@ -25,10 +28,10 @@ seeder({
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       //  autoLoadEntities: true,
-      entities: [User,TeamModel,LocationModel,Member,Chats,Message],
+      entities: [User,Profile,LocationModel,TeamModel,,Member,Chats,Message],
       synchronize: process.env.DB_SYNC === 'true',
     }),
 
-    TypeOrmModule.forFeature([User,TeamModel,LocationModel,Member,Chats,Message]),
+    TypeOrmModule.forFeature([User,LocationModel,Profile,TeamModel,,Member,Chats,Message]),
   ],
-}).run([UserSeed,TeamSeed,MemberSeed]);
+}).run([UserSeed,LocationSeed, ProfileSeed, TeamSeed,MemberSeed]);

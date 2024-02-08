@@ -62,13 +62,13 @@ export class LocationModel extends BaseModel {
     @Factory((faker) => faker.location.county())
     district: string;
 
-    /**
-     * 동
-     * @example "권선구"
-     */
-    @Column()
-    @Factory((faker) => faker.location.county())
-    dong: string;
+    // /**
+    //  * 동
+    //  * @example "권선구"
+    //  */
+    // @Column()
+    // @Factory((faker) => faker.location.county())
+    // dong: string;
 
     /**
      * 주소
