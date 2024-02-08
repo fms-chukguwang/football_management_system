@@ -26,7 +26,7 @@
         "test:seed2": "for /L %i in (1,1,10) do jest --config ./test/match/jest-match.json --runInBand --forceExit --detectOpenHandles",
         "test:seed2Mac": "for i in {1..10}; do jest --config ./test/match/jest-match.json --runInBand --forceExit --detectOpenHandles; done",
         "test:seed2Jo": "for i in {1..50}; do jest --config  ./test/match/jest-match.json  --runInBand --forceExit --detectOpenHandles; done",
-        "test:indexing": "for i in {1..100}; do jest --config  ./test/indexing/jest-indexing.json  --runInBand --forceExit --detectOpenHandles; done",
+        "test:indexing": "for i in {1..1000}; do jest --config  ./test/indexing/jest-indexing.json  --runInBand --forceExit --detectOpenHandles; done",
         "test:seed4Jo": "jest --config  ./test/match/jest-match.json  --runInBand --coverage --forceExit --detectOpenHandles ",
         "seed": "ts-node src/seed.ts"
     },

@@ -26,6 +26,7 @@ export class TeamModel extends BaseModel {
     @PrimaryGeneratedColumn()
     id: number;
 
+    
     /**
      * 팀명
      * @example '태풍fc'

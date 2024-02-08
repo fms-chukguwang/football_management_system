@@ -161,15 +161,15 @@ export class ProfileService {
         return user;
     }
 
-    async findOneByName(name: string): Promise<Profile | null> {
-        const profile = await this.profileRepository.findOne({ where: { name } });
+    // async findOneByName(name: string): Promise<Profile | null> {
+    //     const profile = await this.profileRepository.findOne({ where: { name } });
 
-        if (!profile) {
-            return null;
-        }
+    //     if (!profile) {
+    //         return null;
+    //     }
 
-        return profile;
-    }
+    //     return profile;
+    // }
 
     getProfileRepository(qr?: QueryRunner) {
         return qr ? qr.manager.getRepository<Profile>(Profile) : this.profileRepository;

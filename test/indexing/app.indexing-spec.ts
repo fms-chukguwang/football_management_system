@@ -70,13 +70,30 @@ describe('AppController (e2e) - 시나리오 1: 팀 1구단주', () => {
             height: faker.number.int({ min: 150, max: 190 }),
             age: faker.number.int({ min: 18, max: 50 }),
             gender: 'Male',
+            address: "서울 강남구 가로수길 5",
+            state: "서울",
+            city: "강남구",
+            latitude: 127.023150432187,
+            longitude: 37.5182112402056,
+            district: "신사동",
         };
 
         const response = await request(app.getHttpServer())
-            .post('/profile')
-            .set('Authorization', `Bearer ${accessToken1}`)
-            .send(registerPorfileDto)
-            .expect(201);
+        .post('/profile')
+        .set('Authorization', `Bearer ${accessToken1}`)
+        .field('preferredPosition', registerPorfileDto.preferredPosition)
+        .field('weight', registerPorfileDto.weight)
+        .field('height', registerPorfileDto.height)
+        .field('age', registerPorfileDto.age)
+        .field('gender', registerPorfileDto.gender)
+        .field('state', registerPorfileDto.state)
+        .field('city', registerPorfileDto.city)
+        .field('district', registerPorfileDto.district)
+        .field('address', registerPorfileDto.address)
+        .field('latitude', registerPorfileDto.latitude)
+        .field('longitude', registerPorfileDto.longitude)
+        .attach('file', 'src/img/IMG_6407.jpg')
+        .expect(201);
     });
     //팀 생성
     it('/team (POST)', async () => {
@@ -86,21 +103,29 @@ describe('AppController (e2e) - 시나리오 1: 팀 1구단주', () => {
             description: faker.lorem.text(),
             gender: 'Male',
             isMixedGender: false,
-            postalCode: '12344',
-            address: '경기도 화성시 향납',
+            address: "서울 강남구 가로수길 5",
+            state: "서울",
+            city: "강남구",
+            latitude: 127.023150432187,
+            longitude: 37.5182112402056,
+            district: "신사동",
         };
 
         const response = await request(app.getHttpServer())
-            .post('/team')
-            .set('Authorization', `Bearer ${accessToken1}`)
-            .field('name', registerTeamDto.name)
-            .field('description', registerTeamDto.description)
-            .field('gender', registerTeamDto.gender)
-            .field('isMixedGender', registerTeamDto.isMixedGender)
-            .field('postalCode', registerTeamDto.postalCode)
-            .field('address', registerTeamDto.address)
-            .attach('file', 'src/img/IMG_6407.jpg')
-            .expect(201);
+        .post('/team')
+        .set('Authorization', `Bearer ${accessToken1}`)
+        .field('name', registerTeamDto.name)
+        .field('description', registerTeamDto.description)
+        .field('gender', registerTeamDto.gender)
+        .field('isMixedGender', registerTeamDto.isMixedGender)
+        .field('state', registerTeamDto.state)
+        .field('city', registerTeamDto.city)
+        .field('district', registerTeamDto.district)
+        .field('address', registerTeamDto.address)
+        .field('latitude', registerTeamDto.latitude)
+        .field('longitude', registerTeamDto.longitude)
+        .attach('file', 'src/img/IMG_6407.jpg')
+        .expect(201);
             
     });
     // it('/profile (GET)', async () => {
