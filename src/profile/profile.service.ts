@@ -2,7 +2,6 @@ import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/co
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile } from './entities/profile.entity';
 import { FindManyOptions, QueryRunner, Repository, ILike, Like, IsNull, DataSource } from 'typeorm';
-import { RegisterProfileInfoDto } from './dtos/register-profile-info';
 import { User } from '../user/entities/user.entity';
 import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
 import { LocationModel } from '../location/entities/location.entity';
@@ -12,6 +11,7 @@ import { CommonService } from '../common/common.service';
 import { TeamController } from '../team/team.controller';
 import { Gender } from '../enums/gender.enum';
 import { AwsService } from '../aws/aws.service';
+import { RegisterProfileInfoDto } from './dtos/register-profile-info-dto';
 
 @Injectable()
 export class ProfileService {
@@ -161,15 +161,15 @@ export class ProfileService {
         return user;
     }
 
-    async findOneByName(name: string): Promise<Profile | null> {
-        const profile = await this.profileRepository.findOne({ where: { name } });
+    // async findOneByName(name: string): Promise<Profile | null> {
+    //     const profile = await this.profileRepository.findOne({ where: { name } });
 
-        if (!profile) {
-            return null;
-        }
+    //     if (!profile) {
+    //         return null;
+    //     }
 
-        return profile;
-    }
+    //     return profile;
+    // }
 
     getProfileRepository(qr?: QueryRunner) {
         return qr ? qr.manager.getRepository<Profile>(Profile) : this.profileRepository;

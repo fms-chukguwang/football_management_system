@@ -3,6 +3,8 @@ import { Position } from '../../enums/position.enum';
 import { Gender } from '../../enums/gender.enum';
 import { Column } from 'typeorm';
 import { Factory } from 'nestjs-seeder';
+import { Transform } from 'class-transformer';
+import { stringValidationMessage } from 'src/team/validation-message/string-validation.message';
 
 export class RegisterProfileInfoDto {
       /**
@@ -20,6 +22,8 @@ export class RegisterProfileInfoDto {
        @IsNumber()
        @IsNotEmpty({ message: 'Please provide longitude' })
        longitude: number;
+
+
     /**
      * 포지션
      * @example "Center Back"
@@ -64,6 +68,10 @@ export class RegisterProfileInfoDto {
      * 지역
      * @example "경기"
      */
+      @IsString({
+            message: stringValidationMessage,
+        })
+        @Transform(({ value }) => value.toString())
       @Factory((faker) => faker.location.state())
       @Column()
       state: string;
@@ -72,6 +80,10 @@ export class RegisterProfileInfoDto {
        * 도시
        * @example "수원시"
        */
+       @IsString({
+            message: stringValidationMessage,
+        })
+        @Transform(({ value }) => value.toString())
       @Factory((faker) => faker.location.city())
       @Column()
       city: string;
@@ -80,6 +92,10 @@ export class RegisterProfileInfoDto {
        * 구
        * @example "권선구"
        */
+       @IsString({
+            message: stringValidationMessage,
+        })
+        @Transform(({ value }) => value.toString())
       @Column()
       @Factory((faker) => faker.location.county())
       district: string;
@@ -88,6 +104,10 @@ export class RegisterProfileInfoDto {
        * 주소
        * @example "경기 수원시 권선구"
        */
+       @IsString({
+            message: stringValidationMessage,
+        })
+        @Transform(({ value }) => value.toString())
       @Column()
       @Factory((faker) => faker.location.street())
       address: string;

@@ -16,8 +16,13 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { PaginateProfileDto } from './dtos/paginate-profile-dto';
 import { ProfileService } from './profile.service';
+import { request } from 'express';
+import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
+import { QueryRunner } from 'typeorm';
+import { TransactionInterceptor } from '../common/interceptors/transaction.interceptor';
+import { qr } from '../common/decorators/qr.decorator';
+import { PaginateProfileDto } from './dtos/paginate-profile-dto';
 @ApiTags('프로필')
 @Controller('profile')
 export class ProfileController {

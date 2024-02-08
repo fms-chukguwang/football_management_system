@@ -1268,7 +1268,6 @@ export class MatchService {
                         phone: true,
                         birthdate: true,
                         gender: true,
-                        name: true,
                     },
                 },
                 team: {
