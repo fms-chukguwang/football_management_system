@@ -109,12 +109,12 @@ describe('AppController (e2e) - 시나리오 1: 팀 1구단주', () => {
             height: faker.number.int({ min: 150, max: 190 }),
             age: faker.number.int({ min: 18, max: 50 }),
             gender: 'Male',
-            address: "서울 강남구 가로수길 5",
-            state: "서울",
-            city: "강남구",
+            address: '서울 강남구 가로수길 5',
+            state: '서울',
+            city: '강남구',
             latitude: 127.023150432187,
             longitude: 37.5182112402056,
-            district: "신사동",
+            district: '신사동',
         };
 
         const response = await request(app.getHttpServer())
@@ -142,12 +142,12 @@ describe('AppController (e2e) - 시나리오 1: 팀 1구단주', () => {
             description: faker.lorem.text(),
             gender: 'Male',
             isMixedGender: false,
-            address: "서울 강남구 가로수길 5",
-            state: "서울",
-            city: "강남구",
+            address: '서울 강남구 가로수길 5',
+            state: '서울',
+            city: '강남구',
             latitude: 127.023150432187,
             longitude: 37.5182112402056,
-            district: "신사동",
+            district: '신사동',
         };
 
         const response = await request(app.getHttpServer())

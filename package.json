@@ -28,6 +28,7 @@
         "test:seed2Jo": "for i in {1..50}; do jest --config  ./test/match/jest-match.json  --runInBand --forceExit --detectOpenHandles; done",
         "test:indexing": "for i in {1..1000}; do jest --config  ./test/indexing/jest-indexing.json  --runInBand --forceExit --detectOpenHandles; done",
         "test:seed4Jo": "jest --config  ./test/match/jest-match.json  --runInBand --coverage --forceExit --detectOpenHandles ",
+        "test:tournament": "jest --config ./test/tournament/jest-tournament.json",
         "seed": "ts-node src/seed.ts"
     },
     "dependencies": {

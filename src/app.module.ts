@@ -35,6 +35,7 @@ import { SentryInterceptor } from './common/interceptors/sentry.interceptor';
 import { StatisticsModule } from './statistics/statistics.module';
 import { SoccerfieldModule } from './soccerfield/soccerfield.module';
 import { HttpExceptionFilter } from './common/exception-filter/http.exception-filter';
+import { TournamentModule } from './tournament/tournament.module';
 
 @Module({
     imports: [
@@ -63,6 +64,7 @@ import { HttpExceptionFilter } from './common/exception-filter/http.exception-fi
         RavenModule,
         StatisticsModule,
         SoccerfieldModule,
+        TournamentModule,
     ],
     controllers: [AppController],
     providers: [

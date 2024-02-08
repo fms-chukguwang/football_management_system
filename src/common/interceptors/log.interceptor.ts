@@ -33,9 +33,9 @@ export class LogInterceptor implements NestInterceptor {
 [RES] ${method} ${path} ${new Date().toLocaleString('ko-KR', {
                     timeZone: 'Asia/Seoul',
                 })} ${new Date().getMilliseconds() - now.getMilliseconds()}ms,
-status: ${observable.statusCode || 200}
-message: ${observable.message || 'OK'}
-return data: ${JSON.stringify(observable.data)}`;
+status: ${observable?.statusCode || 200}
+message: ${observable?.message || 'OK'}
+return data: ${JSON.stringify(observable?.data)}`;
 
                 if (
                     method === 'GET' ||
