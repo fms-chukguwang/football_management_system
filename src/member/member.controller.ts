@@ -19,6 +19,7 @@ import { MemberService } from './member.service';
 import { UpdateMemberInfoDto } from './dtos/update-member-info-dto';
 import { IsStaffGuard } from './guard/is-staff.guard';
 import { PaginateMembersDto } from './dtos/paginate-members-dto';
+import { IsMemberGuard } from './guard/is-member.guard';
 
 @ApiTags('선수')
 @Controller()
@@ -246,5 +247,11 @@ export class MemberController {
         //     success: true,
         // };
         return data;
+    }
+
+    @UseGuards(JwtAuthGuard, IsMemberGuard)
+    @Get('team/:teamId/member/:memberId')
+    getMember(@Req() req: Request) {
+        return this.memberService.getMember(req['member'].id, req['member'].team.id);
     }
 }

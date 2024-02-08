@@ -22,6 +22,8 @@ import { consoleSandbox } from '@sentry/utils';
 import { ChatsService } from '../chats/chats.service';
 import { PaginateTeamDto } from '../admin/dto/paginate-team.dto';
 import { CommonService } from '../common/common.service';
+import { ResponseMemberDto } from './dtos/response-member.dto';
+
 @Injectable()
 export class MemberService {
     constructor(
@@ -36,6 +38,7 @@ export class MemberService {
         private readonly commonService: CommonService,
         @InjectRepository(TeamModel)
         private readonly teamRepository: Repository<TeamModel>,
+        private readonly profileService: ProfileService,
     ) {}
 
     async findAllPlayers() {
@@ -50,8 +53,23 @@ export class MemberService {
     }
 
     async findOneById(id: number) {
-        const Player = await this.memberRepository.findOneBy({ id });
-        console.log('Player=', Player);
+        const Player = await this.memberRepository.findOne({
+            select: {
+                team: {
+                    id: true,
+                },
+                user: {
+                    id: true,
+                },
+            },
+            where: {
+                id,
+            },
+            relations: {
+                team: true,
+                user: true,
+            },
+        });
 
         if (!Player) {
             throw new NotFoundException('선수를 찾을 수 없습니다.');
@@ -77,15 +95,18 @@ export class MemberService {
         if (existMember) {
             throw new BadRequestException('해당 인원은 이미 팀에 참가하고 있습니다.');
         }
+        console.log('여기 통과', user);
         if (!user.profile) {
             throw new BadRequestException('프로필이 존재하지 않은 유저는 팀에 등록할수 없습니다.');
         }
+        console.log('프로필 ');
         if (!team.isMixedGender) {
             if (user.profile.gender !== team.gender) {
                 //팀이 혼성이 아닌데 성별이 다를때
                 throw new BadRequestException('팀의 성별과 일치하지 않습니다.');
             }
         }
+        console.log('혼성 통과 ');
 
         const registerMember = await this.memberRepository.save({
             user: {
@@ -95,6 +116,7 @@ export class MemberService {
                 id: teamId,
             },
         });
+        console.log('저장 통과');
 
         const chatId = team.chat.id;
         await this.chatsService.inviteChat(chatId, userId);
@@ -210,8 +232,7 @@ export class MemberService {
      */
     async updateIsStaff(teamId: number, memberId: number, dto: UpdateMemberInfoDto) {
         const findMember = await this.findMember(memberId, teamId);
-        console.log(memberId, teamId);
-        console.log(findMember);
+
         if (!findMember) {
             throw new BadRequestException('해당 팀원이 존재하지 않습니다.');
         }
@@ -419,5 +440,51 @@ export class MemberService {
         });
 
         return findMembers;
+    }
+
+    async getMember(temaId: number, memberId: number): Promise<ResponseMemberDto> {
+        const findMember = await this.memberRepository.findOne({
+            select: {
+                team: {
+                    id: true,
+                    name: true,
+                },
+                user: {
+                    id: true,
+                    name: true,
+                },
+            },
+            where: {
+                id: memberId,
+                team: {
+                    id: temaId,
+                },
+            },
+            relations: {
+                team: true,
+                user: true,
+            },
+        });
+        if (!findMember) {
+            throw new NotFoundException('회원을 찾을수 없습니다.');
+        }
+
+        const findProfile = await this.profileService.getProfileByUserId(findMember.user.id);
+        if (!findProfile) {
+            throw new NotFoundException('프로필을 찾을수 없습니다.');
+        }
+
+        return {
+            id: findMember.id,
+            joinDate: findMember.joinDate,
+            teamName: findMember.team.name,
+            userName: findMember.user.name,
+            weight: findProfile.weight,
+            height: findProfile.height,
+            preferredPosition: findProfile.preferredPosition,
+            imageUUID: findProfile.imageUUID,
+            gender: findProfile.gender,
+            age: findProfile.age,
+        };
     }
 }

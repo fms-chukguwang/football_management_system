@@ -11,6 +11,7 @@ import { RedisModule } from '../redis/redis.module';
 import { TeamModel } from '../team/entities/team.entity';
 import { ChatsModule } from '../chats/chats.module';
 import { CommonModule } from '../common/common.module';
+import { ProfileModule } from 'src/profile/profile.module';
 
 @Module({
     imports: [
@@ -22,6 +23,7 @@ import { CommonModule } from '../common/common.module';
         EmailModule,
         RedisModule,
         ChatsModule,
+        forwardRef(() => ProfileModule),
     ],
     controllers: [MemberController],
     providers: [MemberService],

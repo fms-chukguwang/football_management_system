@@ -94,7 +94,20 @@ export class RedisService {
         await this.redisClient.expire(`teamDeatail_${teamId}`, 180);
     }
 
+    /**
+     * 팀 정보 삭제
+     * @param teamId
+     */
     async delTeamDetail(teamId: number) {
         await this.redisClient.del(`teamDeatail_${teamId}`);
+    }
+
+    async getPresignedUrl(uuid: string) {
+        return await this.redisClient.get(`imageUuid_${uuid}`);
+    }
+
+    async setPresignedUrl(uuid: string, imageUrl: string) {
+        await this.redisClient.set(`imageUuid_${uuid}`, imageUrl);
+        await this.redisClient.expire(`imageUuid_${uuid}`, 180);
     }
 }

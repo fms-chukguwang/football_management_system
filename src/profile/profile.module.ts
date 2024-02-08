@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Profile } from './entities/profile.entity';
@@ -18,7 +18,7 @@ import { LocationModel } from 'src/location/entities/location.entity';
         TypeOrmModule.forFeature([Profile, Member,LocationModel]),
         AuthModule,
         UserModule,
-        MemberModule,
+        forwardRef(() => MemberModule),
         CommonModule,
         AwsModule,
         LocationModule

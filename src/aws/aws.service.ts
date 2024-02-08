@@ -7,13 +7,17 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { RedisService } from 'src/redis/redis.service';
 import { v4 } from 'uuid';
 
 @Injectable()
 export class AwsService {
     private readonly awsS3: S3Client;
 
-    constructor(private readonly configService: ConfigService) {
+    constructor(
+        private readonly configService: ConfigService,
+        private readonly redisService: RedisService,
+    ) {
         this.awsS3 = new S3Client({
             region: this.configService.get('AWS_REGION'),
             credentials: {
@@ -48,23 +52,32 @@ export class AwsService {
      * @returns
      */
     async presignedUrl(key: string) {
-        try {
-            const command = new HeadObjectCommand({
+        const getPresignedUrlForRedis = await this.redisService.getPresignedUrl(key);
+
+        if (!getPresignedUrlForRedis) {
+            try {
+                const command = new HeadObjectCommand({
+                    Bucket: this.configService.get('AWS_BUCKET_NAME'),
+                    Key: key,
+                });
+
+                await this.awsS3.send(command);
+            } catch (err) {
+                throw new NotFoundException('이미지가 존재하지 않습니다.');
+            }
+
+            const getCommend = new GetObjectCommand({
                 Bucket: this.configService.get('AWS_BUCKET_NAME'),
                 Key: key,
             });
+            const presingedUrl = await getSignedUrl(this.awsS3, getCommend, { expiresIn: 300 });
+            await this.redisService.setPresignedUrl(key, presingedUrl);
 
-            await this.awsS3.send(command);
-        } catch (err) {
-            throw new NotFoundException('이미지가 존재하지 않습니다.');
+            return presingedUrl;
         }
 
-        const getCommend = new GetObjectCommand({
-            Bucket: this.configService.get('AWS_BUCKET_NAME'),
-            Key: key,
-        });
-        const presingedUrl = await getSignedUrl(this.awsS3, getCommend, { expiresIn: 300 });
+        console.log('기존 url', getPresignedUrlForRedis);
 
-        return presingedUrl;
+        return getPresignedUrlForRedis;
     }
 }
