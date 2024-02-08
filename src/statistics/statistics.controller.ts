@@ -48,4 +48,9 @@ export class StatisticsController {
     async getMemberStats(@Param('memberId') memberId: number) {
         return await this.statisticsService.getMemberStats(memberId);
     }
+
+    @Get('team/:teamId/cards')
+    async getYellowAndRedCards(@Param('teamId') teamId: number) {
+        return await this.statisticsService.getYellowAndRedCards(teamId);
+    }
 }

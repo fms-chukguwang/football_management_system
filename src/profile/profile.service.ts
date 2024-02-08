@@ -317,4 +317,21 @@ export class ProfileService {
 
         return profile;
     }
+
+    /**
+     * 유저id로 profile 조회
+     * @param userId
+     * @returns
+     */
+    async getProfileByUserId(userId: number) {
+        const getProfile = await this.profileRepository.findOne({
+            where: {
+                user: {
+                    id: userId,
+                },
+            },
+        });
+
+        return getProfile;
+    }
 }

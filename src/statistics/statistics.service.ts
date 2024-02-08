@@ -8,6 +8,7 @@ import { PlayerStats } from '../match/entities/player-stats.entity';
 import { TopPlayerDto } from './dto/top-player.dto';
 import { Member } from '../member/entities/member.entity';
 import { PlayersDto } from './dto/players.dto';
+import { YellowAndRedCardsDto } from './dto/yellow-and-red-cards.dto';
 import { LoggingService } from 'src/logging/logging.service';
 
 @Injectable()
@@ -385,6 +386,11 @@ export class StatisticsService {
         return rankAttactPoint;
     }
 
+    /**
+     * 플레이어 목록 가져오기
+     * @param teamId
+     * @returns
+     */
     async getPlayers(teamId: number): Promise<PlayersDto> {
         const players = await this.memberRepository
             .createQueryBuilder('members')
@@ -392,7 +398,7 @@ export class StatisticsService {
                 'members.id as memberId',
                 'users.name as userName',
                 'profile.image_uuid as image',
-                'COUNT(members.id) as totalGames',
+                'COUNT(stats.member_id) as totalGames',
                 'SUM(stats.goals) as totalGoals',
                 'SUM(stats.assists) as totalAssists',
                 'SUM(stats.goals) + SUM(stats.assists) as attactPoint',
@@ -406,11 +412,60 @@ export class StatisticsService {
             .leftJoin('profile', 'profile', 'users.id = profile.user_id')
             .where('members.team_id = :teamId', { teamId })
             .groupBy('members.id')
-            .orderBy('members.created_at', 'ASC')
+            .orderBy('members.join_date', 'ASC')
             .getRawMany();
 
+        console.log(players, '플레이어 목록');
         return {
             players: [...players],
+        };
+    }
+
+    /**
+     * 최근 5경기 옐로우카드, 레드카드 통계 가져오기
+     * @param teamId
+     */
+    async getYellowAndRedCards(teamId: number): Promise<YellowAndRedCardsDto> {
+        const matchCount = this.playerStatsRepository
+            .createQueryBuilder('players')
+            .select('COUNT(DISTINCT DATE(players.created_at)) as count')
+            .where('players.team_id = :teamId', { teamId });
+
+        let { count } = await matchCount.getRawOne();
+
+        if (+count > 5) {
+            count -= 5;
+        } else {
+            count = 0;
+        }
+
+        const rawYellowAndRedCards = await this.playerStatsRepository
+            .createQueryBuilder('players')
+            .select([
+                'players.yellow_cards as yellow',
+                'players.red_cards as red',
+                'DATE(players.created_at) as created',
+            ])
+            .where('players.team_id = :teamId', { teamId })
+            .groupBy('created')
+            .orderBy('created', 'ASC')
+            .offset(count)
+            .limit(5)
+            .getRawMany();
+
+        const yellowAndRedCards = rawYellowAndRedCards.map((item) => {
+            const convertDate = new Date(item.created);
+
+            return {
+                ...item,
+                created: convertDate.toLocaleDateString(),
+            };
+        });
+
+        console.log(yellowAndRedCards);
+
+        return {
+            yellowAndRedCards: [...yellowAndRedCards],
         };
     }
 }

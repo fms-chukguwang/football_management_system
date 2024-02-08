@@ -837,7 +837,7 @@ export class MatchService {
      * @returns
      */
     async findTeamMatches(teamId: number) {
-        const teamMatches = await this.matchRepository.findOne({
+        const teamMatches = await this.matchRepository.find({
             where: [{ home_team_id: teamId }, { away_team_id: teamId }],
         });
 
