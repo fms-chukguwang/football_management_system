@@ -1,5 +1,13 @@
 import { Exclude } from 'class-transformer';
-import { IsDate, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsString, IsStrongPassword } from 'class-validator';
+import {
+    IsDate,
+    IsEmail,
+    IsEnum,
+    IsNotEmpty,
+    IsNumber,
+    IsString,
+    IsStrongPassword,
+} from 'class-validator';
 import { UserStatus } from '../../enums/user-status.enum';
 import { Gender } from '../../enums/gender.enum';
 import {
@@ -26,7 +34,7 @@ import { Position } from '../../enums/position.enum';
 import { Member } from '../../member/entities/member.entity';
 
 @Entity('profile')
-@Index("idx_user_id", ["user"], { unique: true }) 
+@Index('idx_user_id', ['user'], { unique: true })
 export class Profile {
     @PrimaryGeneratedColumn()
     id: number;
@@ -109,11 +117,11 @@ export class Profile {
      * @example "Location_id"
      */
     @OneToOne(() => LocationModel, (location) => location.profile, {
-        cascade: true, 
+        cascade: true,
     })
     @JoinColumn()
     location: LocationModel;
-          
+
     /**
      * 유저 아이디
      * @example 1
@@ -139,7 +147,7 @@ export class Profile {
     //     }
     // }
 
-    @ManyToOne(() => Member, (member) => member.profile)
+    @OneToMany(() => Member, (member) => member.profile)
     @JoinColumn()
     member: Member;
 

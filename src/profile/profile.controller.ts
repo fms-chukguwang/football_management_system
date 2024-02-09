@@ -62,7 +62,7 @@ export class ProfileController {
      */
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @Get('/available/')
+    @Get('/available')
     async findAvailableProfiles(@Request() req, @Query() dto: PaginateProfileDto) {
         const userId = req.user.id;
         const data = await this.profileService.paginateProfile(userId, dto, dto.name);
