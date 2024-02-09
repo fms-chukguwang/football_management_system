@@ -74,11 +74,15 @@ export class TournamentService {
 
             // TypeORM의 save 메소드를 사용하여 ManyToMany 관계를 업데이트
             // 명시적으로! teams 배열에 team을 추가하고, 변경된 tournament 엔티티를 저장
-            if (!tournament.teams.some((t) => t.id === team.id)) {
-                tournament.teams.push(team); // 메모리 상의 변경
-                await manager.save(tournament); // 변경 사항을 데이터베이스에 반영
+            try {
+                if (!tournament.teams.some((t) => t.id === team.id)) {
+                    tournament.teams.push(team); // 메모리 상의 변경
+                    await manager.save(tournament); // 변경 사항을 데이터베이스에 반영
+                }
+                return '신청이 완료되었습니다.';
+            } catch (error) {
+                return '신청에 실패했습니다.';
             }
-            return '신청이 완료되었습니다.';
         });
     }
 
