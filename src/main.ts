@@ -90,6 +90,21 @@ async function bootstrap() {
         },
     });
 
+    process.on('uncaughtException', async (error) => {
+        console.error('비정상적인 서버 종료', error);
+        await logger.fatal('비정상적인 서버 종료', error);
+        process.exit(1);
+    });
+
+    process.on('SIGINT', async () => {
+        console.log('Ctrl+C 서버 종료');
+        await logger.log('Ctrl+C 서버 종료');
+        console.log('서버 종료');
+        process.exit();
+    });
+
     await app.listen(port);
 }
 bootstrap();
+
+// aws 클라우드 워치

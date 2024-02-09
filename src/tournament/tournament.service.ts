@@ -64,7 +64,7 @@ export class TournamentService {
 
             // 신청하기
 
-            const team = await this.teamRepository.findOne({
+            const team = await manager.findOne(TeamModel, {
                 where: { id: teamId },
             });
 
@@ -72,8 +72,12 @@ export class TournamentService {
                 throw new Error('존재하지 않는 팀입니다.');
             }
 
-            tournament.teams.push(team);
-            await this.tournamentRepository.save(tournament);
+            // TypeORM의 save 메소드를 사용하여 ManyToMany 관계를 업데이트
+            // 명시적으로! teams 배열에 team을 추가하고, 변경된 tournament 엔티티를 저장
+            if (!tournament.teams.some((t) => t.id === team.id)) {
+                tournament.teams.push(team); // 메모리 상의 변경
+                await manager.save(tournament); // 변경 사항을 데이터베이스에 반영
+            }
             return '신청이 완료되었습니다.';
         });
     }
@@ -105,9 +109,10 @@ export class TournamentService {
             }
 
             // 취소하기
+
             tournament.teams = tournament.teams.filter((team) => team.id !== teamId);
             tournament.isFinished = false;
-            await this.tournamentRepository.save(tournament);
+            await manager.save(tournament);
             return '취소가 완료되었습니다.';
         });
     }
@@ -132,7 +137,8 @@ export class TournamentService {
             // 주소를 어떻게 변경할 수 있을까?
             delete updateTournamentDto.address;
             // 수정하기
-            await this.tournamentRepository.update(tournamentId, updateTournamentDto);
+
+            await manager.update(TournamentModel, { id: tournamentId }, updateTournamentDto);
 
             return '수정이 완료되었습니다.';
         });
@@ -141,7 +147,6 @@ export class TournamentService {
     // 인원 미달 && 참가 데드라인 끝난 토너먼트 종료 처리
     @Cron(CronExpression.EVERY_HOUR)
     async closeFinishedTournaments() {
-        console.log('인원 미달 && 참가 데드라인 끝난 토너먼트 종료 처리');
         const currentDate = new Date();
         const tournaments = await this.tournamentRepository.find({
             where: {
