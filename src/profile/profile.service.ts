@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile } from './entities/profile.entity';
-import { FindManyOptions, QueryRunner, Repository, ILike, Like, IsNull, DataSource } from 'typeorm';
+import { FindManyOptions, QueryRunner, Repository, ILike, Like, IsNull, DataSource, Not } from 'typeorm';
 import { User } from '../user/entities/user.entity';
 import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
 import { LocationModel } from '../location/entities/location.entity';
@@ -58,56 +58,32 @@ export class ProfileService {
         return await this.commonService.paginate(dto, this.profileRepository, options, 'profile');
     }
 
-    async paginateProfile(userId: number, dto: PaginateProfileDto, name?: string) {
+    async paginateProfile(userId: number, dto: PaginateProfileDto, gender?: string, name?: string) {
         try {
-            const user = await this.userRepository.findOne({
-                where: { id: userId },
-                relations: ['team'],
-            });
-
-            console.log('uesr=', user);
-            if (!user || !user.team) {
-                throw new Error('User or team not found');
+            // 멤버 아이디가 없는 모든 사용자들의 프로필을 가져오는 쿼리 설정
+            let options: FindManyOptions<Profile> = {
+                relations: ['user', 'user.member'], // 사용자와 멤버의 관계 설정
+                where: {
+                    user: {
+                        member: IsNull(), // 멤버 아이디가 없는 사용자들만 가져오기
+                    }
+                },
+            };
+    
+            // 성별 필터가 제공된 경우
+            if (gender) {
+                options.where['gender'] = gender;
             }
-
-            // 팀이 혼성이 아니라면 동일한 성별의 프로필들만 보여줌
-            const mixedGenderTeam = user.team.isMixedGender;
-            let options: FindManyOptions<Profile>;
-
-            if (!mixedGenderTeam) {
-                options = {
-                    relations: { user: { member: { team: true } } },
-                    where: {
-                        user: {
-                            profile: {
-                                gender: user.team.gender, // 팀의 성별을 기준으로 검색
-                            },
-                            member: {
-                                team: IsNull(),
-                            },
-                        },
-                    },
-                };
-            } else {
-                // 혼성 팀이면 모든 프로필 허용
-                options = {
-                    relations: { user: { member: { team: true } } },
-                    where: {
-                        user: {
-                            member: {
-                                team: IsNull(),
-                            },
-                        },
-                    },
-                };
-            }
-
+    
+            // 이름 검색이 제공된 경우
             if (name) {
-                options.where = { user: { name: Like(`%${name}%`) } };
+                options.where['name'] = Like(`%${name}%`);
             }
-
+    
+            // 프로필 데이터를 가져오기
             const data = await this.profileRepository.find(options);
-
+    
+            // 페이지네이션 서비스를 사용하여 결과를 반환
             return await this.commonService.paginate(
                 dto,
                 this.profileRepository,
@@ -119,7 +95,16 @@ export class ProfileService {
             throw new Error('Error in paginateProfile');
         }
     }
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     async searchProfile(name?: string) {
         const options: FindManyOptions<Profile> = {
             relations: { user: { member: { team: true } } },

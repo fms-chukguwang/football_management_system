@@ -7,4 +7,8 @@ export class PaginateProfileDto extends BasePaginationDto {
     @IsString()
     @IsOptional()
     name?:string;
+
+    @IsString()
+    @IsOptional()
+    gender?:string;
 }
