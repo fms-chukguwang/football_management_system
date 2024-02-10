@@ -249,9 +249,14 @@ export class MemberController {
         return data;
     }
 
+    /**
+     * 멤버 상세조회
+     * @param req
+     * @returns
+     */
     @UseGuards(JwtAuthGuard, IsMemberGuard)
     @Get('team/:teamId/member/:memberId')
     getMember(@Req() req: Request) {
-        return this.memberService.getMember(req['member'].id, req['member'].team.id);
+        return this.memberService.getMember(req['member'].team.id, req['member'].id);
     }
 }

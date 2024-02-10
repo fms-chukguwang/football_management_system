@@ -6,9 +6,13 @@ import { Member } from '../member/entities/member.entity';
 import { TeamStats } from '../match/entities/team-stats.entity';
 import { MatchResult } from '../match/entities/match-result.entity';
 import { PlayerStats } from '../match/entities/player-stats.entity';
+import { MemberModule } from 'src/member/member.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([TeamStats, MatchResult, PlayerStats, Member])],
+    imports: [
+        TypeOrmModule.forFeature([TeamStats, MatchResult, PlayerStats, Member]),
+        MemberModule,
+    ],
     controllers: [StatisticsController],
     providers: [StatisticsService],
 })

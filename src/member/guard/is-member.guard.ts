@@ -10,6 +10,7 @@ import { MemberService } from '../member.service';
 @Injectable()
 export class IsMemberGuard implements CanActivate {
     constructor(private readonly memberService: MemberService) {}
+
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const req = context.switchToHttp().getRequest();
         const { teamId, memberId } = req.params;

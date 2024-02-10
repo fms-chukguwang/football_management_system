@@ -2,7 +2,7 @@ import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nes
 import { InjectRepository } from '@nestjs/typeorm';
 import { MatchResult } from '../match/entities/match-result.entity';
 import { TeamStats } from '../match/entities/team-stats.entity';
-import { Repository } from 'typeorm';
+import { Repository, getConnection, getManager } from 'typeorm';
 import { StatisticsDto } from './dto/statistics.dto';
 import { PlayerStats } from '../match/entities/player-stats.entity';
 import { TopPlayerDto } from './dto/top-player.dto';
@@ -10,6 +10,9 @@ import { Member } from '../member/entities/member.entity';
 import { PlayersDto } from './dto/players.dto';
 import { YellowAndRedCardsDto } from './dto/yellow-and-red-cards.dto';
 import { LoggingService } from 'src/logging/logging.service';
+import { MemberHistoryDto } from './dto/member-history.dto';
+import { plainToInstance } from 'class-transformer';
+import { MemberRecordDto } from './dto/member-record.dto';
 
 @Injectable()
 export class StatisticsService {
@@ -266,9 +269,9 @@ export class StatisticsService {
                 'users.name userName',
                 'profile.image_uuid as image',
             ])
-            .innerJoin('members', 'members', 'stats.member_id = members.id')
-            .innerJoin('users', 'users', 'members.user_id = users.id')
-            .innerJoin('profile', 'profile', 'profile.user_id = users.id')
+            .leftJoin('members', 'members', 'stats.member_id = members.id')
+            .leftJoin('users', 'users', 'members.user_id = users.id')
+            .leftJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
             .orderBy('stats.goals', 'DESC')
@@ -293,9 +296,9 @@ export class StatisticsService {
                 'users.name as userName',
                 'profile.image_uuid as image',
             ])
-            .innerJoin('members', 'members', 'stats.member_id = members.id')
-            .innerJoin('users', 'users', 'members.user_id = users.id')
-            .innerJoin('profile', 'profile', 'profile.user_id = users.id')
+            .leftJoin('members', 'members', 'stats.member_id = members.id')
+            .leftJoin('users', 'users', 'members.user_id = users.id')
+            .leftJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
             .orderBy('stats.assists', 'DESC')
@@ -320,9 +323,9 @@ export class StatisticsService {
                 'users.name as userName',
                 'profile.image_uuid as image',
             ])
-            .innerJoin('members', 'members', 'stats.member_id = members.id')
-            .innerJoin('users', 'users', 'members.user_id = users.id')
-            .innerJoin('profile', 'profile', 'profile.user_id = users.id')
+            .leftJoin('members', 'members', 'stats.member_id = members.id')
+            .leftJoin('users', 'users', 'members.user_id = users.id')
+            .leftJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
             .orderBy('joining', 'DESC')
@@ -347,9 +350,9 @@ export class StatisticsService {
                 'users.name as userName',
                 'profile.image_uuid as image',
             ])
-            .innerJoin('members', 'members', 'stats.member_id = members.id')
-            .innerJoin('users', 'users', 'members.user_id = users.id')
-            .innerJoin('profile', 'profile', 'profile.user_id = users.id')
+            .leftJoin('members', 'members', 'stats.member_id = members.id')
+            .leftJoin('users', 'users', 'members.user_id = users.id')
+            .leftJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
             .orderBy('stats.save', 'DESC')
@@ -374,9 +377,9 @@ export class StatisticsService {
                 'users.name userName',
                 'profile.image_uuid as image',
             ])
-            .innerJoin('members', 'members', 'stats.member_id = members.id')
-            .innerJoin('users', 'users', 'members.user_id = users.id')
-            .innerJoin('profile', 'profile', 'profile.user_id = users.id')
+            .leftJoin('members', 'members', 'stats.member_id = members.id')
+            .leftJoin('users', 'users', 'members.user_id = users.id')
+            .leftJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
             .orderBy('attactPoint', 'DESC')
@@ -415,7 +418,6 @@ export class StatisticsService {
             .orderBy('members.join_date', 'ASC')
             .getRawMany();
 
-        console.log(players, '플레이어 목록');
         return {
             players: [...players],
         };
@@ -462,10 +464,75 @@ export class StatisticsService {
             };
         });
 
-        console.log(yellowAndRedCards);
-
         return {
             yellowAndRedCards: [...yellowAndRedCards],
         };
+    }
+
+    /**
+     * 멤버 히스토리 가져오기
+     * @param userId
+     * @returns
+     */
+    async getMemberHistory(userId: number): Promise<MemberHistoryDto> {
+        try {
+            const getHistory = await this.memberRepository.query(
+                `select 
+                b.id as 'teamId',
+                b.name as 'teamName',
+                a.join_date as 'joinDate',
+                a.deleted_at as 'deletedAt',
+                COUNT(c.id) as 'totalGames',
+                SUM(c.goals) as 'totalGoals',
+                SUM(c.assists) as 'totalAssists',
+                SUM(c.goals) + SUM(c.assists) as 'totalPoint',
+                SUM(c.save)  as 'totalSave',
+                SUM(c.clean_sheet) as 'totalCleanSheet'
+            from members a 
+            left join team b on a.team_id = b.id
+            left join player_statistics c on c.member_id = a.id
+            where a.user_id = ?
+            group by c.team_id`,
+                [userId],
+            );
+
+            return plainToInstance(MemberHistoryDto, getHistory, {
+                enableImplicitConversion: true,
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async getMembetMatchRecord(memberId: number) {
+        const getRecord = await this.playerStatsRepository.query(
+            `
+            select 
+                a.match_id as matchId,
+                a.member_id as memberId,
+                a.goals as goals,
+                a.assists as assists,
+                a.goals + a.assists as 'point',
+                a.save as save,
+                a.clean_sheet as cleanSheet,
+                b.date as 'matchDate',
+                b.time as 'matchTime',
+                t.name as 'opposingTeamName'
+            from player_statistics a
+            left join matches b on a.match_id = b.id
+            LEFT JOIN team t ON t.id = 
+                CASE 
+                    WHEN a.team_id = b.home_team_id THEN b.away_team_id
+                    WHEN a.team_id = b.away_team_id THEN b.home_team_id
+                END
+            where a.member_id = ?
+            order by b.date DESC;
+        `,
+            [memberId],
+        );
+
+        return plainToInstance(MemberRecordDto, getRecord, {
+            enableImplicitConversion: true,
+        });
     }
 }
