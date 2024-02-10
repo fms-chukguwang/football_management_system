@@ -62,10 +62,10 @@ export class ProfileController {
      */
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @Get('/available/')
+    @Get('/available')
     async findAvailableProfiles(@Request() req, @Query() dto: PaginateProfileDto) {
         const userId = req.user.id;
-        const data = await this.profileService.paginateProfile(userId, dto, dto.gender, dto.name);
+        const data = await this.profileService.paginateProfile(userId, dto, dto.gender, dto.name, dto.region);
         return {
             statusCode: HttpStatus.OK,
             message: '팀없는 프로필 정보 조회에 성공했습니다.',

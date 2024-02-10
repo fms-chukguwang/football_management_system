@@ -397,6 +397,7 @@ export class MemberService {
             const options: FindManyOptions<Member> = {
                 select: {
                     id: true,
+                    isStaff:true,
                     team: {
                         id: true,
                     },

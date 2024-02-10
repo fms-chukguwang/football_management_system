@@ -11,4 +11,8 @@ export class PaginateProfileDto extends BasePaginationDto {
     @IsString()
     @IsOptional()
     gender?:string;
+
+    @IsString()
+    @IsOptional()
+    region?:string;
 }

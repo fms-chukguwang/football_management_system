@@ -1,6 +1,7 @@
 import {
     Body,
     Controller,
+    Delete,
     Get,
     HttpStatus,
     NotFoundException,
@@ -160,4 +161,15 @@ export class TeamController {
     @UseGuards(JwtAuthGuard)
     @Get(':teamId/stats')
     getTeamStats(@Param('teamId') teamId: number) {}
+
+    @UseGuards(JwtAuthGuard)
+    @Delete(':teamId/member/:memberId')
+    async deleteMember(@Param('teamId') teamId: number, @Param('memberId') memberId: number) {
+        await this.memberService.deleteMember(teamId, memberId);
+        return {
+            message: '삭제가 성공하였습니다.',
+            statusCode: HttpStatus.OK,
+            success: true,
+        };
+    }
 }

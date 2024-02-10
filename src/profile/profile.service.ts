@@ -1,7 +1,17 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile } from './entities/profile.entity';
-import { FindManyOptions, QueryRunner, Repository, ILike, Like, IsNull, DataSource, Not } from 'typeorm';
+
+import {
+    FindManyOptions,
+    QueryRunner,
+    Repository,
+    ILike,
+    Like,
+    IsNull,
+    DataSource,
+    Not,
+} from 'typeorm';
 import { User } from '../user/entities/user.entity';
 import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
 import { LocationModel } from '../location/entities/location.entity';
@@ -58,53 +68,152 @@ export class ProfileService {
         return await this.commonService.paginate(dto, this.profileRepository, options, 'profile');
     }
 
-    async paginateProfile(userId: number, dto: PaginateProfileDto, gender?: string, name?: string) {
+    async paginateProfile(
+        userId,
+        dto: PaginateProfileDto,
+        gender?: string,
+        name?: string,
+        region?: string,
+      ) {
+        const { page, take } = dto;
+      
+        let query = this.profileRepository.createQueryBuilder('profile')
+          .leftJoinAndSelect('profile.user', 'user')
+          .leftJoinAndSelect('user.member', 'member')
+          .leftJoinAndSelect('profile.location', 'location')
+          .where('member.id IS NULL');
+      
+        if (gender) {
+          query = query.andWhere('profile.gender = :gender', { gender });
+        }
+      
+        if (name) {
+          query = query.andWhere('user.name LIKE :name', { name: `%${name}%` });
+        }
+      
+        if (region) {
+          query = query.andWhere('(location.state = :region OR location.city = :region)', { region });
+        }
+      
+        const totalCount = await query.getCount();
+      
+        const totalPages = Math.ceil(totalCount / take);
+      
+        const currentPageResults = await query
+          .take(take)
+          .skip((page - 1) * take)
+          .getMany();
+      
+        return {
+          total: totalCount,
+          totalPages: totalPages,
+          currentPage: page,
+          data: currentPageResults,
+        };
+      }
+      
+      
+    
+    // team이 없는 멤버들의 프로필을 조회
+    async paginateProfileHo(userId: number, dto: PaginateProfileDto, gender?: string, name?: string) {
         try {
-            // 멤버 아이디가 없는 모든 사용자들의 프로필을 가져오는 쿼리 설정
-            let options: FindManyOptions<Profile> = {
-                relations: ['user', 'user.member'], // 사용자와 멤버의 관계 설정
-                where: {
-                    user: {
-                        member: IsNull(), // 멤버 아이디가 없는 사용자들만 가져오기
-                    }
-                },
-            };
-    
-            // 성별 필터가 제공된 경우
-            if (gender) {
-                options.where['gender'] = gender;
+            const user = await this.userRepository.findOne({
+                where: { id: userId },
+                relations: ['team'],
+            });
+            console.log('uesr=', user);
+            if (!user || !user.team) {
+                throw new Error('User or team not found');
             }
-    
-            // 이름 검색이 제공된 경우
-            if (name) {
-                options.where['name'] = Like(`%${name}%`);
+            // 팀이 혼성이 아니라면 동일한 성별의 프로필들만 보여줌
+            // const mixedGenderTeam = user.team.isMixedGender;
+            const teamGender = user.team.gender;
+            let options: FindManyOptions<Profile>;
+
+            if (teamGender === Gender.Male) {
+                // 프로필이 없는 경우 필터링
+                options = {
+                    relations: ['user', 'user.member', 'user.member.team'],
+                    where: {
+                        gender: Gender.Male,
+                    },
+                };
+                // 1. member.length === 0인 경우
+                // 2. member(리스트)에 모든 member가 deletedAt이 NULL 아닌 경우
+            } else if (teamGender === Gender.Female) {
+                options = {
+                    relations: ['member'],
+                    where: {
+                        gender: Gender.Female,
+                    },
+                };
+            } else if (teamGender === Gender.Mixed) {
+                options = {
+                    relations: ['member'],
+                };
             }
-    
-            // 프로필 데이터를 가져오기
-            const data = await this.profileRepository.find(options);
-    
-            // 페이지네이션 서비스를 사용하여 결과를 반환
-            return await this.commonService.paginate(
+            const profiles = await this.commonService.paginate(
                 dto,
                 this.profileRepository,
                 options,
                 'profile',
             );
+
+            const profileDatas = profiles.data;
+            const temp = [];
+            // user.member가 null인 경우
+            profileDatas.forEach((profile) => {
+                if (profile.user.member.length === 0) {
+                    temp.push(profile);
+                }
+            });
+
+            profiles.data = temp;
+
+            return profiles;
+            // if (!mixedGenderTeam) {
+            //     options = {
+            //         relations: { user: { member: { team: true } } },
+            //         where: {
+            //             user: {
+            //                 profile: {
+            //                     gender: user.team.gender, // 팀의 성별을 기준으로 검색
+            //                 },
+            //                 member: {
+            //                     team: IsNull(),
+            //                 },
+            //             },
+            //         },
+            //     };
+            // } else {
+            //     // 혼성 팀이면 모든 프로필 허용
+            //     options = {
+            //         relations: { user: { member: { team: true } } },
+            //         where: {
+            //             user: {
+            //                 member: {
+            //                     team: IsNull(),
+            //                 },
+            //             },
+            //         },
+            //     };
+            // }
+            // if (name) {
+            //     options.where = { user: { name: Like(`%${name}%`) } };
+            // }
+            // const data = await this.profileRepository.find(options);
+            // return await this.commonService.paginate(
+            //     dto,
+            //     this.profileRepository,
+            //     options,
+            //     'profile',
+            // );
         } catch (error) {
             console.error('Error in paginateProfile:', error);
             throw new Error('Error in paginateProfile');
         }
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
     async searchProfile(name?: string) {
         const options: FindManyOptions<Profile> = {
             relations: { user: { member: { team: true } } },
@@ -175,19 +284,18 @@ export class ProfileService {
     ): Promise<Profile> {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
-        
-        try {
 
+        try {
             const user = await this.userRepository.findOne({
                 where: { id: userId },
                 relations: ['profile'],
             });
-        
+
             const member = await this.memberRepository.findOne({
                 where: { user: { id: userId } },
                 relations: ['profile'],
             });
-        
+
             const location = await this.locationRepository.save({
                 latitude: registerProfileInfoDto.latitude,
                 longitude: registerProfileInfoDto.longitude,
@@ -196,11 +304,11 @@ export class ProfileService {
                 district: registerProfileInfoDto.district,
                 address: registerProfileInfoDto.address,
             });
-        
+
             if (!user) {
                 throw new NotFoundException('User not found');
             }
-        
+
             if (!user.profile) {
                 user.profile = new Profile();
             }
@@ -215,11 +323,11 @@ export class ProfileService {
                 location: location,
                 imageUUID: imageUUID,
             });
-    
-            //user.profile = registeredProfile; 
-    
-            //await this.userRepository.save(user); 
-    
+
+            //user.profile = registeredProfile;
+
+            //await this.userRepository.save(user);
+
             await queryRunner.commitTransaction();
             return registeredProfile;
         } catch (err) {
