@@ -461,6 +461,12 @@ export class MemberService {
         return findMembers;
     }
 
+    /**
+     * 멤버 상세조회
+     * @param temaId
+     * @param memberId
+     * @returns
+     */
     async getMember(temaId: number, memberId: number): Promise<ResponseMemberDto> {
         const findMember = await this.memberRepository.findOne({
             select: {
