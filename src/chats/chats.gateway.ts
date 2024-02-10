@@ -18,6 +18,7 @@ import { WsExceptionFilter } from '../common/exception-filter/ws.exception-filte
 import { SocketBearerTokenGuard } from './guard/ws-bearer-token.guard';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
+import { UserService } from 'src/user/user.service';
 @WebSocketGateway({
     namespace: /^\/chats\/.+$/,
 })
@@ -27,6 +28,7 @@ export class ChatsGateway implements OnGatewayConnection {
         private readonly chatsService: ChatsService,
         private readonly messagesService: ChatMessagesService,
         private readonly configService: ConfigService,
+        private readonly userService: UserService,
     ) {}
     @WebSocketServer()
     server: Server;
@@ -49,7 +51,7 @@ export class ChatsGateway implements OnGatewayConnection {
             console.log('namespace: ', namespace.name);
             const roomId = namespace.name.split('/')[2];
             console.log(`roomId: ${roomId}`);
-            this.enterRoom({ teamId: Number(roomId) }, socket);
+            this.enterRoom({ teamId: Number(roomId), userId: Number(decoded['id']) }, socket);
             console.log('룸에 입장했습니다.');
             this.userToSocketMap.set(socket['userId'], socket.id);
 
@@ -85,18 +87,7 @@ export class ChatsGateway implements OnGatewayConnection {
     @UseFilters(WsExceptionFilter)
     @SubscribeMessage('enter_room')
     async enterRoom(@MessageBody() room: EnterChatDto, @ConnectedSocket() socket: Socket) {
-        // for (const chatId of rooms.chatIds) {
-        //     const exists = await this.chatsService.checkIdChatExists(chatId);
-        //     if (!exists) {
-        //         throw new WsException({
-        //             statusCode: 404,
-        //             message: `${chatId}번 채팅방은 존재하지 않습니다.`,
-        //         });
-        //     }
-        // }
-        // socket.join(rooms.chatIds.map((chatId) => chatId.toString()));
-        console.log(`enter_room: ${socket.id}`);
-        console.log('room.teamId: ', room.teamId);
+        const newUser = await this.userService.findOneById(room.userId);
         const exists = await this.chatsService.checkIdChatExists(room.teamId);
         if (!exists) {
             throw new WsException({
@@ -105,6 +96,10 @@ export class ChatsGateway implements OnGatewayConnection {
             });
         }
         socket.join(room.teamId.toString());
+        // 아래 프론트에 추가해야함 react-toastify
+        socket.to(room.teamId.toString()).emit('enter_team', {
+            message: `${newUser.name}님이 팀에 들어왔습니다.`,
+        });
     }
 
     @UsePipes(

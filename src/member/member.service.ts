@@ -312,7 +312,7 @@ export class MemberService {
     }
     async updateUserAdminStatus(userId: number, isAdmin: boolean): Promise<boolean> {
         try {
-            const user = await this.userRepository.findOneBy({id:userId});
+            const user = await this.userRepository.findOneBy({ id: userId });
             if (!user) {
                 return false; // 사용자를 찾을 수 없음
             }
@@ -397,7 +397,7 @@ export class MemberService {
             const options: FindManyOptions<Member> = {
                 select: {
                     id: true,
-                    isStaff:true,
+                    isStaff: true,
                     team: {
                         id: true,
                     },
