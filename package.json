@@ -16,6 +16,7 @@
         "test": "jest",
         "test:seed": "for /L %i in (1,1,10) do jest --config ./test/jest-e2e.json --runInBand --forceExit --detectOpenHandles",
         "test:seedJo": "for i in {1..50}; do jest --config ./test/jest-e2e.json --runInBand --coverage --forceExit --detectOpenHandles; done",
+        "test:seedNoCoverageJo": "for i in {1..50}; do jest --config ./test/jest-e2e.json --runInBand --forceExit --detectOpenHandles; done",
         "test:seedJo3": "jest --config ./test/jest-e2e.json --runInBand --coverage --forceExit --detectOpenHandles",
         "test:watch": "jest --watch",
         "test:log": "  jest --config ./test/jest-e2e.json --runInBand --watch  --verbose false;",

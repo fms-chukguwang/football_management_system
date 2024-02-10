@@ -70,7 +70,7 @@ export class TeamService {
      * @returns
      */
     //@Transactional()
-    async createTeam(createTeamDto: CreateTeamDto, userId: number, file: Express.Multer.File) {
+  async createTeam(createTeamDto: CreateTeamDto, userId: number, file: Express.Multer.File) {
         const existTeam = await this.teamRepository.findOne({
             where: {
                 creator: {
@@ -117,18 +117,22 @@ export class TeamService {
             chat,
         });
     
-        try {
-            // await this.connection.transaction(async (transactionalEntityManager) => {
-            //     const savedTeam = await transactionalEntityManager.save(TeamModel, team);
-                await this.memberService.registerCreaterMember(team.id, userId);
-           // });
-    
-            return team;
-        } catch (err) {
-            console.error(err);
-            throw new InternalServerErrorException('팀 생성 중 오류가 발생했습니다.');
-        }
+        // try {
+        //     // 사용자의 isAdmin 상태를 업데이트
+        //     const isAdminUpdated = await this.memberService.updateUserAdminStatus(userId, true);
+        //     console.log("isAdminUpdated=",isAdminUpdated)
+        //     if (!isAdminUpdated) {
+        //         // 업데이트 실패 시 롤백 또는 적절한 오류 처리
+        //         throw new InternalServerErrorException('사용자의 관리자 상태를 업데이트할 수 없습니다.');
+        //     }
+
+        //     return team;
+        // } catch (err) {
+        //     console.error(err);
+        //     throw new InternalServerErrorException('팀 생성 중 오류가 발생했습니다.');
+        // }
     }
+
     
     /**
      * 팀 상세조회

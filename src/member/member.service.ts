@@ -23,12 +23,15 @@ import { ChatsService } from '../chats/chats.service';
 import { PaginateTeamDto } from '../admin/dto/paginate-team.dto';
 import { CommonService } from '../common/common.service';
 import { ResponseMemberDto } from './dtos/response-member.dto';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class MemberService {
     constructor(
         @InjectRepository(Member)
         private readonly memberRepository: Repository<Member>,
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>,
         private readonly userService: UserService,
         @Inject(forwardRef(() => TeamService))
         private readonly teamService: TeamService,
@@ -307,6 +310,21 @@ export class MemberService {
 
         return updatedMember;
     }
+    async updateUserAdminStatus(userId: number, isAdmin: boolean): Promise<boolean> {
+        try {
+            const user = await this.userRepository.findOneBy({id:userId});
+            if (!user) {
+                return false; // 사용자를 찾을 수 없음
+            }
+
+            user.isAdmin = isAdmin;
+            await this.userRepository.save(user);
+            return true; // 성공적으로 업데이트됨
+        } catch (error) {
+            console.error(error);
+            return false; // 업데이트 실패
+        }
+    }
 
     /**
      * 구단에게 입단 요청하기(구단주에게 이메일을 보낸다)
@@ -379,6 +397,7 @@ export class MemberService {
             const options: FindManyOptions<Member> = {
                 select: {
                     id: true,
+                    isStaff:true,
                     team: {
                         id: true,
                     },

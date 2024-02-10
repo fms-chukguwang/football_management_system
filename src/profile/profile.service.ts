@@ -1,7 +1,17 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile } from './entities/profile.entity';
-import { FindManyOptions, QueryRunner, Repository, ILike, Like, IsNull, DataSource } from 'typeorm';
+
+import {
+    FindManyOptions,
+    QueryRunner,
+    Repository,
+    ILike,
+    Like,
+    IsNull,
+    DataSource,
+    Not,
+} from 'typeorm';
 import { User } from '../user/entities/user.entity';
 import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
 import { LocationModel } from '../location/entities/location.entity';
@@ -58,8 +68,54 @@ export class ProfileService {
         return await this.commonService.paginate(dto, this.profileRepository, options, 'profile');
     }
 
+    async paginateProfile(
+        userId,
+        dto: PaginateProfileDto,
+        gender?: string,
+        name?: string,
+        region?: string,
+      ) {
+        const { page, take } = dto;
+      
+        let query = this.profileRepository.createQueryBuilder('profile')
+          .leftJoinAndSelect('profile.user', 'user')
+          .leftJoinAndSelect('user.member', 'member')
+          .leftJoinAndSelect('profile.location', 'location')
+          .where('member.id IS NULL');
+      
+        if (gender) {
+          query = query.andWhere('profile.gender = :gender', { gender });
+        }
+      
+        if (name) {
+          query = query.andWhere('user.name LIKE :name', { name: `%${name}%` });
+        }
+      
+        if (region) {
+          query = query.andWhere('(location.state = :region OR location.city = :region)', { region });
+        }
+      
+        const totalCount = await query.getCount();
+      
+        const totalPages = Math.ceil(totalCount / take);
+      
+        const currentPageResults = await query
+          .take(take)
+          .skip((page - 1) * take)
+          .getMany();
+      
+        return {
+          total: totalCount,
+          totalPages: totalPages,
+          currentPage: page,
+          data: currentPageResults,
+        };
+      }
+      
+      
+    
     // team이 없는 멤버들의 프로필을 조회
-    async paginateProfile(userId: number, dto: PaginateProfileDto, name?: string) {
+    async paginateProfileHo(userId: number, dto: PaginateProfileDto, gender?: string, name?: string) {
         try {
             const user = await this.userRepository.findOne({
                 where: { id: userId },

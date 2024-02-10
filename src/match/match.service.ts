@@ -1315,6 +1315,7 @@ export class MatchService {
         const findMembers = await this.memberRepository.find({
             select: {
                 id: true,
+                isStaff:true,
                 user: {
                     id: true,
                     name: true,
