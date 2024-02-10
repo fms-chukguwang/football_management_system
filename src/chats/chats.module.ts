@@ -11,7 +11,7 @@ import { CommonModule } from '../common/common.module';
 import { UserModule } from 'src/user/user.module';
 
 @Module({
-    exports: [ChatsService],
+    exports: [ChatsService, ChatsGateway],
     imports: [TypeOrmModule.forFeature([Chats, Message]), CommonModule, UserModule],
     controllers: [ChatsController, MessagesController],
     providers: [ChatsService, ChatsGateway, ChatMessagesService],

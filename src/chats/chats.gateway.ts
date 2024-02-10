@@ -51,7 +51,7 @@ export class ChatsGateway implements OnGatewayConnection {
             console.log('namespace: ', namespace.name);
             const roomId = namespace.name.split('/')[2];
             console.log(`roomId: ${roomId}`);
-            this.enterRoom({ teamId: Number(roomId), userId: Number(decoded['id']) }, socket);
+            this.enterRoom({ teamId: Number(roomId) }, socket);
             console.log('룸에 입장했습니다.');
             this.userToSocketMap.set(socket['userId'], socket.id);
 
@@ -87,7 +87,6 @@ export class ChatsGateway implements OnGatewayConnection {
     @UseFilters(WsExceptionFilter)
     @SubscribeMessage('enter_room')
     async enterRoom(@MessageBody() room: EnterChatDto, @ConnectedSocket() socket: Socket) {
-        const newUser = await this.userService.findOneById(room.userId);
         const exists = await this.chatsService.checkIdChatExists(room.teamId);
         if (!exists) {
             throw new WsException({
@@ -97,7 +96,21 @@ export class ChatsGateway implements OnGatewayConnection {
         }
         socket.join(room.teamId.toString());
         // 아래 프론트에 추가해야함 react-toastify
-        socket.to(room.teamId.toString()).emit('enter_team', {
+    }
+
+    @UsePipes(
+        new ValidationPipe({
+            transform: true,
+            whitelist: true,
+            forbidNonWhitelisted: true,
+        }),
+    )
+    @UseFilters(WsExceptionFilter)
+    @SubscribeMessage('enter_team')
+    async enterTeam(teamId: number, userId: number) {
+        const newUser = await this.userService.findOneById(userId);
+
+        this.server.to(teamId.toString()).emit('enter_team', {
             message: `${newUser.name}님이 팀에 들어왔습니다.`,
         });
     }
