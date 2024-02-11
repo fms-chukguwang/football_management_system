@@ -8,10 +8,13 @@ import { HttpExceptionFilter } from './common/exception-filter/http.exception-fi
 import { LoggingService } from './logging/logging.service';
 import * as Sentry from '@sentry/node';
 import { ProfilingIntegration } from '@sentry/profiling-node';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { winstonLogger } from './configs/winston.config';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
-
+    // const customLogger = winstonLogger;
+    // app.useLogger(customLogger);
     const appInstance = app.getHttpAdapter().getInstance();
     // .env 파일을 현재 환경에 로드
     dotenv.config();
@@ -90,18 +93,18 @@ async function bootstrap() {
         },
     });
 
-    process.on('uncaughtException', async (error) => {
-        console.error('비정상적인 서버 종료', error);
-        await logger.fatal('비정상적인 서버 종료', error);
-        process.exit(1);
-    });
+    // process.on('uncaughtException', async (error) => {
+    //     console.error('비정상적인 서버 종료', error);
+    //     await logger.fatal('비정상적인 서버 종료', error);
+    //     process.exit(1);
+    // });
 
-    process.on('SIGINT', async () => {
-        console.log('Ctrl+C 서버 종료');
-        await logger.log('Ctrl+C 서버 종료');
-        console.log('서버 종료');
-        process.exit();
-    });
+    // process.on('SIGINT', async () => {
+    //     console.log('Ctrl+C 서버 종료');
+    //     await logger.log('Ctrl+C 서버 종료');
+    //     console.log('서버 종료');
+    //     process.exit();
+    // });
 
     await app.listen(port);
 }

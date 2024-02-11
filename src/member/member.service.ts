@@ -24,6 +24,8 @@ import { PaginateTeamDto } from '../admin/dto/paginate-team.dto';
 import { CommonService } from '../common/common.service';
 import { ResponseMemberDto } from './dtos/response-member.dto';
 import { User } from 'src/user/entities/user.entity';
+import { MemberGateway } from './member.gateway';
+import { ChatsGateway } from 'src/chats/chats.gateway';
 
 @Injectable()
 export class MemberService {
@@ -42,6 +44,8 @@ export class MemberService {
         @InjectRepository(TeamModel)
         private readonly teamRepository: Repository<TeamModel>,
         private readonly profileService: ProfileService,
+        private readonly memberGateway: MemberGateway,
+        private readonly chatsGateway: ChatsGateway,
     ) {}
 
     async findAllPlayers() {
@@ -123,6 +127,7 @@ export class MemberService {
 
         const chatId = team.chat.id;
         await this.chatsService.inviteChat(chatId, userId);
+        this.chatsGateway.enterTeam(teamId, userId);
 
         return registerMember;
     }
@@ -312,7 +317,7 @@ export class MemberService {
     }
     async updateUserAdminStatus(userId: number, isAdmin: boolean): Promise<boolean> {
         try {
-            const user = await this.userRepository.findOneBy({id:userId});
+            const user = await this.userRepository.findOneBy({ id: userId });
             if (!user) {
                 return false; // 사용자를 찾을 수 없음
             }
@@ -397,7 +402,7 @@ export class MemberService {
             const options: FindManyOptions<Member> = {
                 select: {
                     id: true,
-                    isStaff:true,
+                    isStaff: true,
                     team: {
                         id: true,
                     },
