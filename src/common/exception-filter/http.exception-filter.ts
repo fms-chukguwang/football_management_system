@@ -9,10 +9,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const res = ctx.getResponse();
         const req = ctx.getRequest();
         const status = exception.getStatus();
+
         const err = exception.getResponse() as
             | { message: any; statusCode: number; error: number }
             | { error: number; statusCode: 400; message: string[] }; // class-validator 타이핑
-        console.log('catch exception');
         this.myLogger.error(`[ERR] ${req.method} ${req.url} ${new Date().toLocaleString('ko-KR', {
             timeZone: 'Asia/Seoul',
         })},

@@ -10,21 +10,21 @@ const appendTimestamp = winston.format((info, opts) => {
     return info;
 });
 
-const dailyOptions = {
-    level: 'http',
-    datePattern: 'YYYY-MM-DD',
-    dirname: __dirname + '../../logs',
-    filename: `fms.log.%DATE%`,
-    maxFiles: '14d',
-    zippedArchive: true,
-    colorize: true,
-    handleExceptions: true,
-    json: false,
+const dailyOptions = (level: string) => {
+    return {
+        level,
+        datePattern: 'YYYY-MM-DD',
+        dirname: __dirname + '/../../../logs',
+        filename: `fms.log.%DATE%`,
+        maxFiles: '14d',
+        zippedArchive: true,
+    };
 };
 
 export const winstonLogger = WinstonModule.createLogger({
     transports: [
         new winston.transports.Console({
+            level: 'info',
             format: winston.format.combine(
                 winston.format.colorize(),
                 winston.format.timestamp(),
@@ -33,7 +33,7 @@ export const winstonLogger = WinstonModule.createLogger({
                 }),
             ),
         }),
-        new winstonDaily(dailyOptions),
+        new winstonDaily(dailyOptions('info')),
     ],
 
     // 포맷 설정
