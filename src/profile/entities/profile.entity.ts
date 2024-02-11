@@ -35,6 +35,8 @@ import { Member } from '../../member/entities/member.entity';
 
 @Entity('profile')
 @Index('idx_user_id', ['user'], { unique: true })
+@Index('idx_gender', ['gender'], { unique: false })
+@Index('idx_location', ['location'], { unique: false })
 export class Profile {
     @PrimaryGeneratedColumn()
     id: number;

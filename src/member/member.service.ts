@@ -356,6 +356,35 @@ export class MemberService {
     }
 
     /**
+     * 구단 초대 이메일 보내기
+     * @param userId
+     * @param teamId
+     * @returns
+     */
+     async sendInvitingEmail(userId: number, teamId: number, memberId: number) {
+        const findTeam = await this.teamService.getTeamDetail(teamId);
+
+        if (!findTeam) {
+            throw new NotFoundException('요청하신 팀이 존재하지 않습니다.');
+        }
+
+        const reqUser = await this.userService.findOneById(userId);
+        /**
+         * 요청할때 정보
+         * 요청자의 아이디 , email , 이름
+         */
+        const reqeustEmail: SendJoiningEmailDto = {
+            id: reqUser.id,
+            email: reqUser.email,
+            name: reqUser.name,
+        };
+
+        const sendResult = await this.eamilService.sendInviteEmail(reqeustEmail, findTeam);
+
+        return sendResult;
+    }
+
+    /**
      * 구단 입단 신청 거절 이메일 전송
      * @param teamId
      * @param userId
