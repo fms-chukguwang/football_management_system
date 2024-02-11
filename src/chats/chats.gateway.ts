@@ -95,7 +95,6 @@ export class ChatsGateway implements OnGatewayConnection {
             });
         }
         socket.join(room.teamId.toString());
-        // 아래 프론트에 추가해야함 react-toastify
     }
 
     @UsePipes(
@@ -105,6 +104,8 @@ export class ChatsGateway implements OnGatewayConnection {
             forbidNonWhitelisted: true,
         }),
     )
+
+    // 팀에 들어오면, 팀에 들어온 사실을 알리는 메소드
     @UseFilters(WsExceptionFilter)
     @SubscribeMessage('enter_team')
     async enterTeam(teamId: number, userId: number) {

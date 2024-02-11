@@ -125,7 +125,8 @@ export class TeamService {
             });
 
             await this.memberService.registerMember(team.id, userId);
-
+            const member = await this.memberService.findMemberForUserId(userId, team.id);
+            await this.memberService.updateIsStaff(team.id, member.id, { isStaff: true });
             await queryRunner.commitTransaction();
             return team;
         } catch (error) {
