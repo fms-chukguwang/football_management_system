@@ -260,7 +260,7 @@ export class MemberService {
     /**
      * 팀생성시 생성자 멤버등록
      */
-    async registerCreaterMember(teamId: number, userId: number) {
+    async registerCreatorMember(teamId: number, userId: number) {
         await this.memberRepository.save({
             team: {
                 id: teamId,

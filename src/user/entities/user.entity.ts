@@ -116,7 +116,7 @@ export class User {
 
     @IsBoolean()
     @Factory((faker) => faker.datatype.boolean())
-    @Column({ default: false })
+    @Column({ name: 'is_admin', default: false })
     isAdmin: boolean;
 
     /**
@@ -125,22 +125,26 @@ export class User {
      */
     @IsBoolean()
     @Factory((faker) => faker.datatype.boolean())
-    @Column({ default: false })
+    @Column({ name: 'is_social_login_user', default: false })
     isSocialLoginUser: boolean;
 
-    @Column({ nullable: true })
+    @Column({ name: 'kakao_id', nullable: true })
     kakaoId: string;
 
-    @Column({ nullable: true })
+    @Column({ name: 'google_id', nullable: true })
     googleId: string;
 
-    @Column({ nullable: true })
+    @Column({ name: 'apple_id', nullable: true })
     appleId: string;
 
-    @CreateDateColumn()
+    @CreateDateColumn({
+        name: 'created_at',
+    })
     createdAt: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({
+        name: 'updated_at',
+    })
     updatedAt: Date;
 
     @OneToOne(() => TeamModel, (team) => team.creator, {
@@ -155,6 +159,7 @@ export class User {
     member: Member[];
 
     @DeleteDateColumn({
+        name: 'deleted_at',
         nullable: true,
     })
     deletedAt: Date;

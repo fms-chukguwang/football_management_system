@@ -13,8 +13,9 @@ import { winstonLogger } from './configs/winston.config';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
-    // const customLogger = winstonLogger;
+    const customLogger = winstonLogger;
     // app.useLogger(customLogger);
+    app.useLogger(customLogger);
     const appInstance = app.getHttpAdapter().getInstance();
     // .env 파일을 현재 환경에 로드
     dotenv.config();
@@ -46,7 +47,6 @@ async function bootstrap() {
     const configService = app.get(ConfigService);
     const port = configService.get<number>('SERVER_PORT');
 
-    //const FRONT_PORT = configService.get<number>('FRONT_PORT');
     const corsOptions = {
         origin: [
             `${process.env.FRONT_HOST}:${process.env.FRONT_PORT || 3001}`,
