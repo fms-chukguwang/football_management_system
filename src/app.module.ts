@@ -90,5 +90,6 @@ import { TournamentModule } from './tournament/tournament.module';
 export class AppModule implements NestModule {
     configure(consumer: MiddlewareConsumer) {
         mongoose.set('debug', true);
+        consumer.apply(LoggerMiddleware).forRoutes('*');
     }
 }
