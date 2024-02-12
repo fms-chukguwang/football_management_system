@@ -12,6 +12,8 @@ import { TeamModel } from '../team/entities/team.entity';
 import { ChatsModule } from '../chats/chats.module';
 import { CommonModule } from '../common/common.module';
 import { ProfileModule } from 'src/profile/profile.module';
+import { MemberGateway } from './member.gateway';
+import { ChatsGateway } from 'src/chats/chats.gateway';
 
 @Module({
     imports: [
@@ -26,7 +28,7 @@ import { ProfileModule } from 'src/profile/profile.module';
         forwardRef(() => ProfileModule),
     ],
     controllers: [MemberController],
-    providers: [MemberService],
+    providers: [MemberService, MemberGateway],
     exports: [MemberService],
 })
 export class MemberModule {}
