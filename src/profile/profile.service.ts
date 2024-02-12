@@ -1,7 +1,17 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile } from './entities/profile.entity';
-import { FindManyOptions, QueryRunner, Repository, ILike, Like, IsNull, DataSource } from 'typeorm';
+
+import {
+    FindManyOptions,
+    QueryRunner,
+    Repository,
+    ILike,
+    Like,
+    IsNull,
+    DataSource,
+    Not,
+} from 'typeorm';
 import { User } from '../user/entities/user.entity';
 import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
 import { LocationModel } from '../location/entities/location.entity';
@@ -12,6 +22,7 @@ import { TeamController } from '../team/team.controller';
 import { Gender } from '../enums/gender.enum';
 import { AwsService } from '../aws/aws.service';
 import { RegisterProfileInfoDto } from './dtos/register-profile-info-dto';
+import { profile } from 'console';
 
 @Injectable()
 export class ProfileService {
@@ -57,9 +68,132 @@ export class ProfileService {
 
         return await this.commonService.paginate(dto, this.profileRepository, options, 'profile');
     }
+    async paginateProfile(
+        userId,
+        dto: PaginateProfileDto,
+        gender?: string,
+        name?: string,
+        region?: string,
+      ) {
+        const { page, take } = dto;
+      
+        let query = this.profileRepository.createQueryBuilder('profile')
+          .leftJoinAndSelect('profile.user', 'user')
+          .leftJoinAndSelect('user.member', 'member')
+          .leftJoinAndSelect('profile.location', 'location')
+          .where('member.id IS NULL');
+      
+        if (gender) {
+          query = query.andWhere('profile.gender = :gender', { gender });
+        }
+      
+        if (name) {
+          query = query.andWhere('user.name LIKE :name', { name: `%${name}%` });
+        }
+      
+        if (region) {
+          query = query.andWhere('(location.state = :region OR location.city = :region)', { region });
+        }
+      
+        const totalCount = await query.getCount();
+      
+        const totalPages = Math.ceil(totalCount / take);
+      
+        const currentPageResults = await query
+          .take(take)
+          .skip((page - 1) * take)
+          .getMany();
+      
+        return {
+          total: totalCount,
+          totalPages: totalPages,
+          currentPage: page,
+          data: currentPageResults,
+        };
+      }
+      
+    // async paginateProfile(userId, dto: PaginateProfileDto, name?: string) {
+    //     const { page, take } = dto;
+
+    //     let query = this.profileRepository
+    //         .createQueryBuilder('profile')
+    //         .leftJoinAndSelect('profile.user', 'user')
+    //         .leftJoinAndSelect('user.team', 'team')
+    //         .leftJoinAndSelect('profile.location', 'location');
+
+    //     if (name) {
+    //         query = query.andWhere('user.name LIKE :name', { name: `%${name}%` });
+    //     }
+
+    //     const user = await this.userRepository.findOne({
+    //         where: { id: userId },
+    //         relations: ['team', 'profile'],
+    //     });
+
+    //     if (user) {
+    //         if (user.team) {
+    //             // 사용자 팀이 혼성팀이면 모든 성별의 멤버를 보여줌
+    //             if (user.team.isMixedGender === true) {
+    //                 // do nothing, show all genders
+    //             } else {
+    //                 // 팀의 성별에 맞게 필터링
+    //                 query = query.innerJoin('user.team', 'teamEntity'); // teamEntity를 사용하여 팀에 대한 별칭을 지정합니다.
+    //                 query = query.andWhere('teamEntity.gender = :gender', {
+    //                     gender: user.team.gender,
+    //                 });
+    //             }
+    //         } else {
+    //             // 팀 정보가 없는 경우 모든 성별의 멤버를 보여줌
+    //             // do nothing, show all genders
+    //         }
+    //     }
+
+    //     // 사용자와 같은 지역의 유저들만 필터링
+    //     if (user && user.profile && user.profile.location) {
+    //         // 사용자의 프로필에 도시 정보가 있는 경우
+    //         if (user.profile.location.city) {
+    //             query = query.andWhere('location.city = :city', {
+    //                 city: user.profile.location.city,
+    //             });
+    //         } else {
+    //             // 도시 정보가 없는 경우 해당 조건은 무시되도록 처리
+    //             query = query.andWhere('1=1');
+    //         }
+    //         // 사용자의 프로필에 스테이트 정보가 있는 경우
+    //         if (user.profile.location.state) {
+    //             query = query.andWhere('location.state = :state', {
+    //                 state: user.profile.location.state,
+    //             });
+    //         } else {
+    //             // 스테이트 정보가 없는 경우 해당 조건은 무시되도록 처리
+    //             query = query.andWhere('1=1');
+    //         }
+    //     }
+
+    //     const totalCount = await query.getCount();
+
+    //     const totalPages = Math.ceil(totalCount / take);
+
+    //     const currentPageResults = await query
+    //         .take(take)
+    //         .skip((page - 1) * take)
+    //         .getMany();
+
+    //     return {
+    //         total: totalCount,
+    //         totalPages: totalPages,
+    //         currentPage: page,
+    //         data: currentPageResults,
+    //     };
+    // }
 
     // team이 없는 멤버들의 프로필을 조회
-    async paginateProfile(userId: number, dto: PaginateProfileDto, name?: string) {
+    async paginateProfileHo(
+        userId: number,
+        dto: PaginateProfileDto,
+        gender?: string,
+        name?: string,
+    ) {
         try {
             const user = await this.userRepository.findOne({
                 where: { id: userId },

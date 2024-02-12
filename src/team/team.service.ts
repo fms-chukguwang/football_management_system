@@ -40,7 +40,6 @@ export class TeamService {
         private readonly commonService: CommonService,
         private readonly chatService: ChatsService,
         private readonly redisService: RedisService,
-        private readonly connection: Connection,
     ) {}
 
     async findOneById(id: number) {
@@ -78,58 +77,80 @@ export class TeamService {
                 },
             },
         });
-    
+
         if (existTeam) {
             throw new BadRequestException(EXIST_CREATOR);
         }
-    
+
         const existTeamName = await this.teamRepository.exists({
             where: {
                 name: createTeamDto.name,
             },
         });
-    
+
         if (existTeamName) {
             throw new BadRequestException(DUPLICATE_TEAM_NAME);
         }
-    
-        const extractLocation = this.locationService.extractAddress(createTeamDto.address);
-    
-        let findLocation = await this.locationService.findOneLocation(extractLocation);
-    
-        if (!findLocation) {
-            findLocation = await this.locationService.registerLocation(createTeamDto.address, extractLocation);
-        }
-    
-        const imageUUID = await this.awsService.uploadFile(file);
-    
-        // 채팅방 생성
-        const createChatDto: CreateChatDto = { userIds: [userId] };
-        const chat = await this.chatService.createChat(createChatDto);
-    
-        const team = await this.teamRepository.save({
-            ...createTeamDto,
-            imageUUID: imageUUID,
-            location: {
-                id: findLocation.id,
-            },
-            creator: { id: userId },
-            chat,
-        });
-    
+
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
         try {
-            // await this.connection.transaction(async (transactionalEntityManager) => {
-            //     const savedTeam = await transactionalEntityManager.save(TeamModel, team);
-                await this.memberService.registerCreaterMember(team.id, userId);
-           // });
-    
+            const extractLocation = this.locationService.extractAddress(createTeamDto.address);
+
+            let findLocation = await this.locationService.findOneLocation(extractLocation);
+
+            if (!findLocation) {
+                findLocation = await this.locationService.registerLocation(
+                    createTeamDto.address,
+                    extractLocation,
+                );
+            }
+
+            const imageUUID = await this.awsService.uploadFile(file);
+
+            // 채팅방 생성
+            const createChatDto: CreateChatDto = { userIds: [userId] };
+
+            const chat = await this.chatService.createChat(createChatDto);
+
+            const team = await this.teamRepository.save({
+                ...createTeamDto,
+                imageUUID: imageUUID,
+                location: {
+                    id: findLocation.id,
+                },
+                creator: { id: userId },
+                chat,
+            });
+
+            await this.memberService.registerMember(team.id, userId);
+            await this.memberService.findMemberForUserId(userId, team.id);
+            await this.memberService.registerCreatorMember(team.id, userId);
+            await queryRunner.commitTransaction();
             return team;
-        } catch (err) {
-            console.error(err);
-            throw new InternalServerErrorException('팀 생성 중 오류가 발생했습니다.');
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+        } finally {
+            await queryRunner.release();
         }
+
+        // try {
+        //     // 사용자의 isAdmin 상태를 업데이트
+        //     const isAdminUpdated = await this.memberService.updateUserAdminStatus(userId, true);
+        //     console.log("isAdminUpdated=",isAdminUpdated)
+        //     if (!isAdminUpdated) {
+        //         // 업데이트 실패 시 롤백 또는 적절한 오류 처리
+        //         throw new InternalServerErrorException('사용자의 관리자 상태를 업데이트할 수 없습니다.');
+        //     }
+
+        //     return team;
+        // } catch (err) {
+        //     console.error(err);
+        //     throw new InternalServerErrorException('팀 생성 중 오류가 발생했습니다.');
+        // }
     }
-    
+
     /**
      * 팀 상세조회
      * @param teamId
@@ -168,28 +189,26 @@ export class TeamService {
      * 팀 전체조회
      * @returns
      */
-     async getTeams() {
+    async getTeams() {
         const teams = await this.teamRepository.find({
             relations: ['location'],
         });
-    
+
         const teamWithCounts = await Promise.all(
             teams.map(async (team) => {
                 const [data, count] = await this.memberService.getMemberCountByTeamId(team.id);
                 return {
                     team: {
                         ...team,
-                        location: team.location, 
+                        location: team.location,
                     },
                     totalMember: count,
                 };
             }),
         );
-    
+
         return teamWithCounts;
     }
-    
-    
 
     //호영님 코드 수정중
     async getTeam(dto: PaginateTeamDto, name?: string) {
@@ -197,11 +216,11 @@ export class TeamService {
         if (name) {
             options.where = { name: Like(`%${name}%`) };
         }
-    
-        options.relations = ['location']; 
-    
+
+        options.relations = ['location'];
+
         const result = await this.commonService.paginate(dto, this.teamRepository, options, 'team');
-    
+
         if ('total' in result) {
             const { data, total } = result;
             const teamWithCounts = await Promise.all(
@@ -210,7 +229,7 @@ export class TeamService {
                     return {
                         team: {
                             ...team,
-                            location: team.location,  
+                            location: team.location,
                         },
                         totalMember: count,
                     };
@@ -219,7 +238,7 @@ export class TeamService {
             return { data: teamWithCounts, total };
         }
     }
-    
+
     async getTeamByGender(userId, dto: PaginateTeamDto, name?: string) {
         const options: FindManyOptions<TeamModel> = {};
         if (name) {
@@ -287,37 +306,36 @@ export class TeamService {
      * @param file
      * @returns
      */
-     async updateTeam(teamId: number, updateTeamDto: UpdateTeamDto, file: Express.Multer.File) {
+    async updateTeam(teamId: number, updateTeamDto: UpdateTeamDto, file: Express.Multer.File) {
         try {
             const { latitude, longitude, ...rest } = updateTeamDto;
-    
+
             // Location 업데이트를 위한 수정
             const locationUpdate = {
                 type: 'Point',
                 coordinates: [longitude, latitude],
             };
-    
+
             const updatedTeam = {
                 ...rest,
                 location: locationUpdate,
             } as QueryDeepPartialEntity<TeamModel>;
-    
+
             if (file) {
                 console.log('저장전 : ', updateTeamDto.imageUrl);
                 updatedTeam.imageUUID = await this.awsService.uploadFile(file);
             }
-    
+
             await this.teamRepository.update({ id: teamId }, updatedTeam);
-    
+
             await this.redisService.delTeamDetail(teamId);
         } catch (err) {
             console.error(err);
-            throw new InternalServerErrorException('팀 업데이트 중 예기치 못한 오류가 발생했습니다.');
+            throw new InternalServerErrorException(
+                '팀 업데이트 중 예기치 못한 오류가 발생했습니다.',
+            );
         }
     }
-    
-    
-    
 
     /**
      * 팀 삭제하기

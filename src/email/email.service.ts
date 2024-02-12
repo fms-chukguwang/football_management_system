@@ -11,7 +11,7 @@ import { promisify } from 'util';
 import { AuthService } from '../auth/auth.service';
 import { EmailVerification } from '../email/entities/email.entity';
 import { TeamJoinRequestToken } from './entities/team-join-request-token.entity';
-import { joinTeamHtml, rejectTeamHtml } from './html/email.html';
+import { inviteTeamHtml, joinTeamHtml, rejectTeamHtml } from './html/email.html';
 import { v4 } from 'uuid';
 import { RedisService } from '../redis/redis.service';
 
@@ -286,6 +286,31 @@ export class EmailService {
             to: recipient.creator.email,
             subject: `${from.name}님의 구단 입단 신청입니다.`,
             html: joinTeamHtml(from, recipient, randomToken), // HTML 형식의 메일 내용
+        };
+
+        try {
+            const info = await this.transporter.sendMail(mailOptions);
+            await this.redisService.setTeamJoinMailToken(randomToken);
+            return info;
+        } catch (error) {
+            console.error('Error sending email:', error);
+        }
+    }
+
+
+    /**
+     * 멤버 팀 요청하기
+     * @param from
+     * @param recipient
+     */
+     async sendInviteEmail(from: SendJoiningEmailDto, recipient: TeamModel) {
+        const randomToken = v4();
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER, // 발신자 이메일
+            to: recipient.creator.email,
+            subject: `${from.name}님의 구단 초대입니다.`,
+            html: inviteTeamHtml(from, recipient, randomToken), // HTML 형식의 메일 내용
         };
 
         try {

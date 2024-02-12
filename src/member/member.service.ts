@@ -23,12 +23,17 @@ import { ChatsService } from '../chats/chats.service';
 import { PaginateTeamDto } from '../admin/dto/paginate-team.dto';
 import { CommonService } from '../common/common.service';
 import { ResponseMemberDto } from './dtos/response-member.dto';
+import { User } from 'src/user/entities/user.entity';
+import { MemberGateway } from './member.gateway';
+import { ChatsGateway } from 'src/chats/chats.gateway';
 
 @Injectable()
 export class MemberService {
     constructor(
         @InjectRepository(Member)
         private readonly memberRepository: Repository<Member>,
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>,
         private readonly userService: UserService,
         @Inject(forwardRef(() => TeamService))
         private readonly teamService: TeamService,
@@ -39,6 +44,8 @@ export class MemberService {
         @InjectRepository(TeamModel)
         private readonly teamRepository: Repository<TeamModel>,
         private readonly profileService: ProfileService,
+        private readonly memberGateway: MemberGateway,
+        private readonly chatsGateway: ChatsGateway,
     ) {}
 
     async findAllPlayers() {
@@ -120,6 +127,7 @@ export class MemberService {
 
         const chatId = team.chat.id;
         await this.chatsService.inviteChat(chatId, userId);
+        this.chatsGateway.enterTeam(teamId, userId);
 
         return registerMember;
     }
@@ -252,7 +260,7 @@ export class MemberService {
     /**
      * 팀생성시 생성자 멤버등록
      */
-    async registerCreaterMember(teamId: number, userId: number) {
+    async registerCreatorMember(teamId: number, userId: number) {
         await this.memberRepository.save({
             team: {
                 id: teamId,
@@ -307,6 +315,21 @@ export class MemberService {
 
         return updatedMember;
     }
+    async updateUserAdminStatus(userId: number, isAdmin: boolean): Promise<boolean> {
+        try {
+            const user = await this.userRepository.findOneBy({ id: userId });
+            if (!user) {
+                return false; // 사용자를 찾을 수 없음
+            }
+
+            user.isAdmin = isAdmin;
+            await this.userRepository.save(user);
+            return true; // 성공적으로 업데이트됨
+        } catch (error) {
+            console.error(error);
+            return false; // 업데이트 실패
+        }
+    }
 
     /**
      * 구단에게 입단 요청하기(구단주에게 이메일을 보낸다)
@@ -333,6 +356,35 @@ export class MemberService {
         };
 
         const sendResult = await this.eamilService.sendTeamJoinEmail(reqeustEmail, findTeam);
+
+        return sendResult;
+    }
+
+    /**
+     * 구단 초대 이메일 보내기
+     * @param userId
+     * @param teamId
+     * @returns
+     */
+     async sendInvitingEmail(userId: number, teamId: number, memberId: number) {
+        const findTeam = await this.teamService.getTeamDetail(teamId);
+
+        if (!findTeam) {
+            throw new NotFoundException('요청하신 팀이 존재하지 않습니다.');
+        }
+
+        const reqUser = await this.userService.findOneById(userId);
+        /**
+         * 요청할때 정보
+         * 요청자의 아이디 , email , 이름
+         */
+        const reqeustEmail: SendJoiningEmailDto = {
+            id: reqUser.id,
+            email: reqUser.email,
+            name: reqUser.name,
+        };
+
+        const sendResult = await this.eamilService.sendInviteEmail(reqeustEmail, findTeam);
 
         return sendResult;
     }
@@ -379,6 +431,7 @@ export class MemberService {
             const options: FindManyOptions<Member> = {
                 select: {
                     id: true,
+                    isStaff: true,
                     team: {
                         id: true,
                     },
