@@ -44,8 +44,11 @@ export class Profile {
     @Column({ default: false })
     invited: boolean;
 
-    @Column({ nullable: true }) 
-    teamId: number; 
+    @Column({
+        name: 'team_id',
+        nullable: true,
+    })
+    teamId: number;
 
     /**
      * 실력
