@@ -25,8 +25,10 @@ export default class MemberSeeder implements Seeder {
                 member.profile = profile;
                 member.user = profile.user; // Assign the user from the profile
                 member.team = team;
+                profile.teamId = team.id;
+                await profileRepository.save(profile);
                 await memberRepository.save(member);
-                console.log('done!');
+                console.log('memberDone!');
             }
         }
     }

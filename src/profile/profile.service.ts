@@ -74,44 +74,47 @@ export class ProfileService {
         gender?: string,
         name?: string,
         region?: string,
-      ) {
+    ) {
         const { page, take } = dto;
-      
-        let query = this.profileRepository.createQueryBuilder('profile')
-          .leftJoinAndSelect('profile.user', 'user')
-          .leftJoinAndSelect('user.member', 'member')
-          .leftJoinAndSelect('profile.location', 'location')
-          .where('member.id IS NULL');
-      
+
+        let query = this.profileRepository
+            .createQueryBuilder('profile')
+            .leftJoinAndSelect('profile.user', 'user')
+            .leftJoinAndSelect('user.member', 'member')
+            .leftJoinAndSelect('profile.location', 'location')
+            .where('member.id IS NULL');
+
         if (gender) {
-          query = query.andWhere('profile.gender = :gender', { gender });
+            query = query.andWhere('profile.gender = :gender', { gender });
         }
-      
+
         if (name) {
-          query = query.andWhere('user.name LIKE :name', { name: `%${name}%` });
+            query = query.andWhere('user.name LIKE :name', { name: `%${name}%` });
         }
-      
+
         if (region) {
-          query = query.andWhere('(location.state = :region OR location.city = :region)', { region });
+            query = query.andWhere('(location.state = :region OR location.city = :region)', {
+                region,
+            });
         }
-      
+
         const totalCount = await query.getCount();
-      
+
         const totalPages = Math.ceil(totalCount / take);
-      
+
         const currentPageResults = await query
-          .take(take)
-          .skip((page - 1) * take)
-          .getMany();
-      
+            .take(take)
+            .skip((page - 1) * take)
+            .getMany();
+
         return {
-          total: totalCount,
-          totalPages: totalPages,
-          currentPage: page,
-          data: currentPageResults,
+            total: totalCount,
+            totalPages: totalPages,
+            currentPage: page,
+            data: currentPageResults,
         };
-      }
-      
+    }
+
     // async paginateProfile(userId, dto: PaginateProfileDto, name?: string) {
     //     const { page, take } = dto;
 
@@ -362,6 +365,7 @@ export class ProfileService {
     ): Promise<Profile> {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
+        await queryRunner.startTransaction();
 
         try {
             const user = await this.userRepository.findOne({
@@ -369,10 +373,10 @@ export class ProfileService {
                 relations: ['profile'],
             });
 
-            const member = await this.memberRepository.findOne({
-                where: { user: { id: userId } },
-                relations: ['profile'],
-            });
+            // const member = await this.memberRepository.findOne({
+            //     where: { user: { id: userId } },
+            //     relations: ['profile'],
+            // });
 
             const location = await this.locationRepository.save({
                 latitude: registerProfileInfoDto.latitude,
@@ -391,20 +395,15 @@ export class ProfileService {
                 user.profile = new Profile();
             }
 
-            await queryRunner.startTransaction();
             const imageUUID = await this.awsService.uploadFile(file);
 
             const registeredProfile = await this.profileRepository.save({
                 ...registerProfileInfoDto,
                 user: user,
-                member: member,
+                // member: member,
                 location: location,
                 imageUUID: imageUUID,
             });
-
-            //user.profile = registeredProfile;
-
-            //await this.userRepository.save(user);
 
             await queryRunner.commitTransaction();
             return registeredProfile;
