@@ -28,7 +28,6 @@ export class TeamModel extends BaseModel {
     @PrimaryGeneratedColumn()
     id: number;
 
-    
     /**
      * 팀명
      * @example '태풍fc'
@@ -82,7 +81,9 @@ export class TeamModel extends BaseModel {
     /**
      * 팀 인원수
      */
-    @Column()
+    @Column({
+        name: 'total_members',
+    })
     totalMembers: number;
 
     /**
@@ -91,14 +92,18 @@ export class TeamModel extends BaseModel {
     @ManyToOne(() => LocationModel, (location) => location.team, {
         cascade: true,
     })
-    @JoinColumn()
+    @JoinColumn({
+        name: 'location_id',
+    })
     location: LocationModel;
 
     /**
      * 팀 생성자
      */
     @OneToOne(() => User, (user) => user.team)
-    @JoinColumn()
+    @JoinColumn({
+        name: 'creator_id',
+    })
     creator: User;
 
     @OneToMany(() => Member, (member) => member.team)
@@ -111,13 +116,16 @@ export class TeamModel extends BaseModel {
     awayMatch: Match[];
 
     @OneToOne(() => Chats, (chat) => chat.team)
-    @JoinColumn()
+    @JoinColumn({
+        name: 'chat_id',
+    })
     chat: Chats;
 
     @OneToMany(() => MatchFormation, (matchformation) => matchformation.team)
     matchformation: MatchFormation[];
 
     @DeleteDateColumn({
+        name: 'deleted_at',
         nullable: true,
     })
     deletedAt: Date;

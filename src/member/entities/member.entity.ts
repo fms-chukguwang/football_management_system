@@ -21,14 +21,22 @@ export class Member extends BaseModel {
     id: number;
 
     @ManyToOne(() => User, (user) => user.member)
-    @JoinColumn()
+    @JoinColumn({
+        name: 'user_id',
+    })
     user: User;
 
     @ManyToOne(() => Profile, (profile) => profile.member)
+    @JoinColumn({
+        name: 'profile_id',
+    })
     profile: Profile;
 
     @ManyToOne(() => TeamModel, (team) => team.members, {
         onDelete: 'CASCADE',
+    })
+    @JoinColumn({
+        name: 'team_id',
     })
     team: TeamModel;
 
@@ -45,6 +53,7 @@ export class Member extends BaseModel {
     isStaff: boolean;
 
     @CreateDateColumn({
+        name: 'join_date',
         type: 'timestamp',
         precision: 6,
         default: () => 'CURRENT_TIMESTAMP(6)',
