@@ -26,6 +26,7 @@ import { RedisService } from '../redis/redis.service';
 import { ChatsService } from '../chats/chats.service';
 import { CreateChatDto } from '../chats/dto/create-chat.dto';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+import { Gender } from 'src/enums/gender.enum';
 
 @Injectable()
 export class TeamService {
@@ -211,16 +212,23 @@ export class TeamService {
     }
 
     //호영님 코드 수정중
-    async getTeam(dto: PaginateTeamDto, name?: string) {
+    async getTeam(dto: PaginateTeamDto, name?: string, isMixed?: boolean, region?: string, gender?: string) {
         const options: FindManyOptions<TeamModel> = {};
+        
         if (name) {
             options.where = { name: Like(`%${name}%`) };
         }
-
+        // if (isMixed !== undefined) {
+        //     options.where = { ...options.where, is_mixed_gender: isMixed };
+        // }
+        // if (region) {
+        //     options.where = { ...options.where, region };
+        // }
+    
         options.relations = ['location'];
-
+    
         const result = await this.commonService.paginate(dto, this.teamRepository, options, 'team');
-
+    
         if ('total' in result) {
             const { data, total } = result;
             const teamWithCounts = await Promise.all(
