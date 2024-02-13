@@ -7,13 +7,17 @@ import { TeamModel } from '../team/entities/team.entity';
 import { Match } from '../match/entities/match.entity';
 import { MatchFormation } from './entities/formation.entity';
 import { User } from '../user/entities/user.entity';
+import { PlayerStats } from '../match/entities/player-stats.entity';
+import { MatchResult } from '../match/entities/match-result.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Member,TeamModel,Match,MatchFormation,User]),
+    TypeOrmModule.forFeature([Member,TeamModel,Match,MatchFormation,User,PlayerStats,MatchResult],),
 ],
   controllers: [FormationController],
-  providers: [FormationService],
+  providers: [
+              FormationService,  
+            ],
   exports: [FormationService],
 })
 export class FormationModule {}

@@ -31,6 +31,21 @@ export class FormationController {
     }
 
     /**
+     * 최적 포메이션 추천
+     * @param req
+     * @returns
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get('best/:homeTeamId/:opponent_team_id')
+    async getBestFormation(@Param('homeTeamId') homeTeamId: number,@Param('opponent_team_id') opponent_team_id: number) {
+
+        const data = await this.formationService.getBestFormation(homeTeamId,opponent_team_id);
+    
+        return data;
+    }
+
+    /**
      * 최근 3경기간 최다 누적 경고자 조회
      * @param req
      * @returns
