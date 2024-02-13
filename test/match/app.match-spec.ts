@@ -116,7 +116,7 @@ describe('AppController (match) - 시나리오 1: 홈팀 구단주 로그인 후
         const SignInDto = {
             //email: "example2@example.com",
             //email: 'Evelyn.Emard83@yahoo.com',
-            email: 'Magali33@yahoo.com',
+            email: 'codzero00@gmail.com',
             password: 'Ex@mp1e!!',
         };
 
@@ -293,8 +293,8 @@ describe('AppController (match) - 시나리오 2: 홈팀 경기결과 등록', (
 
         console.log('homeMemberIds.length:',homeMemberIds.length);
 
-        // 1-1)  홈팀 멤버 5명 미만이면 더미 회원정보 생성
-        while (homeMemberIds.length < 5) {
+        // 1-1)  홈팀 멤버 11명 미만이면 더미 회원정보 생성
+        while (homeMemberIds.length < 11) {
             // 1-1-1) 더미데이터 회원가입
             const signUpDto = {
                 passwordConfirm: 'Ex@mp1e!!',
@@ -317,14 +317,15 @@ describe('AppController (match) - 시나리오 2: 홈팀 경기결과 등록', (
                 preferredPosition: getRandomPosition(),
                 weight: faker.number.int({ min: 40, max: 100 }),
                 height: faker.number.int({ min: 150, max: 190 }),
+                birthdate: 'Tue Oct 10 2000 00:00:00 GMT+0900 (Korean Standard Time)',
                 age: faker.number.int({ min: 18, max: 50 }),
                 gender: 'Male',
-                latitude: 37.5665,
-                longitude: 126.9780,
-                state: "경기",
-                city: "수원시",
-                district: "권선구",
-                address: "경기 수원시 권선구"
+                address: '서울 강남구 가로수길 5',
+                state: '서울',
+                city: '강남구',
+                latitude: 127.023150432187,
+                longitude: 37.5182112402056,
+                district: '신사동',
             };
 
             // const response = await request(app.getHttpServer())
@@ -563,8 +564,8 @@ describe('AppController (match) - 시나리오 4: 어웨이팀 경기결과 등�
         // 유효한 멤버 객체의 id를 추출
         awayMemberIds = validMembers.map(member => member.id);
 
-        // 3-1)  어웨이팀 멤버 5명 미만이면 더미 회원정보 생성
-        while (awayMemberIds.length < 5) {
+        // 3-1)  어웨이팀 멤버 11명 미만이면 더미 회원정보 생성
+        while (awayMemberIds.length < 11) {
             // 3-1-1) 더미데이터 회원가입
             const signUpDto = {
                 passwordConfirm: 'Ex@mp1e!!',
@@ -604,14 +605,15 @@ describe('AppController (match) - 시나리오 4: 어웨이팀 경기결과 등�
                 preferredPosition: getRandomPosition(),
                 weight: faker.number.int({ min: 40, max: 100 }),
                 height: faker.number.int({ min: 150, max: 190 }),
+                birthdate: 'Tue Oct 10 2000 00:00:00 GMT+0900 (Korean Standard Time)',
                 age: faker.number.int({ min: 18, max: 50 }),
                 gender: 'Male',
-                latitude: 37.5665,
-                longitude: 126.9780,
-                state: "경기",
-                city: "수원시",
-                district: "권선구",
-                address: "경기 수원시 권선구"
+                address: '서울 강남구 가로수길 5',
+                state: '서울',
+                city: '강남구',
+                latitude: 127.023150432187,
+                longitude: 37.5182112402056,
+                district: '신사동',
             };
 
             // const response = await request(app.getHttpServer())

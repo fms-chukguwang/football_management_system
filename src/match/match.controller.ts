@@ -58,7 +58,7 @@ export class MatchController {
     async createMatch(@Body() creatematchDto: createMatchDto) {
         const data = await this.matchService.createMatch(creatematchDto);
         console.log(data);
-        return data;
+        return '경기 일정 생성 되었습니다.';
     }
 
     /**
