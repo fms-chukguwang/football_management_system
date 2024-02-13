@@ -43,7 +43,10 @@ export class Profile {
      * 실력
      * @example 9
      */
-    @Column({ nullable: true })
+    @Column({
+        name: 'skill_level',
+        nullable: true,
+    })
     skillLevel: number;
 
     /**
@@ -66,6 +69,7 @@ export class Profile {
      */
     @IsEnum(Position)
     @Column({
+        name: 'preferred_position',
         type: 'enum',
         enum: Position,
         default: Position.AttackingMidfielder,
@@ -77,7 +81,10 @@ export class Profile {
      * @example "사진url"
      */
     @IsString()
-    @Column({ nullable: true })
+    @Column({
+        name: 'image_url',
+        nullable: true,
+    })
     imageUrl: string;
 
     /**
@@ -119,7 +126,9 @@ export class Profile {
     @OneToOne(() => LocationModel, (location) => location.profile, {
         cascade: true,
     })
-    @JoinColumn()
+    @JoinColumn({
+        name: 'location_id',
+    })
     location: LocationModel;
 
     /**
@@ -127,7 +136,9 @@ export class Profile {
      * @example 1
      */
     @OneToOne(() => User, (user) => user.profile)
-    @JoinColumn()
+    @JoinColumn({
+        name: 'user_id',
+    })
     user: User;
 
     /**
@@ -151,13 +162,22 @@ export class Profile {
     @JoinColumn()
     member: Member;
 
-    @CreateDateColumn()
+    @CreateDateColumn({
+        name: 'created_at',
+    })
     createdAt: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({
+        name: 'updated_at',
+    })
     updatedAt: Date;
 
-    @Column({ type: 'timestamp', nullable: true, default: null })
+    @Column({
+        name: 'deleted_at',
+        type: 'timestamp',
+        nullable: true,
+        default: null,
+    })
     deletedAt: Date;
 
     @Column({
