@@ -57,6 +57,7 @@ let accessToken4: string;
 let accessToken5: string;
 let accessToken6: string;
 let accessToken7: string;
+let accessToken8: string;
 let app: INestApplication;
 let signUpDto: SignUpDto;
 let teamId1: number;
@@ -474,17 +475,35 @@ describe('AppController (e2e) - 시나리오 4 - 아무 소속에 없는 회원1
             preferredPosition: getRandomPosition(),
             weight: faker.number.int({ min: 40, max: 100 }),
             height: faker.number.int({ min: 150, max: 190 }),
+            birthdate: 'Tue Oct 10 2000 00:00:00 GMT+0900 (Korean Standard Time)',
             age: faker.number.int({ min: 18, max: 50 }),
             gender: 'Male',
+            address: '서울 강남구 가로수길 5',
+            state: '서울',
+            city: '강남구',
+            latitude: 127.023150432187,
+            longitude: 37.5182112402056,
+            district: '신사동',
         };
 
         const response = await request(app.getHttpServer())
             .post('/profile')
             .set('Authorization', `Bearer ${accessToken5}`)
-            .send(registerPorfileDto)
+            .field('preferredPosition', registerPorfileDto.preferredPosition)
+            .field('weight', registerPorfileDto.weight)
+            .field('height', registerPorfileDto.height)
+            .field('birthdate', registerPorfileDto.birthdate)
+            .field('age', registerPorfileDto.age)
+            .field('gender', registerPorfileDto.gender)
+            .field('state', registerPorfileDto.state)
+            .field('city', registerPorfileDto.city)
+            .field('district', registerPorfileDto.district)
+            .field('address', registerPorfileDto.address)
+            .field('latitude', registerPorfileDto.latitude)
+            .field('longitude', registerPorfileDto.longitude)
+            .attach('file', 'src/img/IMG_6407.jpg')
             .expect(201);
-
-        userId3 = response.body.data.user.id;
+            userId3 = response.body.data.user.id;
     });
 
     //더미데이터 회원가입
@@ -511,17 +530,35 @@ describe('AppController (e2e) - 시나리오 4 - 아무 소속에 없는 회원1
             preferredPosition: getRandomPosition(),
             weight: faker.number.int({ min: 40, max: 100 }),
             height: faker.number.int({ min: 150, max: 190 }),
+            birthdate: 'Tue Oct 10 2000 00:00:00 GMT+0900 (Korean Standard Time)',
             age: faker.number.int({ min: 18, max: 50 }),
             gender: 'Male',
+            address: '서울 강남구 가로수길 5',
+            state: '서울',
+            city: '강남구',
+            latitude: 127.023150432187,
+            longitude: 37.5182112402056,
+            district: '신사동',
         };
 
         const response = await request(app.getHttpServer())
             .post('/profile')
             .set('Authorization', `Bearer ${accessToken6}`)
-            .send(registerPorfileDto)
+            .field('preferredPosition', registerPorfileDto.preferredPosition)
+            .field('weight', registerPorfileDto.weight)
+            .field('height', registerPorfileDto.height)
+            .field('birthdate', registerPorfileDto.birthdate)
+            .field('age', registerPorfileDto.age)
+            .field('gender', registerPorfileDto.gender)
+            .field('state', registerPorfileDto.state)
+            .field('city', registerPorfileDto.city)
+            .field('district', registerPorfileDto.district)
+            .field('address', registerPorfileDto.address)
+            .field('latitude', registerPorfileDto.latitude)
+            .field('longitude', registerPorfileDto.longitude)
+            .attach('file', 'src/img/IMG_6407.jpg')
             .expect(201);
-
-        userId4 = response.body.data.user.id;
+            userId4 = response.body.data.user.id;
     });
 
     //멤버3을 팀2에 추가
@@ -810,8 +847,8 @@ describe('AppController (e2e) - 시나리오 6 - 경기 평가하기', () => {
     });
 });
 
-//시나리오 7 - 아무 소속에 없는 회원3,4 만들기
-describe('AppController (e2e) - 시나리오 4 - 아무 소속에 없는 회원1,2 팀2에 가입시키기', () => {
+//시나리오 7 - 아무 소속에 없는 회원5,6 만들기
+describe('AppController (e2e) - 시나리오 7 - 아무 소속에 없는 회원5,6 만들기', () => {
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
             imports: [AppModule],
@@ -846,18 +883,88 @@ describe('AppController (e2e) - 시나리오 4 - 아무 소속에 없는 회원1
             preferredPosition: getRandomPosition(),
             weight: faker.number.int({ min: 40, max: 100 }),
             height: faker.number.int({ min: 150, max: 190 }),
+            birthdate: 'Tue Oct 10 2000 00:00:00 GMT+0900 (Korean Standard Time)',
             age: faker.number.int({ min: 18, max: 50 }),
             gender: 'Male',
+            address: '서울 강남구 가로수길 5',
+            state: '서울',
+            city: '강남구',
+            latitude: 127.023150432187,
+            longitude: 37.5182112402056,
+            district: '신사동',
         };
 
         const response = await request(app.getHttpServer())
             .post('/profile')
             .set('Authorization', `Bearer ${accessToken7}`)
-            .send(registerPorfileDto)
+            .field('preferredPosition', registerPorfileDto.preferredPosition)
+            .field('weight', registerPorfileDto.weight)
+            .field('height', registerPorfileDto.height)
+            .field('birthdate', registerPorfileDto.birthdate)
+            .field('age', registerPorfileDto.age)
+            .field('gender', registerPorfileDto.gender)
+            .field('state', registerPorfileDto.state)
+            .field('city', registerPorfileDto.city)
+            .field('district', registerPorfileDto.district)
+            .field('address', registerPorfileDto.address)
+            .field('latitude', registerPorfileDto.latitude)
+            .field('longitude', registerPorfileDto.longitude)
+            .attach('file', 'src/img/IMG_6407.jpg')
             .expect(201);
-
-        userId3 = response.body.data.user.id;
     });
+
+        //더미데이터 회원가입
+        it('/auth/sign-up (POST)', async () => {
+            const signUpDto = {
+                passwordConfirm: 'Ex@mp1e!!',
+                email: faker.internet.email(),
+                password: 'Ex@mp1e!!',
+                name: faker.person.fullName(),
+            };
+    
+            const response = await request(app.getHttpServer())
+                .post('/auth/sign-up')
+                .send(signUpDto)
+                .expect(201);
+    
+            accessToken8 = response.body.data.accessToken;
+            //userId1 = response.body.data.id;
+        });
+   //프로필 생성
+   it('/profile (POST)', async () => {
+    const registerPorfileDto = {
+        preferredPosition: getRandomPosition(),
+        weight: faker.number.int({ min: 40, max: 100 }),
+        height: faker.number.int({ min: 150, max: 190 }),
+        birthdate: 'Tue Oct 10 2000 00:00:00 GMT+0900 (Korean Standard Time)',
+        age: faker.number.int({ min: 18, max: 50 }),
+        gender: 'Male',
+        address: '서울 강남구 가로수길 5',
+        state: '서울',
+        city: '강남구',
+        latitude: 127.023150432187,
+        longitude: 37.5182112402056,
+        district: '신사동',
+    };
+
+    const response = await request(app.getHttpServer())
+        .post('/profile')
+        .set('Authorization', `Bearer ${accessToken8}`)
+        .field('preferredPosition', registerPorfileDto.preferredPosition)
+        .field('weight', registerPorfileDto.weight)
+        .field('height', registerPorfileDto.height)
+        .field('birthdate', registerPorfileDto.birthdate)
+        .field('age', registerPorfileDto.age)
+        .field('gender', registerPorfileDto.gender)
+        .field('state', registerPorfileDto.state)
+        .field('city', registerPorfileDto.city)
+        .field('district', registerPorfileDto.district)
+        .field('address', registerPorfileDto.address)
+        .field('latitude', registerPorfileDto.latitude)
+        .field('longitude', registerPorfileDto.longitude)
+        .attach('file', 'src/img/IMG_6407.jpg')
+        .expect(201);
+});
     afterAll(async () => {
         await app.close();
     });
