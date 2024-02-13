@@ -1298,7 +1298,9 @@ export class MatchService {
             },
 
             where: {
-                id: userId,
+                user:{
+                    id:userId
+                }
             },
         });
 
