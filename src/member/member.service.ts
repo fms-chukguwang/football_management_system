@@ -26,6 +26,7 @@ import { ResponseMemberDto } from './dtos/response-member.dto';
 import { User } from 'src/user/entities/user.entity';
 import { MemberGateway } from './member.gateway';
 import { ChatsGateway } from 'src/chats/chats.gateway';
+import { Profile } from 'src/profile/entities/profile.entity';
 
 @Injectable()
 export class MemberService {
@@ -43,6 +44,8 @@ export class MemberService {
         private readonly commonService: CommonService,
         @InjectRepository(TeamModel)
         private readonly teamRepository: Repository<TeamModel>,
+        @InjectRepository(Profile)
+        private readonly profileRepository: Repository<Profile>,
         private readonly profileService: ProfileService,
         private readonly memberGateway: MemberGateway,
         private readonly chatsGateway: ChatsGateway,
@@ -360,34 +363,44 @@ export class MemberService {
         return sendResult;
     }
 
-    /**
-     * 구단 초대 이메일 보내기
-     * @param userId
-     * @param teamId
-     * @returns
-     */
-     async sendInvitingEmail(userId: number, teamId: number, memberId: number) {
-        const findTeam = await this.teamService.getTeamDetail(teamId);
-
-        if (!findTeam) {
-            throw new NotFoundException('요청하신 팀이 존재하지 않습니다.');
-        }
-
-        const reqUser = await this.userService.findOneById(userId);
-        /**
-         * 요청할때 정보
-         * 요청자의 아이디 , email , 이름
-         */
-        const reqeustEmail: SendJoiningEmailDto = {
-            id: reqUser.id,
-            email: reqUser.email,
-            name: reqUser.name,
-        };
-
-        const sendResult = await this.eamilService.sendInviteEmail(reqeustEmail, findTeam);
-
-        return sendResult;
+/**
+ * 구단 초대 이메일 보내기
+ * @param userId
+ * @param teamId
+ * @returns
+ */
+ async sendInvitingEmail(userId: number, teamId: number, profileId: number) {
+    const findTeam = await this.teamService.getTeamDetail(teamId);
+    
+    if (!findTeam) {
+        throw new NotFoundException('요청하신 팀이 존재하지 않습니다.');
     }
+
+    const reqUser = await this.userService.findOneById(userId);
+
+    /**
+     * 요청할때 정보
+     * 요청자의 아이디 , email , 이름
+     */
+    const reqeustEmail: SendJoiningEmailDto = {
+        id: reqUser.id,
+        email: reqUser.email,
+        name: reqUser.name,
+    };
+
+    const sendResult = await this.eamilService.sendInviteEmail(reqeustEmail, findTeam);
+    
+    // 초대된 프로필의 invited 필드와 팀 아이디를 업데이트
+    const profile = await this.profileRepository.findOne({ where: { id: profileId } });
+    if (!profile) {
+        throw new NotFoundException('프로필을 찾을 수 없습니다.');
+    }
+    profile.invited = true;
+    profile.teamId = teamId; // 팀 아이디 저장
+    await this.profileRepository.save(profile);
+
+    return sendResult;
+}
 
     /**
      * 구단 입단 신청 거절 이메일 전송

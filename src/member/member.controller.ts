@@ -179,15 +179,15 @@ export class MemberController {
      */
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @Post('/team/:teamId/:memberId')
+    @Post('/team/:teamId/:profileId')
     sendInvitingEmail(
         @Req() req: Request,
         @Param('teamId') teamId: number,
-        @Param('memberId') memberId: number,
+        @Param('profileId') profileId: number,
     ) {
         const userId = req['user'].id;
 
-        this.memberService.sendInvitingEmail(userId, teamId, memberId);
+        this.memberService.sendInvitingEmail(userId, teamId, profileId);
     }
 
     /**
