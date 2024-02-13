@@ -169,9 +169,9 @@ export class Profile {
     //     }
     // }
 
-    @OneToMany(() => Member, (member) => member.profile)
-    @JoinColumn()
-    member: Member;
+    // @OneToMany(() => Member, (member) => member.profile)
+    // @JoinColumn()
+    // member: Member;
 
     @CreateDateColumn({
         name: 'created_at',

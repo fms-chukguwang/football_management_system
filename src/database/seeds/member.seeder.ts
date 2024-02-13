@@ -22,7 +22,7 @@ export default class MemberSeeder implements Seeder {
             console.log('assignedProfile=', assignedProfiles);
             for (const profile of assignedProfiles) {
                 const member = await memberFactory.make();
-                member.profile = profile;
+                // member.profile = profile;
                 member.user = profile.user; // Assign the user from the profile
                 member.team = team;
                 profile.teamId = team.id;

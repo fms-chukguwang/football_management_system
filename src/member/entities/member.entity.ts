@@ -26,11 +26,11 @@ export class Member extends BaseModel {
     })
     user: User;
 
-    @ManyToOne(() => Profile, (profile) => profile.member)
-    @JoinColumn({
-        name: 'profile_id',
-    })
-    profile: Profile;
+    // @ManyToOne(() => Profile, (profile) => profile.member)
+    // @JoinColumn({
+    //     name: 'profile_id',
+    // })
+    // profile: Profile;
 
     @ManyToOne(() => TeamModel, (team) => team.members, {
         onDelete: 'CASCADE',
