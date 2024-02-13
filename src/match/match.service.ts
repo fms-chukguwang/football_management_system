@@ -1199,6 +1199,7 @@ export class MatchService {
             DATE_FORMAT(m.date, '%Y-%m-%d') AS date,
             t.image_uuid,
             t.name,
+            t.id AS opponent_team_id,
             m.time,
             m.id AS match_id
         FROM 
@@ -1215,6 +1216,7 @@ export class MatchService {
             DATE_FORMAT(m.date, '%Y-%m-%d') AS date,
             t.image_uuid,
             t.name,
+            t.id AS opponent_team_id,
             m.time,
             m.id AS match_id
         FROM 
