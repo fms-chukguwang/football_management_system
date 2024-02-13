@@ -30,4 +30,8 @@ export class AdminService {
             'users',
         );
     }
+
+    async paginateTeam(dto: PaginateTeamDto) {
+        return await this.commonService.paginate(dto, this.teamRepository, {}, 'teams');
+    }
 }

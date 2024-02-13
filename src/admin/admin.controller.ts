@@ -33,7 +33,7 @@ export class AdminController {
     @ApiBearerAuth()
     @Get('teams')
     async getAllTeams(@Query() dto: PaginateTeamDto) {
-        return await this.adminService.getAllTeams(dto);
+        return await this.adminService.paginateTeam(dto);
     }
 
     /**

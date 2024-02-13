@@ -19,13 +19,14 @@ export default class MemberSeeder implements Seeder {
             const assignedProfiles = profiles.filter(
                 (_, index) => index % teams.length === team.id - 1,
             );
-
+            console.log('assignedProfile=', assignedProfiles);
             for (const profile of assignedProfiles) {
                 const member = await memberFactory.make();
                 member.profile = profile;
                 member.user = profile.user; // Assign the user from the profile
                 member.team = team;
                 await memberRepository.save(member);
+                console.log('done!');
             }
         }
     }
