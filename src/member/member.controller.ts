@@ -173,6 +173,24 @@ export class MemberController {
     }
 
     /**
+     * 멤버를 팀으로 초대
+     * @param req
+     * @param teamId
+     */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Post('/team/:teamId/:memberId')
+    sendInvitingEmail(
+        @Req() req: Request,
+        @Param('teamId') teamId: number,
+        @Param('memberId') memberId: number,
+    ) {
+        const userId = req['user'].id;
+
+        this.memberService.sendInvitingEmail(userId, teamId, memberId);
+    }
+
+    /**
      * 회원 수락 api
      * @param teamId
      * @param userId
