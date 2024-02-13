@@ -14,10 +14,11 @@ import { CommonModule } from '../common/common.module';
 import { ProfileModule } from 'src/profile/profile.module';
 import { MemberGateway } from './member.gateway';
 import { ChatsGateway } from 'src/chats/chats.gateway';
+import { Profile } from 'src/profile/entities/profile.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Member, TeamModel]),
+        TypeOrmModule.forFeature([Member, TeamModel, Profile]),
         AuthModule,
         UserModule,
         forwardRef(() => TeamModule),

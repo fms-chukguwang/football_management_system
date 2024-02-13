@@ -41,6 +41,12 @@ export class Profile {
     @PrimaryGeneratedColumn()
     id: number;
 
+    @Column({ default: false })
+    invited: boolean;
+
+    @Column({ nullable: true }) 
+    teamId: number; 
+
     /**
      * 실력
      * @example 9
