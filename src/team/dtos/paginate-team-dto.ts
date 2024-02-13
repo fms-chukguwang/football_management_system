@@ -7,4 +7,18 @@ export class PaginateTeamDto extends BasePaginationDto {
     @IsString()
     @IsOptional()
     name?:string;
+
+    @IsString()
+    @IsOptional()
+    gender?:string;
+
+
+    @IsString()
+    @IsOptional()
+    region?:string;
+
+
+    @IsString()
+    @IsOptional()
+    isMixed?:boolean;
 }
