@@ -78,78 +78,57 @@ export class TeamService {
                 },
             },
         });
-
+    
         if (existTeam) {
             throw new BadRequestException(EXIST_CREATOR);
         }
-
+    
         const existTeamName = await this.teamRepository.exists({
             where: {
                 name: createTeamDto.name,
             },
         });
-
+    
         if (existTeamName) {
             throw new BadRequestException(DUPLICATE_TEAM_NAME);
         }
-
-        const queryRunner = this.dataSource.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-        try {
-            const extractLocation = this.locationService.extractAddress(createTeamDto.address);
-
-            let findLocation = await this.locationService.findOneLocation(extractLocation);
-
-            if (!findLocation) {
-                findLocation = await this.locationService.registerLocation(
-                    createTeamDto.address,
-                    extractLocation,
-                );
-            }
-
-            const imageUUID = await this.awsService.uploadFile(file);
-
-            // 채팅방 생성
-            const createChatDto: CreateChatDto = { userIds: [userId] };
-
-            const chat = await this.chatService.createChat(createChatDto);
-
-            const team = await this.teamRepository.save({
-                ...createTeamDto,
-                imageUUID: imageUUID,
-                location: {
-                    id: findLocation.id,
-                },
-                creator: { id: userId },
-                chat,
-            });
-
-            await this.memberService.registerMember(team.id, userId);
-            await this.memberService.findMemberForUserId(userId, team.id);
-            await this.memberService.registerCreatorMember(team.id, userId);
-            await queryRunner.commitTransaction();
-            return team;
-        } catch (error) {
-            await queryRunner.rollbackTransaction();
-        } finally {
-            await queryRunner.release();
+    
+        const extractLocation = this.locationService.extractAddress(createTeamDto.address);
+    
+        let findLocation = await this.locationService.findOneLocation(extractLocation);
+    
+        if (!findLocation) {
+            findLocation = await this.locationService.registerLocation(createTeamDto.address, extractLocation);
         }
+    
 
-        // try {
-        //     // 사용자의 isAdmin 상태를 업데이트
-        //     const isAdminUpdated = await this.memberService.updateUserAdminStatus(userId, true);
-        //     console.log("isAdminUpdated=",isAdminUpdated)
-        //     if (!isAdminUpdated) {
-        //         // 업데이트 실패 시 롤백 또는 적절한 오류 처리
-        //         throw new InternalServerErrorException('사용자의 관리자 상태를 업데이트할 수 없습니다.');
-        //     }
-
-        //     return team;
-        // } catch (err) {
-        //     console.error(err);
-        //     throw new InternalServerErrorException('팀 생성 중 오류가 발생했습니다.');
-        // }
+        const imageUUID = await this.awsService.uploadFile(file);
+    
+        // 채팅방 생성
+        const createChatDto: CreateChatDto = { userIds: [userId] };
+        const chat = await this.chatService.createChat(createChatDto);
+    
+        const team = await this.teamRepository.save({
+            ...createTeamDto,
+            imageUUID: imageUUID,
+            location: {
+                id: findLocation.id,
+            },
+            creator: { id: userId },
+            chat,
+        });
+    
+        try {
+            // await this.connection.transaction(async (transactionalEntityManager) => {
+            //     const savedTeam = await transactionalEntityManager.save(TeamModel, team);
+                await this.memberService.registerCreatorMember(team.id, userId);
+           // });
+    
+            return team;
+        } catch (err) {
+            console.error(err);
+            throw new InternalServerErrorException('팀 생성 중 오류가 발생했습니다.');
+        }
     }
 
     /**
@@ -212,9 +191,15 @@ export class TeamService {
     }
 
     //호영님 코드 수정중
-    async getTeam(dto: PaginateTeamDto, name?: string, isMixed?: boolean, region?: string, gender?: string) {
+    async getTeam(
+        dto: PaginateTeamDto,
+        name?: string,
+        isMixed?: boolean,
+        region?: string,
+        gender?: string,
+    ) {
         const options: FindManyOptions<TeamModel> = {};
-        
+
         if (name) {
             options.where = { name: Like(`%${name}%`) };
         }
@@ -224,11 +209,11 @@ export class TeamService {
         // if (region) {
         //     options.where = { ...options.where, region };
         // }
-    
+
         options.relations = ['location'];
-    
+
         const result = await this.commonService.paginate(dto, this.teamRepository, options, 'team');
-    
+
         if ('total' in result) {
             const { data, total } = result;
             const teamWithCounts = await Promise.all(
