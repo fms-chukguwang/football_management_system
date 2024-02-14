@@ -54,6 +54,7 @@ export class EmailService {
         };
 
         try {
+            console.log("sendmail before");
             const info = await this.transporter.sendMail(mailOptions);
         } catch (error) {
             console.error('Error sending email:', error);

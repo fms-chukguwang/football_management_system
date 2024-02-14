@@ -235,7 +235,7 @@ export class MemberController {
 
         // 구단주에게 이메일 전송
         //await this.emailService.sendEmail(owner.creator.email, "회원 수락 처리 완료", ownerEmailContent);
-
+        console.log("controller send email");
         // 멤버에게 이메일 전송
         await this.emailService.sendEmail(user.email, '회원 수락 처리 완료', memberEmailContent);
     }
