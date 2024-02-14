@@ -96,6 +96,7 @@ export class MemberService {
      */
     async registerMember(teamId: number, userId: number): Promise<Member> {
         const user = await this.userService.findOneById(userId);
+        console.log("user=",user)
         const existMember = await this.findMemberForUserId(user.id);
         const team = await this.teamRepository.findOne({
             where: { id: teamId },
@@ -388,13 +389,17 @@ export class MemberService {
         name: reqUser.name,
     };
 
-    const sendResult = await this.eamilService.sendInviteEmail(reqeustEmail, findTeam);
+       // 초대된 프로필의 invited 필드와 팀 아이디를 업데이트
+       const profile = await this.profileRepository.findOne({ where: { id: profileId }, relations: ['user'] }); 
+       if (!profile || !profile.user || !profile.user.email) {
+           throw new NotFoundException('프로필 또는 사용자 정보를 찾을 수 없습니다.');
+       }
+       console.log("profile=",profile);
+    //   const profileEmail = profile.user.email;
+
+    const sendResult = await this.eamilService.sendInviteEmail(reqeustEmail, findTeam, profile);
     
-    // 초대된 프로필의 invited 필드와 팀 아이디를 업데이트
-    const profile = await this.profileRepository.findOne({ where: { id: profileId } });
-    if (!profile) {
-        throw new NotFoundException('프로필을 찾을 수 없습니다.');
-    }
+ 
     profile.invited = true;
     profile.teamId = teamId; // 팀 아이디 저장
     await this.profileRepository.save(profile);
