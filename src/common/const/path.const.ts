@@ -1,3 +1,4 @@
+import 'dotenv/config'
 export const PROTOCOL = 'http';
 export const HOST = 'localhost:3000';
 export const NODE_ENV = process.env.NODE_ENV;
