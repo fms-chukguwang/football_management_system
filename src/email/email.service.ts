@@ -314,10 +314,11 @@ export class EmailService {
             from: process.env.EMAIL_USER, // 발신자 이메일
             to: profile.user.email,
             subject: `${from.name}님의 구단 초대입니다.`,
-            html: inviteTeamHtml(from, profile, randomToken), // HTML 형식의 메일 내용
+            html: inviteTeamHtml(team, profile, randomToken), // HTML 형식의 메일 내용
         };
 
         try {
+            console.log("from2=",from);
             const info = await this.transporter.sendMail(mailOptions);
             await this.redisService.setTeamJoinMailToken(randomToken);
             return info;

@@ -22,18 +22,19 @@ export const joinTeamHtml = (from: SendJoiningEmailDto, recipient: TeamModel, to
   `;
 };
 
-export const inviteTeamHtml = (from: SendJoiningEmailDto, recipient: Profile, token: string) => {
+export const inviteTeamHtml = (team: TeamModel, recipient: Profile, token: string) => {
+console.log("team=",team)
   return `
   <p>안녕하세요, ${recipient.user.name} 님</p>
-  <p>${from.name} 구단주가 ${recipient.user.name} 님에게 입단 초대 신청을 했습니다.</p>
+  <p>${team.creator.name} 구단주가 ${recipient.user.name} 님에게 입단 초대 신청을 했습니다.</p>
   <p>수락하시겠습니까?</p>
 
-  <form action="${SERVER_URL}/api/team/${from.id}/user/${recipient.user.id}/approve" method="POST">
+  <form action="${SERVER_URL}/api/team/${team.id}/user/${recipient.user.id}/approve" method="POST">
   <input type="hidden" name="token" value="${token}">
   <button style="background-color: #4CAF50; color: white; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; border-radius: 5px; cursor: pointer;">수락</button>
   </form>
 
-  <form action="${SERVER_URL}/api/team/${from.id}/user/${recipient.user.id}/reject" method="POST">
+  <form action="${SERVER_URL}/api/team/${team.id}/user/${recipient.user.id}/reject" method="POST">
   <input type="hidden" name="token" value="${token}">
   <button style="background-color: #4CAF50; color: white; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; border-radius: 5px; cursor: pointer;">거절</button>
   </form>
