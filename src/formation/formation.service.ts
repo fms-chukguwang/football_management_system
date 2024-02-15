@@ -97,15 +97,13 @@ export class FormationService {
 
         const matchFormation = await this.getMatchFormation(teamId,matchId);
 
-        console.log('matchFormation:',matchFormation.length);
-
         const queryRunner = this.dataSource.createQueryRunner();
 
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
         try{
-
+            console.log('11111111111111')
             // 조회한 모든 기존 포메이션 정보를 삭제
             if (matchFormation.length > 0) {
                 await queryRunner.manager.delete('match_formations', {
@@ -116,18 +114,22 @@ export class FormationService {
 
             // 새 포메이션 정보 삽입
             for (const playerPosition of updateFormationDto.playerPositions) {
-                const playerFormation = this.matchFormationRepository.create({
+
+                const playerFormation = await this.matchFormationRepository.create({
                     team_id: teamId,
                     match_id: matchId,
                     member_id: playerPosition.id,
                     formation: updateFormationDto.currentFormation,
                     position: playerPosition.position,
                 });
+
                 await queryRunner.manager.save(playerFormation);
             }
 
             await queryRunner.commitTransaction();
         }catch(error){
+
+            console.error('Error saving playerFormation:', error);
 
             await queryRunner.rollbackTransaction();
             if (error instanceof HttpException) {
