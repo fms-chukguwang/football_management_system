@@ -2,34 +2,29 @@ import {
     Body,
     Controller,
     Delete,
-    Param,
-    Post,
-    UseGuards,
-    HttpStatus,
-    Patch,
-    Req,
-    ParseIntPipe,
     Get,
-    BadRequestException,
-    Query,
-<<<<<<< HEAD
+    HttpStatus,
     InternalServerErrorException,
-=======
-    Response,
->>>>>>> 80cc91835b0fd5794c87359a67a3498dee787e4c
+    Param,
+    ParseIntPipe,
+    Patch,
+    Post,
+    Query,
+    Req,
+    UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { MemberService } from './member.service';
-import { UpdateMemberInfoDto } from './dtos/update-member-info-dto';
-import { IsStaffGuard } from './guard/is-staff.guard';
-import { PaginateMembersDto } from './dtos/paginate-members-dto';
-import { IsMemberGuard } from './guard/is-member.guard';
-import { EmailService } from 'src/email/email.service';
 import { InjectRepository } from '@nestjs/typeorm';
+import { EmailService } from 'src/email/email.service';
+import { TeamModel } from 'src/team/entities/team.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
-import { TeamModel } from 'src/team/entities/team.entity';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PaginateMembersDto } from './dtos/paginate-members-dto';
+import { UpdateMemberInfoDto } from './dtos/update-member-info-dto';
+import { IsMemberGuard } from './guard/is-member.guard';
+import { IsStaffGuard } from './guard/is-staff.guard';
+import { MemberService } from './member.service';
 
 @ApiTags('선수')
 @Controller()
@@ -220,7 +215,7 @@ export class MemberController {
 
         // 구단주에게 이메일 전송
         //await this.emailService.sendEmail(owner.creator.email, "회원 수락 처리 완료", ownerEmailContent);
-        console.log("controller send email");
+        console.log('controller send email');
         // 멤버에게 이메일 전송
         await this.emailService.sendEmail(user.email, '회원 수락 처리 완료', memberEmailContent);
     }
@@ -233,43 +228,38 @@ export class MemberController {
      */
     @ApiBearerAuth()
     @Post('/team/:teamId/user/:userId/reject')
-    async rejectMember(
-        teamId: number,
-        userId: number,
-        token: string,
-    ) {
+    async rejectMember(teamId: number, userId: number, token: string) {
         await this.memberService.verifyEmailToken(token);
-    
+
         const result = await this.memberService.rejectJoiningEamil(teamId, userId);
-    
+
         await this.memberService.deleteEmailToken(token);
-    
+
         const owner = await this.teamRepository.findOne({
             where: { id: teamId },
         });
         const user = await this.userRepository.findOne({
             where: { id: userId },
         });
-    
+
         // 이메일에 알람 메시지 포함 (구단주에게)
         const ownerEmailContent = `
            회원 거절 처리 완료!
             구단주에게 보내는 내용입니다.
         `;
-    
+
         // 이메일에 알람 메시지 포함 (멤버에게)
-        const memberEmailContent  = `
+        const memberEmailContent = `
                 회원 거절 처리 완료!
                 멤버에게 보내는 내용입니다.
    
         `;
         // 구단주에게 이메일 전송
         // await this.emailService.sendEmail(owner.creator.email, "회원 거절 처리 완료", ownerEmailContent);
-    
+
         // 멤버에게 이메일 전송
         await this.emailService.sendEmail(user.email, '회원 거절 처리 완료', memberEmailContent);
     }
-    
 
     /**
      * 팀별 멤버 목록 조회
