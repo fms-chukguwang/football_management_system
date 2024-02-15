@@ -70,7 +70,7 @@ export class AwsService {
                 Bucket: this.configService.get('AWS_BUCKET_NAME'),
                 Key: key,
             });
-            const presingedUrl = await getSignedUrl(this.awsS3, getCommend, { expiresIn: 300 });
+            const presingedUrl = await getSignedUrl(this.awsS3, getCommend, { expiresIn: 180 });
             await this.redisService.setPresignedUrl(key, presingedUrl);
 
             return presingedUrl;

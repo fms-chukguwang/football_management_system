@@ -2,6 +2,7 @@ import {
     BadRequestException,
     Inject,
     Injectable,
+    InternalServerErrorException,
     NotFoundException,
     UnauthorizedException,
     forwardRef,
@@ -96,7 +97,7 @@ export class MemberService {
      */
     async registerMember(teamId: number, userId: number): Promise<Member> {
         const user = await this.userService.findOneById(userId);
-        console.log("user=",user)
+        console.log('user=', user);
         const existMember = await this.findMemberForUserId(user.id);
         const team = await this.teamRepository.findOne({
             where: { id: teamId },
@@ -173,6 +174,7 @@ export class MemberService {
             },
             relations: {
                 team: true,
+                user: true,
             },
         });
     }
@@ -210,30 +212,6 @@ export class MemberService {
                 id: memberId,
             },
         });
-    }
-
-    /**
-     * 팀원 추방하기
-     * @param currentLoginUserId
-     * @param teamId
-     * @param userId
-     * @returns
-     */
-    async deleteMember(teamId: number, userId: number) {
-        const findMember = await this.findMember(userId, teamId);
-
-        if (!findMember) {
-            throw new BadRequestException('존재하지 않은 팀원입니다.');
-        }
-        if (findMember.team.id !== teamId) {
-            throw new BadRequestException('teamId가 일치하지 않습니다.');
-        }
-
-        await this.memberRepository.softDelete({
-            id: findMember.id,
-        });
-
-        return findMember;
     }
 
     /**
@@ -364,48 +342,50 @@ export class MemberService {
         return sendResult;
     }
 
-/**
- * 구단 초대 이메일 보내기
- * @param userId
- * @param teamId
- * @returns
- */
- async sendInvitingEmail(userId: number, teamId: number, profileId: number) {
-    const findTeam = await this.teamService.getTeamDetail(teamId);
-    
-    if (!findTeam) {
-        throw new NotFoundException('요청하신 팀이 존재하지 않습니다.');
-    }
-
-    const reqUser = await this.userService.findOneById(userId);
-
     /**
-     * 요청할때 정보
-     * 요청자의 아이디 , email , 이름
+     * 구단 초대 이메일 보내기
+     * @param userId
+     * @param teamId
+     * @returns
      */
-    const reqeustEmail: SendJoiningEmailDto = {
-        id: reqUser.id,
-        email: reqUser.email,
-        name: reqUser.name,
-    };
+    async sendInvitingEmail(userId: number, teamId: number, profileId: number) {
+        const findTeam = await this.teamService.getTeamDetail(teamId);
 
-       // 초대된 프로필의 invited 필드와 팀 아이디를 업데이트
-       const profile = await this.profileRepository.findOne({ where: { id: profileId }, relations: ['user'] }); 
-       if (!profile || !profile.user || !profile.user.email) {
-           throw new NotFoundException('프로필 또는 사용자 정보를 찾을 수 없습니다.');
-       }
-       console.log("profile=",profile);
-    //   const profileEmail = profile.user.email;
+        if (!findTeam) {
+            throw new NotFoundException('요청하신 팀이 존재하지 않습니다.');
+        }
 
-    const sendResult = await this.eamilService.sendInviteEmail(reqeustEmail, findTeam, profile);
-    
- 
-    profile.invited = true;
-    profile.teamId = teamId; // 팀 아이디 저장
-    await this.profileRepository.save(profile);
+        const reqUser = await this.userService.findOneById(userId);
 
-    return sendResult;
-}
+        /**
+         * 요청할때 정보
+         * 요청자의 아이디 , email , 이름
+         */
+        const reqeustEmail: SendJoiningEmailDto = {
+            id: reqUser.id,
+            email: reqUser.email,
+            name: reqUser.name,
+        };
+
+        // 초대된 프로필의 invited 필드와 팀 아이디를 업데이트
+        const profile = await this.profileRepository.findOne({
+            where: { id: profileId },
+            relations: ['user'],
+        });
+        if (!profile || !profile.user || !profile.user.email) {
+            throw new NotFoundException('프로필 또는 사용자 정보를 찾을 수 없습니다.');
+        }
+        console.log('profile=', profile);
+        //   const profileEmail = profile.user.email;
+
+        const sendResult = await this.eamilService.sendInviteEmail(reqeustEmail, findTeam, profile);
+
+        profile.invited = true;
+        profile.teamId = teamId; // 팀 아이디 저장
+        await this.profileRepository.save(profile);
+
+        return sendResult;
+    }
 
     /**
      * 구단 입단 신청 거절 이메일 전송
@@ -563,5 +543,34 @@ export class MemberService {
             gender: findProfile.gender,
             age: findProfile.age,
         };
+    }
+
+    async expulsionMember(teamId: number, memberId: number, userId: number) {
+        /**
+         * 1) 현재 들어온 팀id의 구단주가 userId인지 확인해야함
+         * 2) 탈퇴시키려는 멤버가 해당 팀 member인지 확인해야함
+         */
+        const findTeam = await this.teamService.findOneById(teamId);
+        if (findTeam.creator.id !== userId) {
+            throw new UnauthorizedException('구단주만 해당 기능을 이용할수 있습니다.');
+        }
+
+        const findMember = await this.findMember(memberId, teamId);
+        if (!findMember) {
+            throw new NotFoundException('해당 멤버는 해당 팀에 존재하지 않습니다.');
+        }
+
+        try {
+            await this.memberRepository.softDelete({ id: memberId });
+            await this.eamilService.sendEmail(
+                findMember.user.email,
+                '팀에서 탈퇴처리 되었습니다',
+                `
+                ${new Date().toLocaleString()}부로 ${findTeam.name}에서 탈퇴처리 되었습니다.
+            `,
+            );
+        } catch (err) {
+            throw new InternalServerErrorException(err);
+        }
     }
 }

@@ -12,7 +12,11 @@ import {
     Get,
     BadRequestException,
     Query,
+<<<<<<< HEAD
+    InternalServerErrorException,
+=======
     Response,
+>>>>>>> 80cc91835b0fd5794c87359a67a3498dee787e4c
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -71,25 +75,6 @@ export class MemberController {
         return {
             statusCode: HttpStatus.OK,
             data: registerMembers,
-            success: true,
-        };
-    }
-
-    /**
-     * 멤버 추방하기
-     * @param teamId
-     * @param userId
-     * @param req
-     */
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, IsStaffGuard)
-    @Delete('/team/:teamId/member/:memberId')
-    async deleteMemeber(@Param('teamId') teamId: number, @Param('memberId') memberId: number) {
-        const deleteMember = await this.memberService.deleteMember(teamId, memberId);
-
-        return {
-            statusCode: HttpStatus.OK,
-            data: deleteMember,
             success: true,
         };
     }
@@ -318,5 +303,25 @@ export class MemberController {
     @Get('team/:teamId/member/:memberId')
     getMember(@Req() req: Request) {
         return this.memberService.getMember(req['member'].team.id, req['member'].id);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Delete('team/:teamId/member/:memberId/expulsion')
+    async expulsionMember(
+        @Req() req: Request,
+        @Param('teamId') teamId: number,
+        @Param('memberId') memberId: number,
+    ) {
+        try {
+            await this.memberService.expulsionMember(teamId, memberId, req['user'].id);
+
+            return {
+                statusCode: HttpStatus.OK,
+                message: '탈퇴처리가 되었습니다.',
+                success: true,
+            };
+        } catch (err) {
+            throw new InternalServerErrorException('처리중에 서버에서 문제가 생겼습니다.');
+        }
     }
 }

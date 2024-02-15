@@ -78,36 +78,38 @@ export class TeamService {
                 },
             },
         });
-    
+
         if (existTeam) {
             throw new BadRequestException(EXIST_CREATOR);
         }
-    
+
         const existTeamName = await this.teamRepository.exists({
             where: {
                 name: createTeamDto.name,
             },
         });
-    
+
         if (existTeamName) {
             throw new BadRequestException(DUPLICATE_TEAM_NAME);
         }
-    
+
         const extractLocation = this.locationService.extractAddress(createTeamDto.address);
-    
+
         let findLocation = await this.locationService.findOneLocation(extractLocation);
-    
+
         if (!findLocation) {
-            findLocation = await this.locationService.registerLocation(createTeamDto.address, extractLocation);
+            findLocation = await this.locationService.registerLocation(
+                createTeamDto.address,
+                extractLocation,
+            );
         }
-    
 
         const imageUUID = await this.awsService.uploadFile(file);
-    
+
         // 채팅방 생성
         const createChatDto: CreateChatDto = { userIds: [userId] };
         const chat = await this.chatService.createChat(createChatDto);
-    
+
         const team = await this.teamRepository.save({
             ...createTeamDto,
             imageUUID: imageUUID,
@@ -117,13 +119,13 @@ export class TeamService {
             creator: { id: userId },
             chat,
         });
-    
+
         try {
             // await this.connection.transaction(async (transactionalEntityManager) => {
             //     const savedTeam = await transactionalEntityManager.save(TeamModel, team);
-                await this.memberService.registerCreatorMember(team.id, userId);
-           // });
-    
+            await this.memberService.registerCreatorMember(team.id, userId);
+            // });
+
             return team;
         } catch (err) {
             console.error(err);

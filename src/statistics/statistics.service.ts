@@ -274,9 +274,11 @@ export class StatisticsService {
             .leftJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
-            .orderBy('stats.goals', 'DESC')
+            .orderBy('totalGoals', 'DESC')
             .limit(3)
             .getRawMany();
+
+        console.log('우리팀 득점왕', rankGoalsMembers);
 
         return rankGoalsMembers;
     }
@@ -301,7 +303,7 @@ export class StatisticsService {
             .leftJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
-            .orderBy('stats.assists', 'DESC')
+            .orderBy('totalAssists', 'DESC')
             .limit(3)
             .getRawMany();
 
@@ -355,7 +357,7 @@ export class StatisticsService {
             .leftJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
-            .orderBy('stats.save', 'DESC')
+            .orderBy('totalSave', 'DESC')
             .limit(3)
             .getRawMany();
 
