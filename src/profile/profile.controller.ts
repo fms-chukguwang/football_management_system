@@ -167,7 +167,7 @@ export class ProfileController {
      */
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @Delete(':teamId/:profileId')
+    @Delete('/:profileId')
     async deleteProfileInfo(@Param('profileId') profileId: number) {
         const data = await this.profileService.deleteProfile(profileId);
 
