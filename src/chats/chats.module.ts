@@ -8,8 +8,7 @@ import { Message } from '../messages/entities/messages.entity';
 import { ChatMessagesService } from '../messages/messages.service';
 import { MessagesController } from '../messages/messages.controller';
 import { CommonModule } from '../common/common.module';
-import { UserModule } from 'src/user/user.module';
-
+import { UserModule } from '../user/user.module';
 @Module({
     exports: [ChatsService, ChatsGateway],
     imports: [TypeOrmModule.forFeature([Chats, Message]), CommonModule, UserModule],

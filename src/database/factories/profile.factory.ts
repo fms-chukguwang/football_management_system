@@ -1,6 +1,6 @@
-import { Gender } from 'src/enums/gender.enum';
-import { Position } from 'src/enums/position.enum';
-import { Profile } from 'src/profile/entities/profile.entity';
+import { Gender } from '../../enums/gender.enum';
+import { Position } from '../../enums/position.enum';
+import { Profile } from '../../profile/entities/profile.entity';
 import { setSeederFactory } from 'typeorm-extension';
 
 export default setSeederFactory(Profile, (faker) => {

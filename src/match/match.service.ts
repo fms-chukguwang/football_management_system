@@ -32,7 +32,7 @@ import { SoccerField } from './entities/soccer-field.entity';
 import { AwsService } from '../aws/aws.service';
 import { ResultMembersDto } from './dtos/result-final.dto';
 import { time } from 'console';
-import { SERVER_URL } from 'src/common/const/path.const';
+import { SERVER_URL } from '../common/const/path.const';
 
 @Injectable()
 export class MatchService {
@@ -1299,9 +1299,9 @@ export class MatchService {
             },
 
             where: {
-                user:{
-                    id:userId
-                }
+                user: {
+                    id: userId,
+                },
             },
         });
 
@@ -1320,7 +1320,7 @@ export class MatchService {
         const findMembers = await this.memberRepository.find({
             select: {
                 id: true,
-                isStaff:true,
+                isStaff: true,
                 user: {
                     id: true,
                     name: true,

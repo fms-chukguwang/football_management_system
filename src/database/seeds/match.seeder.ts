@@ -1,5 +1,5 @@
-import { Match } from 'src/match/entities/match.entity';
-import { TeamModel } from 'src/team/entities/team.entity';
+import { Match } from '../../match/entities/match.entity';
+import { TeamModel } from '../../team/entities/team.entity';
 import { DataSource } from 'typeorm';
 import { Seeder, SeederFactoryManager } from 'typeorm-extension';
 

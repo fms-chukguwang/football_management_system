@@ -15,9 +15,9 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EmailService } from 'src/email/email.service';
-import { TeamModel } from 'src/team/entities/team.entity';
-import { User } from 'src/user/entities/user.entity';
+import { EmailService } from '../email/email.service';
+import { TeamModel } from '../team/entities/team.entity';
+import { User } from '../user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PaginateMembersDto } from './dtos/paginate-members-dto';

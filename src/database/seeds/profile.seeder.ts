@@ -1,8 +1,8 @@
 import { DataSource } from 'typeorm';
 import { Seeder, SeederFactoryManager } from 'typeorm-extension';
-import { Profile } from 'src/profile/entities/profile.entity';
-import { User } from 'src/user/entities/user.entity';
-import { LocationModel } from 'src/location/entities/location.entity';
+import { Profile } from '../../profile/entities/profile.entity';
+import { User } from '../../user/entities/user.entity';
+import { LocationModel } from '../../location/entities/location.entity';
 
 export default class ProfileSeeder implements Seeder {
     public async run(dataSource: DataSource, factoryManager: SeederFactoryManager): Promise<void> {

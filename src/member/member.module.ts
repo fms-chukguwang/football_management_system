@@ -11,10 +11,10 @@ import { RedisModule } from '../redis/redis.module';
 import { TeamModel } from '../team/entities/team.entity';
 import { ChatsModule } from '../chats/chats.module';
 import { CommonModule } from '../common/common.module';
-import { ProfileModule } from 'src/profile/profile.module';
+import { ProfileModule } from '../profile/profile.module';
 import { MemberGateway } from './member.gateway';
 import { ChatsGateway } from 'src/chats/chats.gateway';
-import { Profile } from 'src/profile/entities/profile.entity';
+import { Profile } from '../profile/entities/profile.entity';
 
 @Module({
     imports: [

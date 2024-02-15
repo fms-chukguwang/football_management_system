@@ -18,7 +18,7 @@ import { WsExceptionFilter } from '../common/exception-filter/ws.exception-filte
 import { SocketBearerTokenGuard } from './guard/ws-bearer-token.guard';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
-import { UserService } from 'src/user/user.service';
+import { UserService } from '../user/user.service';
 @WebSocketGateway({
     namespace: /^\/chats\/.+$/,
 })

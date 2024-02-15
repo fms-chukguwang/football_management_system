@@ -1,4 +1,4 @@
-import { Chats } from 'src/chats/entities/chats.entity';
+import { Chats } from '../../chats/entities/chats.entity';
 import { setSeederFactory } from 'typeorm-extension';
 
 export default setSeederFactory(Chats, (faker) => {

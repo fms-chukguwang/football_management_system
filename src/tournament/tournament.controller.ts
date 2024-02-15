@@ -1,9 +1,9 @@
 import { Body, Controller, HttpStatus, Param, Patch, Post, Put, UseGuards } from '@nestjs/common';
 import { TournamentService } from './tournament.service';
 import { CreateTournamentDto } from './dtos/create-tournament.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { IsStaffGuard } from 'src/member/guard/is-staff.guard';
-import { IsAdminGuard } from 'src/admin/guards/isAdmin.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { IsStaffGuard } from '../member/guard/is-staff.guard';
+import { IsAdminGuard } from '../admin/guards/isAdmin.guard';
 import { UpdateTournamentDto } from './dtos/update-tournament.dto';
 
 @Controller('tournament')

@@ -26,7 +26,7 @@ import { RedisService } from '../redis/redis.service';
 import { ChatsService } from '../chats/chats.service';
 import { CreateChatDto } from '../chats/dto/create-chat.dto';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
-import { Gender } from 'src/enums/gender.enum';
+import { Gender } from '../enums/gender.enum';
 
 @Injectable()
 export class TeamService {

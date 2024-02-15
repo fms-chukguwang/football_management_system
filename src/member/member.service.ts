@@ -24,10 +24,10 @@ import { ChatsService } from '../chats/chats.service';
 import { PaginateTeamDto } from '../admin/dto/paginate-team.dto';
 import { CommonService } from '../common/common.service';
 import { ResponseMemberDto } from './dtos/response-member.dto';
-import { User } from 'src/user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
 import { MemberGateway } from './member.gateway';
-import { ChatsGateway } from 'src/chats/chats.gateway';
-import { Profile } from 'src/profile/entities/profile.entity';
+import { ChatsGateway } from '../chats/chats.gateway';
+import { Profile } from '../profile/entities/profile.entity';
 
 @Injectable()
 export class MemberService {

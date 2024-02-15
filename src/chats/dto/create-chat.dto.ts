@@ -1,5 +1,5 @@
 import { IsNumber } from 'class-validator';
-import { TeamModel } from 'src/team/entities/team.entity';
+import { TeamModel } from '../../team/entities/team.entity';
 
 export class CreateChatDto {
     // @IsNumber()

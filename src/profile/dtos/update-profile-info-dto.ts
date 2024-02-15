@@ -3,7 +3,7 @@ import { Position } from '../../enums/position.enum';
 import { Gender } from '../../enums/gender.enum';
 import { Factory } from 'nestjs-seeder';
 import { Column } from 'typeorm';
-import { stringValidationMessage } from 'src/team/validation-message/string-validation.message';
+import { stringValidationMessage } from '../../team/validation-message/string-validation.message';
 import { Transform } from 'class-transformer';
 
 export class UpdateProfileInfoDto {

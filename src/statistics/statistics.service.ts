@@ -9,7 +9,7 @@ import { TopPlayerDto } from './dto/top-player.dto';
 import { Member } from '../member/entities/member.entity';
 import { PlayersDto } from './dto/players.dto';
 import { YellowAndRedCardsDto } from './dto/yellow-and-red-cards.dto';
-import { LoggingService } from 'src/logging/logging.service';
+import { LoggingService } from '../logging/logging.service';
 import { MemberHistoryDto } from './dto/member-history.dto';
 import { plainToInstance } from 'class-transformer';
 import { MemberRecordDto } from './dto/member-record.dto';

@@ -1,7 +1,7 @@
 import { IsBoolean, IsDate, IsNumber, IsString } from 'class-validator';
-import { BaseModel } from 'src/common/entities/base.entity';
-import { LocationModel } from 'src/location/entities/location.entity';
-import { TeamModel } from 'src/team/entities/team.entity';
+import { BaseModel } from '../../common/entities/base.entity';
+import { LocationModel } from '../../location/entities/location.entity';
+import { TeamModel } from '../../team/entities/team.entity';
 import {
     Column,
     Entity,

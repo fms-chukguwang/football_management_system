@@ -1,4 +1,4 @@
-import { Match } from 'src/match/entities/match.entity';
+import { Match } from '../../match/entities/match.entity';
 import { setSeederFactory } from 'typeorm-extension';
 
 export default setSeederFactory(Match, (faker) => {

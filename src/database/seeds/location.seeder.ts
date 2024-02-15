@@ -1,4 +1,4 @@
-import { LocationModel } from 'src/location/entities/location.entity';
+import { LocationModel } from '../../location/entities/location.entity';
 import { DataSource } from 'typeorm';
 import { Seeder, SeederFactoryManager } from 'typeorm-extension';
 

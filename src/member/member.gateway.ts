@@ -8,7 +8,7 @@ import {
     SubscribeMessage,
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
-import { WsExceptionFilter } from 'src/common/exception-filter/ws.exception-filter';
+import { WsExceptionFilter } from '../common/exception-filter/ws.exception-filter';
 
 @WebSocketGateway()
 export class MemberGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
