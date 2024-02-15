@@ -47,6 +47,8 @@ export class ChatsService {
             users: createChatDto.userIds.map((id) => ({ id })),
         });
 
+        console.log('chat', chat);
+
         return this.chatsRepository.findOne({
             where: { id: chat.id },
         });
@@ -87,5 +89,9 @@ export class ChatsService {
             .relation('users')
             .of(chatId)
             .remove(socketId);
+    }
+
+    hello() {
+        return 'hello';
     }
 }
