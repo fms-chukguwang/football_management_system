@@ -32,6 +32,7 @@
         "test:tournament": "jest --config ./test/tour ㅠnament/jest-tournament.json",
         "seed": "ts-node src/seed.ts",
         "seed:ho0": "ts-node -r tsconfig-paths/register ./node_modules/typeorm-extension/bin/cli.cjs seed:run",
+        "seed:match": "ts-node -r tsconfig-paths/register src/database/seeds/match.seeder.ts",
         "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js --dataSource ./data-source.ts",
         "migration:create": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:create ./src/database/migrations/Migration",
         "migration:generate": "npm run typeorm migration:generate ./src/database/migrations/Migration",

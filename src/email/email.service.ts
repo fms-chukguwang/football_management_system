@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomBytes } from 'crypto';
 import * as nodemailer from 'nodemailer';
@@ -14,6 +14,7 @@ import { TeamJoinRequestToken } from './entities/team-join-request-token.entity'
 import { inviteTeamHtml, joinTeamHtml, rejectTeamHtml } from './html/email.html';
 import { v4 } from 'uuid';
 import { RedisService } from '../redis/redis.service';
+import { Profile } from 'src/profile/entities/profile.entity';
 
 const randomBytesAsync = promisify(randomBytes);
 
@@ -30,6 +31,8 @@ export class EmailService {
         private readonly emailVerificationRepository: Repository<EmailVerification>,
         @InjectRepository(TeamJoinRequestToken)
         private readonly teamJoinRequestTokenRepository: Repository<TeamJoinRequestToken>,
+        // @InjectRepository(Profile)
+        // private readonly profileRepository: Repository<Profile>,
         private readonly redisService: RedisService,
     ) {
         // 이메일 전송을 위한 transporter 설정
@@ -51,6 +54,7 @@ export class EmailService {
         };
 
         try {
+            console.log("sendmail before");
             const info = await this.transporter.sendMail(mailOptions);
         } catch (error) {
             console.error('Error sending email:', error);
@@ -301,19 +305,20 @@ export class EmailService {
     /**
      * 멤버 팀 요청하기
      * @param from
-     * @param recipient
+     * @param team
      */
-     async sendInviteEmail(from: SendJoiningEmailDto, recipient: TeamModel) {
+     async sendInviteEmail(from: SendJoiningEmailDto, team: TeamModel, profile:Profile) {
         const randomToken = v4();
-
+        
         const mailOptions = {
             from: process.env.EMAIL_USER, // 발신자 이메일
-            to: recipient.creator.email,
+            to: profile.user.email,
             subject: `${from.name}님의 구단 초대입니다.`,
-            html: inviteTeamHtml(from, recipient, randomToken), // HTML 형식의 메일 내용
+            html: inviteTeamHtml(team, profile, randomToken), // HTML 형식의 메일 내용
         };
 
         try {
+            console.log("from2=",from);
             const info = await this.transporter.sendMail(mailOptions);
             await this.redisService.setTeamJoinMailToken(randomToken);
             return info;

@@ -12,7 +12,11 @@ import {
     Get,
     BadRequestException,
     Query,
+<<<<<<< HEAD
     InternalServerErrorException,
+=======
+    Response,
+>>>>>>> 80cc91835b0fd5794c87359a67a3498dee787e4c
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -21,12 +25,23 @@ import { UpdateMemberInfoDto } from './dtos/update-member-info-dto';
 import { IsStaffGuard } from './guard/is-staff.guard';
 import { PaginateMembersDto } from './dtos/paginate-members-dto';
 import { IsMemberGuard } from './guard/is-member.guard';
+import { EmailService } from 'src/email/email.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from 'src/user/entities/user.entity';
+import { Repository } from 'typeorm';
+import { TeamModel } from 'src/team/entities/team.entity';
 
 @ApiTags('선수')
 @Controller()
 export class MemberController {
-    constructor(private readonly memberService: MemberService) {}
-
+    constructor(
+        private readonly emailService: EmailService,
+        private readonly memberService: MemberService,
+    ) {}
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>;
+    @InjectRepository(TeamModel)
+    private readonly teamRepository: Repository<TeamModel>;
     /**
      *멤버 추가
      * @param teamId
@@ -172,12 +187,6 @@ export class MemberController {
         this.memberService.sendInvitingEmail(userId, teamId, profileId);
     }
 
-    /**
-     * 회원 수락 api
-     * @param teamId
-     * @param userId
-     * @returns
-     */
     @ApiBearerAuth()
     @Post('/team/:teamId/user/:userId/approve')
     async approveMember(
@@ -190,17 +199,30 @@ export class MemberController {
         const result = await this.memberService.registerMember(teamId, userId);
 
         await this.memberService.deleteEmailToken(token);
-        return `
-        <html>
-            <head>
-                <title>회원 수락</title>
-            </head>
-            <body>
-                <h1>회원 수락 처리 완료</h1>
-                <p>${result}</p>
-            </body>
-        </html>
-    `;
+        const owner = await this.teamRepository.findOne({
+            where: { id: teamId },
+        });
+        const user = await this.userRepository.findOne({
+            where: { id: userId },
+        });
+
+        // 이메일에 알람 메시지 포함 (구단주에게)
+        const ownerEmailContent = `
+        회원 수락 처리 완료!
+        구단주에게 보내는 내용입니다.
+        `;
+
+        // 이메일에 알람 메시지 포함 (멤버에게)
+        const memberEmailContent = `
+        회원 수락 처리 완료!
+        멤버에게 보내는 내용입니다.
+        `;
+
+        // 구단주에게 이메일 전송
+        //await this.emailService.sendEmail(owner.creator.email, "회원 수락 처리 완료", ownerEmailContent);
+        console.log("controller send email");
+        // 멤버에게 이메일 전송
+        await this.emailService.sendEmail(user.email, '회원 수락 처리 완료', memberEmailContent);
     }
 
     /**
@@ -212,19 +234,42 @@ export class MemberController {
     @ApiBearerAuth()
     @Post('/team/:teamId/user/:userId/reject')
     async rejectMember(
-        @Param('teamId') teamId: number,
-        @Param('userId') userId: number,
-        @Body('token') token: string,
+        teamId: number,
+        userId: number,
+        token: string,
     ) {
         await this.memberService.verifyEmailToken(token);
-
+    
         const result = await this.memberService.rejectJoiningEamil(teamId, userId);
-
+    
         await this.memberService.deleteEmailToken(token);
-
-        return `거절 처리되었습니다.
-    `;
+    
+        const owner = await this.teamRepository.findOne({
+            where: { id: teamId },
+        });
+        const user = await this.userRepository.findOne({
+            where: { id: userId },
+        });
+    
+        // 이메일에 알람 메시지 포함 (구단주에게)
+        const ownerEmailContent = `
+           회원 거절 처리 완료!
+            구단주에게 보내는 내용입니다.
+        `;
+    
+        // 이메일에 알람 메시지 포함 (멤버에게)
+        const memberEmailContent  = `
+                회원 거절 처리 완료!
+                멤버에게 보내는 내용입니다.
+   
+        `;
+        // 구단주에게 이메일 전송
+        // await this.emailService.sendEmail(owner.creator.email, "회원 거절 처리 완료", ownerEmailContent);
+    
+        // 멤버에게 이메일 전송
+        await this.emailService.sendEmail(user.email, '회원 거절 처리 완료', memberEmailContent);
     }
+    
 
     /**
      * 팀별 멤버 목록 조회

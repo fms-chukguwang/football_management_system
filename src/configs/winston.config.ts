@@ -14,7 +14,7 @@ const dailyOptions = (level: string) => {
     return {
         level,
         datePattern: 'YYYY-MM-DD',
-        dirname: __dirname + '/../../../logs',
+        dirname: __dirname + '/../../logs',
         filename: `fms.log.%DATE%`,
         maxFiles: '14d',
         zippedArchive: true,

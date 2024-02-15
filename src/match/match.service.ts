@@ -32,6 +32,7 @@ import { SoccerField } from './entities/soccer-field.entity';
 import { AwsService } from '../aws/aws.service';
 import { ResultMembersDto } from './dtos/result-final.dto';
 import { time } from 'console';
+import { SERVER_URL } from 'src/common/const/path.const';
 
 @Injectable()
 export class MatchService {
@@ -96,7 +97,7 @@ export class MatchService {
             awayTeamId: createrequestDto.awayTeamId,
             fieldId: createrequestDto.fieldId,
             senderName: `${homeCreator[0].name} 구단주`,
-            url: `${process.env.SERVER_HOST}:${process.env.SERVER_PORT || 3001}/api/match/book/accept`,
+            url: `${SERVER_URL}/api/match/book/accept`,
             chk: 'create',
             token: token,
         };
@@ -234,7 +235,7 @@ export class MatchService {
             awayTeamId: 0,
             fieldId: 0,
             senderName: `${homeCreator[0].name} 구단주`,
-            url: `${process.env.SERVER_HOST}:${process.env.SERVER_PORT || 3001}/api/match/${matchId}/update`,
+            url: `${SERVER_URL}/api/match/${matchId}/update`,
             chk: 'update',
             token: token,
         };
@@ -310,7 +311,7 @@ export class MatchService {
             awayTeamId: 0,
             fieldId: 0,
             senderName: `${homeCreator[0].name} 구단주`,
-            url: `${process.env.SERVER_HOST}:${process.env.SERVER_PORT || 3001}/api/match/${matchId}/delete`,
+            url: `${SERVER_URL}/api/match/${matchId}/delete`,
             chk: 'delete',
             token: token,
         };
