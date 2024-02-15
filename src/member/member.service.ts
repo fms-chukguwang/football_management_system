@@ -375,11 +375,10 @@ export class MemberService {
         if (!profile || !profile.user || !profile.user.email) {
             throw new NotFoundException('프로필 또는 사용자 정보를 찾을 수 없습니다.');
         }
-        console.log('profile=', profile);
-        //   const profileEmail = profile.user.email;
 
         const sendResult = await this.eamilService.sendInviteEmail(reqeustEmail, findTeam, profile);
 
+        // 초대된 프로필의 invited 필드와 팀 아이디를 업데이트
         profile.invited = true;
         profile.teamId = teamId; // 팀 아이디 저장
         await this.profileRepository.save(profile);
@@ -441,12 +440,14 @@ export class MemberService {
                             preferredPosition: true,
                             imageUrl: true,
                             age: true,
+                            invited: true,
+                            teamId: true,
                         },
                     },
                     matchformation: {
                         position: true,
                     },
-                    createdAt: true, // 추가된 부분
+                    createdAt: true,
                 },
                 where: {
                     team: {
@@ -471,12 +472,73 @@ export class MemberService {
 
             const findMembers = await this.memberRepository.find(options);
 
-            console.log('findMembers:', findMembers);
+            // 초대되지 않은 멤버만 필터링
+            const nonInvitedMembers = findMembers.filter(
+                (member) =>
+                    member.user.profile.invited === false || member.user.profile.invited === null,
+            );
 
-            return await this.commonService.paginate(dto, this.memberRepository, options, 'member');
+            // Repository<Member> 타입으로 변환
+            const paginatedMembers = await this.commonService.paginate(
+                dto,
+                this.memberRepository,
+                options,
+                'member',
+            );
+
+            return paginatedMembers;
         } catch (error) {
             console.error('Error fetching team members:', error);
             throw new Error('Failed to fetch team members');
+        }
+    }
+
+    async getInvitedMembers(teamId: number, dto: PaginateTeamDto) {
+        try {
+            const options: FindManyOptions<Member> = {
+                select: {
+                    id: true,
+                    isStaff: true,
+                    team: {
+                        id: true,
+                    },
+                    user: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        profile: {
+                            preferredPosition: true,
+                            imageUrl: true,
+                            age: true,
+                            invited: true,
+                            teamId: true,
+                        },
+                    },
+                    matchformation: {
+                        position: true,
+                    },
+                    createdAt: true,
+                },
+                where: {
+                    team: {
+                        id: teamId,
+                    },
+                },
+                relations: {
+                    team: true,
+                    user: { profile: true },
+                    matchformation: true,
+                },
+            };
+
+            const findMembers = await this.memberRepository.find(options);
+
+            console.log('Invited members:', findMembers);
+
+            return await this.commonService.paginate(dto, this.memberRepository, options, 'member');
+        } catch (error) {
+            console.error('Error fetching invited members:', error);
+            throw new Error('Failed to fetch invited members');
         }
     }
 
