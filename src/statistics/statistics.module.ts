@@ -8,6 +8,7 @@ import { MatchResult } from '../match/entities/match-result.entity';
 import { PlayerStats } from '../match/entities/player-stats.entity';
 import { RedisModule } from 'src/redis/redis.module';
 import { MemberModule } from '../member/member.module';
+import { StatisticsTestService } from './statistics.service.test';
 
 @Module({
     imports: [
@@ -16,6 +17,6 @@ import { MemberModule } from '../member/member.module';
         RedisModule,
     ],
     controllers: [StatisticsController],
-    providers: [StatisticsService],
+    providers: [StatisticsService, StatisticsTestService],
 })
 export class StatisticsModule {}
