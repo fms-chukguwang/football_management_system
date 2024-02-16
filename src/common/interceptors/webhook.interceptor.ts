@@ -11,6 +11,7 @@ export class WebhookInterceptor implements NestInterceptor {
         const hour = now.getHours(); // 현재 시간
         const req = context.switchToHttp().getRequest();
         const method = req.method;
+        const headers = req.headers ? req.headers : {};
         const [, , path] = req.originalUrl.split('/');
 
         return next.handle().pipe(
@@ -49,11 +50,11 @@ export class WebhookInterceptor implements NestInterceptor {
                     attachments: [
                         {
                             color: 'danger',
-                            text: 'FMS: 에러가 발생했어요 😭',
+                            text: `FMS: url:${path}로 에러가 발생했어요 😭`,
                             fields: [
                                 {
                                     title: `Request Message: ${error.message}`,
-                                    value: `path: ${path}, method: ${method}, ${error.stack}`,
+                                    value: `path: ${path}, method: ${method}, stack: ${error.stack}`,
                                     short: false,
                                 },
                             ],

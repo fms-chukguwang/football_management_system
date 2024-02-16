@@ -10,11 +10,6 @@ export class ChatsController {
 
     @Get()
     async paginateChat(@Query() dto: PaginateChatDto, @Req() req) {
-        return await this.chatsService.paginateChat(dto, req.user.id).catch((e) => {
-            throw e;
-        });
+        return await this.chatsService.paginateChat(dto, req.user.id);
     }
-
-    @Get(':userId')
-    paginateChatById() {}
 }

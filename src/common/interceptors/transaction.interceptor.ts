@@ -17,9 +17,7 @@ export class TransactionInterceptor implements NestInterceptor {
         await qr.connect();
         await qr.startTransaction();
 
-        console.log('TransactionInterceptor 1');
         req.qr = qr;
-        console.log('TransactionInterceptor 2');
 
         return next.handle().pipe(
             tap(async () => {
