@@ -33,6 +33,7 @@
         "test:chatsService": "jest --verbose src/chats/chats.service.spec.ts",
         "test:chatsController": "jest --verbose src/chats/chats.controller.spec.ts",
         "test:commonService": "jest --verbose src/common/common.service.spec.ts",
+        "test:teamService": "jest --verbose src/team/team.service.spec.ts",
         "seed": "ts-node src/seed.ts",
         "seed:ho0": "ts-node -r tsconfig-paths/register ./node_modules/typeorm-extension/bin/cli.cjs seed:run",
         "seed:match": "ts-node -r tsconfig-paths/register src/database/seeds/match.seeder.ts",
