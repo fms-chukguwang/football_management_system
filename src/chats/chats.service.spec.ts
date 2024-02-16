@@ -11,9 +11,6 @@ describe('ChatsService', () => {
     let repository: Repository<Chats>;
     let commonService: CommonService;
 
-    // beforeEach() 함수는 각 테스트가 실행되기 전에 실행되는 함수입니다.
-    // - beforeEach/afterEach와 동일 레벨 또는 하위 레벨의 테스트가 실행 될 때 마다 반복적으로 실행
-    // - 비동기 함수를 사용하는 경우 일반 테스트 함수와 동일하게 처리 (done 파라미터 사용, promise return)
     beforeEach(async () => {
         const mockCommonService = {
             paginate: jest.fn(),
@@ -51,10 +48,10 @@ describe('ChatsService', () => {
     });
 
     it('모든 채팅 리스트 반환(getAllChats() 테스트)', async () => {
-        const expectedChats = [];
+        const expectedChats = []; // 2
         // jest.spyOn(object, methodName)
         // 어떤 객체에 속한 함수의 구현을 가짜로 대체하지 않고, 해당 함수의 호출 여부와 어떻게 호출되었는지만을 알아내야 할 때가 있습니다
-        jest.spyOn(repository, 'find').mockResolvedValue(expectedChats);
+        jest.spyOn(repository, 'find').mockResolvedValue(expectedChats); // 1
         const chats = await service.getAllChats();
         expect(chats).toEqual(expectedChats);
         expect(repository.find).toHaveBeenCalledWith({
@@ -93,21 +90,22 @@ describe('ChatsService', () => {
         );
     });
 
-    // it('채팅방 생성(createChat)', async () => {
-    //     const createChatDto = {
-    //         userIds: [1],
-    //     };
-    //     const savedChat = {
-    //         id: 1,
-    //         users: createChatDto.userIds.map((id) => ({ id })),
-    //         messages: [],
-    //         team: null,
-    //         createdAt: new Date(),
-    //         updatedAt: new Date(),
-    //         deletedAt: null,
-    //     };
-    //     jest.spyOn(repository, 'save').mockResolvedValue(savedChat);
-    // });
+    it('채팅방 생성(createChat)', async () => {
+        const createChatDto = {
+            userIds: [1],
+        };
+
+        const savedChat = repository.create({
+            id: 1,
+            users: createChatDto.userIds.map((id) => ({ id })),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            deletedAt: null,
+        });
+        jest.spyOn(repository, 'save').mockResolvedValue(savedChat);
+        const result = await service.createChat(createChatDto);
+        expect(result).toEqual(savedChat);
+    });
 
     it('채팅방 초대(inviteChat)', async () => {
         const chatId = 1;
