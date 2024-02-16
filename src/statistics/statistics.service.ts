@@ -13,6 +13,7 @@ import { LoggingService } from 'src/logging/logging.service';
 import { MemberHistoryDto } from './dto/member-history.dto';
 import { plainToInstance } from 'class-transformer';
 import { MemberRecordDto } from './dto/member-record.dto';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class StatisticsService {
@@ -26,35 +27,46 @@ export class StatisticsService {
         @InjectRepository(Member)
         private readonly memberRepository: Repository<Member>,
         private readonly loggingService: LoggingService,
+        private readonly redisService: RedisService,
     ) {}
-
     /**
      * 팀 스탯 + 다른 팀 스탯 가져오기
      * @param teamId
      * @returns
      */
     async getTeamStats(teamId: number): Promise<StatisticsDto> {
-        try {
-            const goals = await this.getGoals(teamId);
-            const getWinsAndLosesAndDraws = await this.getWinsAndLosesAndDraws(teamId);
-            const conceded = await this.getConceded(teamId);
-            const cleanSheet = await this.getCleanSheet(teamId);
-            const assists = await this.getAssists(teamId);
-            const otherTeamStats = await this.getStatsForOtherTeams(teamId);
+        let redisResult = await this.redisService.getTeamStats(teamId);
 
-            return {
-                ...getWinsAndLosesAndDraws,
-                goals,
-                conceded,
-                cleanSheet,
-                assists,
-                otherTeam: {
-                    ...otherTeamStats,
-                },
-            };
-        } catch (err) {
-            console.log(err);
+        if (!redisResult) {
+            try {
+                const goals = await this.getGoals(teamId);
+                const getWinsAndLosesAndDraws = await this.getWinsAndLosesAndDraws(teamId);
+                const conceded = await this.getConceded(teamId);
+                const cleanSheet = await this.getCleanSheet(teamId);
+                const assists = await this.getAssists(teamId);
+                const otherTeamStats = await this.getStatsForOtherTeams(teamId);
+
+                const teamStatsObject: StatisticsDto = {
+                    ...getWinsAndLosesAndDraws,
+                    goals,
+                    conceded,
+                    cleanSheet,
+                    assists,
+                    otherTeam: {
+                        ...otherTeamStats,
+                    },
+                };
+
+                await this.redisService.setTeamStats(JSON.stringify(teamStatsObject), teamId);
+
+                redisResult = await this.redisService.getTeamStats(teamId);
+            } catch (err) {
+                console.log(err);
+            }
         }
+
+        console.log('redis service result =>>>>', redisResult);
+        return JSON.parse(redisResult);
     }
 
     async getMemberStats(teamId: number) {
@@ -239,19 +251,29 @@ export class StatisticsService {
      * @returns
      */
     async getTopPlayer(teamId: number): Promise<TopPlayerDto> {
-        const topGoalsMembers = await this.getTopGoalsMembers(teamId);
-        const topAssistsMembers = await this.getTopAssistsMembers(teamId);
-        const topJoiningMembers = await this.getTopJoiningMembers(teamId);
-        const topSaveMembers = await this.getTopSaveMembers(teamId);
-        const topAttactPointMembers = await this.getTopAttactPoint(teamId);
+        let redisResult = await this.redisService.getTeamTopPlayer(teamId);
 
-        return {
-            topGoals: topGoalsMembers,
-            topAssists: topAssistsMembers,
-            topJoining: topJoiningMembers,
-            topSave: topSaveMembers,
-            topAttactPoint: topAttactPointMembers,
-        };
+        if (!redisResult) {
+            const topGoalsMembers = await this.getTopGoalsMembers(teamId);
+            const topAssistsMembers = await this.getTopAssistsMembers(teamId);
+            const topJoiningMembers = await this.getTopJoiningMembers(teamId);
+            const topSaveMembers = await this.getTopSaveMembers(teamId);
+            const topAttactPointMembers = await this.getTopAttactPoint(teamId);
+
+            const topPlayer: TopPlayerDto = {
+                topGoals: topGoalsMembers,
+                topAssists: topAssistsMembers,
+                topJoining: topJoiningMembers,
+                topSave: topSaveMembers,
+                topAttactPoint: topAttactPointMembers,
+            };
+
+            await this.redisService.setTeamTopPlayer(JSON.stringify(topPlayer), teamId);
+
+            redisResult = await this.redisService.getTeamTopPlayer(teamId);
+        }
+
+        return JSON.parse(redisResult);
     }
 
     /**
@@ -363,12 +385,12 @@ export class StatisticsService {
 
         return rankSaveMembers;
     }
+
     /**
      * 공격 포인트 랭킹 가져오기
      * @param teamId
      * @returns
      */
-
     async getTopAttactPoint(teamId: number) {
         const rankAttactPoint = await this.playerStatsRepository
             .createQueryBuilder('stats')
@@ -397,31 +419,39 @@ export class StatisticsService {
      * @returns
      */
     async getPlayers(teamId: number): Promise<PlayersDto> {
-        const players = await this.memberRepository
-            .createQueryBuilder('members')
-            .select([
-                'members.id as memberId',
-                'users.name as userName',
-                'profile.image_uuid as image',
-                'COUNT(stats.member_id) as totalGames',
-                'SUM(stats.goals) as totalGoals',
-                'SUM(stats.assists) as totalAssists',
-                'SUM(stats.goals) + SUM(stats.assists) as attactPoint',
-                'SUM(stats.yellow_cards) as totalYellowCards',
-                'SUM(stats.red_cards) as totalRedCards',
-                'SUM(stats.clean_sheet) as totalÇleanSheet',
-                'SUM(stats.save) as totalSave',
-            ])
-            .leftJoin('player_statistics', 'stats', 'members.id = stats.member_id')
-            .leftJoin('users', 'users', 'members.user_id = users.id')
-            .leftJoin('profile', 'profile', 'users.id = profile.user_id')
-            .where('members.team_id = :teamId', { teamId })
-            .groupBy('members.id')
-            .orderBy('members.join_date', 'ASC')
-            .getRawMany();
+        let redisResult = await this.redisService.getTeamPlayers(teamId);
+
+        if (!redisResult) {
+            const players = await this.memberRepository
+                .createQueryBuilder('members')
+                .select([
+                    'members.id as memberId',
+                    'users.name as userName',
+                    'profile.image_uuid as image',
+                    'COUNT(stats.member_id) as totalGames',
+                    'SUM(stats.goals) as totalGoals',
+                    'SUM(stats.assists) as totalAssists',
+                    'SUM(stats.goals) + SUM(stats.assists) as attactPoint',
+                    'SUM(stats.yellow_cards) as totalYellowCards',
+                    'SUM(stats.red_cards) as totalRedCards',
+                    'SUM(stats.clean_sheet) as totalÇleanSheet',
+                    'SUM(stats.save) as totalSave',
+                ])
+                .leftJoin('player_statistics', 'stats', 'members.id = stats.member_id')
+                .leftJoin('users', 'users', 'members.user_id = users.id')
+                .leftJoin('profile', 'profile', 'users.id = profile.user_id')
+                .where('members.team_id = :teamId', { teamId })
+                .groupBy('members.id')
+                .orderBy('members.join_date', 'ASC')
+                .getRawMany();
+
+            await this.redisService.setTeamPlayers(JSON.stringify(players), teamId);
+
+            redisResult = await this.redisService.getTeamPlayers(teamId);
+        }
 
         return {
-            players: [...players],
+            players: [...JSON.parse(redisResult)],
         };
     }
 
@@ -430,44 +460,55 @@ export class StatisticsService {
      * @param teamId
      */
     async getYellowAndRedCards(teamId: number): Promise<YellowAndRedCardsDto> {
-        const matchCount = this.playerStatsRepository
-            .createQueryBuilder('players')
-            .select('COUNT(DISTINCT DATE(players.created_at)) as count')
-            .where('players.team_id = :teamId', { teamId });
+        let redisResult = await this.redisService.getTeamYellowAndRedCards(teamId);
 
-        let { count } = await matchCount.getRawOne();
+        if (!redisResult) {
+            const matchCount = this.playerStatsRepository
+                .createQueryBuilder('players')
+                .select('COUNT(DISTINCT DATE(players.created_at)) as count')
+                .where('players.team_id = :teamId', { teamId });
 
-        if (+count > 5) {
-            count -= 5;
-        } else {
-            count = 0;
+            let { count } = await matchCount.getRawOne();
+
+            if (+count > 5) {
+                count -= 5;
+            } else {
+                count = 0;
+            }
+
+            const rawYellowAndRedCards = await this.playerStatsRepository
+                .createQueryBuilder('players')
+                .select([
+                    'players.yellow_cards as yellow',
+                    'players.red_cards as red',
+                    'DATE(players.created_at) as created',
+                ])
+                .where('players.team_id = :teamId', { teamId })
+                .groupBy('created')
+                .orderBy('created', 'ASC')
+                .offset(count)
+                .limit(5)
+                .getRawMany();
+
+            const yellowAndRedCards = rawYellowAndRedCards.map((item) => {
+                const convertDate = new Date(item.created);
+
+                return {
+                    ...item,
+                    created: convertDate.toLocaleDateString(),
+                };
+            });
+
+            await this.redisService.setTeamYellowAndRedCards(
+                JSON.stringify(yellowAndRedCards),
+                teamId,
+            );
+
+            redisResult = await this.redisService.getTeamYellowAndRedCards(teamId);
         }
 
-        const rawYellowAndRedCards = await this.playerStatsRepository
-            .createQueryBuilder('players')
-            .select([
-                'players.yellow_cards as yellow',
-                'players.red_cards as red',
-                'DATE(players.created_at) as created',
-            ])
-            .where('players.team_id = :teamId', { teamId })
-            .groupBy('created')
-            .orderBy('created', 'ASC')
-            .offset(count)
-            .limit(5)
-            .getRawMany();
-
-        const yellowAndRedCards = rawYellowAndRedCards.map((item) => {
-            const convertDate = new Date(item.created);
-
-            return {
-                ...item,
-                created: convertDate.toLocaleDateString(),
-            };
-        });
-
         return {
-            yellowAndRedCards: [...yellowAndRedCards],
+            yellowAndRedCards: [...JSON.parse(redisResult)],
         };
     }
 
@@ -506,6 +547,11 @@ export class StatisticsService {
         }
     }
 
+    /**
+     * 개인 매치기록 가져오기
+     * @param memberId
+     * @returns
+     */
     async getMembetMatchRecord(memberId: number) {
         const getRecord = await this.playerStatsRepository.query(
             `

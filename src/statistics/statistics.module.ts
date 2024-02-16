@@ -7,11 +7,13 @@ import { TeamStats } from '../match/entities/team-stats.entity';
 import { MatchResult } from '../match/entities/match-result.entity';
 import { PlayerStats } from '../match/entities/player-stats.entity';
 import { MemberModule } from 'src/member/member.module';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([TeamStats, MatchResult, PlayerStats, Member]),
         MemberModule,
+        RedisModule,
     ],
     controllers: [StatisticsController],
     providers: [StatisticsService],

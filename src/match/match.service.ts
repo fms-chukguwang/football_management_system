@@ -33,6 +33,7 @@ import { AwsService } from '../aws/aws.service';
 import { ResultMembersDto } from './dtos/result-final.dto';
 import { time } from 'console';
 import { SERVER_URL } from 'src/common/const/path.const';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class MatchService {
@@ -67,6 +68,7 @@ export class MatchService {
         private configService: ConfigService,
         private readonly awsService: AwsService,
         private readonly dataSource: DataSource,
+        private readonly redisService: RedisService,
     ) {}
 
     /**
@@ -563,6 +565,7 @@ export class MatchService {
         }
 
         await this.playerStatsRepository.save(playerStats);
+        await this.redisService.delTeamStats(homeCreator[0].id);
 
         return playerStats;
     }
@@ -817,6 +820,7 @@ export class MatchService {
             );
 
             await queryRunner.commitTransaction();
+            await this.redisService.delTeamStats(homeCreator[0].id);
         } catch (error) {
             await queryRunner.rollbackTransaction();
             if (error instanceof HttpException) {
@@ -1299,9 +1303,9 @@ export class MatchService {
             },
 
             where: {
-                user:{
-                    id:userId
-                }
+                user: {
+                    id: userId,
+                },
             },
         });
 
@@ -1320,7 +1324,7 @@ export class MatchService {
         const findMembers = await this.memberRepository.find({
             select: {
                 id: true,
-                isStaff:true,
+                isStaff: true,
                 user: {
                     id: true,
                     name: true,
