@@ -77,7 +77,8 @@ export class ProfileService {
         region?: string,
       ) {
         const { page, take } = dto;
-    
+        console.log("aaa!!!");
+   
         let query = this.profileRepository
           .createQueryBuilder('profile')
           .leftJoinAndSelect('profile.user', 'user')
@@ -85,11 +86,11 @@ export class ProfileService {
           .leftJoinAndSelect('profile.location', 'location')
           .leftJoinAndSelect('profile.receivedInvites', 'invite')
           .where('member.id IS NULL') // 팀이 없는 사람들
-          .andWhere(
-            '(invite.status = :pending OR invite.status = :rejected OR invite.status = :none)', 
-            { none: InviteStatus.NONE, pending: InviteStatus.PENDING, rejected: InviteStatus.REJECTED }
-          )
-          .andWhere('invite.senderUser != :userId', { userId });  // 내가 보낸 초대는 제외
+        //   .andWhere(
+        //     '(invite.status = :pending OR invite.status = :rejected OR invite.status = :none)', 
+        //     { none: InviteStatus.NONE, pending: InviteStatus.PENDING, rejected: InviteStatus.REJECTED }
+        //   )
+          .andWhere('invite.senderUser IS NULL OR invite.senderUser != :userId', { userId });  // 내가 보낸 초대는 제외
         
         if (gender) {
           query = query.andWhere('profile.gender = :gender', { gender });

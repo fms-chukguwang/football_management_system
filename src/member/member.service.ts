@@ -361,47 +361,55 @@ export class MemberService {
      * @returns
      */
      async sendInvitingEmail(senderUserId: number, teamId: number, receiverProfileId: number) {
-        const findTeam = await this.teamService.getTeamInfo(teamId);
+        try {
+          const findTeam = await this.teamService.getTeamInfo(teamId);
+          console.log("findTeam=",findTeam);  
+          const senderUser = await this.userService.findOneById(senderUserId);
+          console.log("senderUser=",senderUser);      
+          if (!findTeam) {
+            throw new NotFoundException('요청하신 팀이 존재하지 않습니다.');
+          }
+        
+          const requestEmail: SendJoiningEmailDto = {
+            id: senderUser.id,
+            email: senderUser.email,
+            name: senderUser.name,
+          };
+        
+          const receiverProfile = await this.profileRepository.findOne({
+            where: { id: receiverProfileId },
+            relations: ['user'],
+          });
+          console.log("receiverProfil=",receiverProfile);
+          if (!receiverProfile || !receiverProfile.user || !receiverProfile.user.email) {
+            throw new NotFoundException('프로필 또는 사용자 정보를 찾을 수 없습니다.');
+          }
+          if (findTeam.isMixedGender !== true && findTeam.gender !== receiverProfile.gender) {
+            throw new NotFoundException('팀과의 성별이 일치하지않습니다.');
+          }
+          const sendResult = await this.emailService.sendInviteEmail(requestEmail, findTeam, receiverProfile);
+          console.log("sendResult=",sendResult);
           
-        const senderUser = await this.userService.findOneById(senderUserId);
-            
-        if (!findTeam) {
-          throw new NotFoundException('요청하신 팀이 존재하지 않습니다.');
+          const newInvite = new Invite();
+          console.log("new invite=",newInvite);
+          newInvite.senderUser = senderUser;
+          console.log("senderUser=",senderUser);
+          newInvite.receiverProfile = receiverProfile;
+          console.log("receiverProfile=",receiverProfile);
+          newInvite.team = findTeam;
+          console.log("findTeam=",findTeam);
+          newInvite.status = InviteStatus.PENDING;
+          await this.inviteRepository.save(newInvite);
+        
+          return sendResult;
+        } catch (error) {
+          // 에러 핸들링 로직 추가
+          console.error("Error sending inviting email:", error);
+          throw error; 
         }
-      
-        /**
-         * 요청할 때 정보
-         * 요청자의 아이디 , email , 이름
-         */
-        const requestEmail: SendJoiningEmailDto = {
-          id: senderUser.id,
-          email: senderUser.email,
-          name: senderUser.name,
-        };
-      
-        // 초대된 프로필의 invited 필드와 팀 아이디를 업데이트
-        const receiverProfile = await this.profileRepository.findOne({
-          where: { id: receiverProfileId },
-          relations: ['user'],
-        });
-        if (!receiverProfile || !receiverProfile.user || !receiverProfile.user.email) {
-          throw new NotFoundException('프로필 또는 사용자 정보를 찾을 수 없습니다.');
-        }
-        if (findTeam.isMixedGender!== true && findTeam.gender !== receiverProfile.gender) {
-          throw new NotFoundException('팀과의 성별이 일치하지않습니다.');
-        }
-        const sendResult = await this.emailService.sendInviteEmail(requestEmail, findTeam, receiverProfile);
-      
-        // 초대된 프로필의 invited 필드와 팀 아이디를 업데이트
-        const newInvite = new Invite();
-        newInvite.senderUser = senderUser;
-        newInvite.receiverProfile = receiverProfile;
-        newInvite.team = findTeam;
-        newInvite.status = InviteStatus.PENDING; // 초대 상태를 pending으로 설정
-        await this.inviteRepository.save(newInvite);
-      
-        return sendResult;
       }
+      
+      
 
     /**
      * 구단 입단 신청 거절 이메일 전송

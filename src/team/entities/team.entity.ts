@@ -28,6 +28,7 @@ import { Invite } from 'src/invite/entities/invite.entity';
 export class TeamModel extends BaseModel {
     @PrimaryGeneratedColumn()
     id: number;
+    
     @OneToMany(() => Invite, invite => invite.team)
     teamInvites: Invite[];
     /**

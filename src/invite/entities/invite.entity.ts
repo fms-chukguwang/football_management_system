@@ -10,6 +10,9 @@ export class Invite {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ default: false })
+  isInvited: boolean;
+
   @ManyToOne(() => User)
   @JoinColumn()
   senderUser: User;

@@ -207,29 +207,23 @@ async paginateTeam(dto: PaginateTeamDto,
      * @param teamId
      * @returns
      */
-         async getTeamInfo(teamId: number) {
-
-                const findOneTeam = await this.teamRepository.findOne({
-                    where: {
-                        id: teamId,
-                    },
-                    relations: {
-                        creator: true,
-                        location: true,
-                    },
-                    select: {
-                        creator: {
-                            id: true,
-                            email: true,
-                            name: true,
-                        },
-                        isMixedGender:true,
-                        gender:true,
-                    },
-                });
-    
-            return findOneTeam;
-        }
+         async getTeamInfo(teamId: number): Promise<TeamModel> {
+            try {
+                console.log("get team started");
+          
+                const team = await this.teamRepository.findOne({ 
+                    where: { id: teamId }, 
+                    relations: ['creator', 'location'] 
+                  });
+            
+                console.log("get team done");
+          
+                return team;
+              } catch (error) {
+                console.error("Error while getting team info:", error);
+                throw error;
+              }
+            }
 
     /**
      * 팀 전체조회

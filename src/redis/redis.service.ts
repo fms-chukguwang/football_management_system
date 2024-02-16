@@ -55,6 +55,7 @@ export class RedisService {
      * @returns
      */
     async setTeamJoinMailToken(randomToken: string) {
+        console.log(randomToken);
         await this.redisClient.set(randomToken, randomToken);
         await this.redisClient.expire(randomToken, 300);
     }
