@@ -1,0 +1,56 @@
+{
+    "config": {
+        "target": "http://localhost:3000/api",
+        "phases": [
+            {
+                "duration": 30,
+                "arrivalRate": 10
+            }
+        ],
+        "payload": {
+            "path": "./data.csv",
+            "fields": ["email", "password"]
+        }
+    },
+    "scenarios": [
+        {
+            "name": "팀 상세조회 테스트",
+            "flow": [
+                {
+                    "post": {
+                        "url": "/auth/sign-in",
+                        "json": {
+                            "email": "{{email}}",
+                            "password": "{{password}}"
+                        }
+                    }
+                },
+                {
+                    "get": {
+                        "url": "/team/1"
+                    }
+                },
+                {
+                    "get": {
+                        "url": "/statistics/1"
+                    }
+                },
+                {
+                    "get": {
+                        "url": "/statistics/1/top-player"
+                    }
+                },
+                {
+                    "get": {
+                        "url": "/team/1/players"
+                    }
+                },
+                {
+                    "get": {
+                        "url": "/team/1/cards"
+                    }
+                }
+            ]
+        }
+    ]
+}

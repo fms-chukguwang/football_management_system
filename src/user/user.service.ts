@@ -24,17 +24,7 @@ export class UserService {
             where: {
                 id,
             },
-            relations: [
-                'profile',
-                'profile.location',
-                'member',
-                'member.team',
-                'member.team.chat',
-                'team',
-                'team.chat',
-                'team.members',
-                'team.members.user',
-            ],
+            relations: ['profile', 'member', 'member.team', 'member.team.chat'],
         });
 
         if (!user) {

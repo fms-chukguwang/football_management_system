@@ -9,11 +9,15 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { StatisticsService } from './statistics.service';
 import { IsMemberGuard } from '../member/guard/is-member.guard';
+import { StatisticsTestService } from './statistics.service.test';
 
 @ApiTags('통계')
 @Controller()
 export class StatisticsController {
-    constructor(private readonly statisticsService: StatisticsService) {}
+    constructor(
+        private readonly statisticsService: StatisticsService,
+        private readonly statsTestService: StatisticsTestService,
+    ) {}
 
     /**
      * 팀 승무패 가져오기
@@ -22,7 +26,8 @@ export class StatisticsController {
      */
     @Get('statistics/:teamId')
     getTeamStats(@Param('teamId') teamId: number) {
-        return this.statisticsService.getTeamStats(teamId);
+        //return this.statisticsService.getTeamStats(teamId);
+        return this.statsTestService.getTeamStats(teamId);
     }
 
     /**
@@ -33,7 +38,8 @@ export class StatisticsController {
     @Get('statistics/:teamId/top-player')
     async getTopPlayer(@Param('teamId') teamId: number) {
         try {
-            const topPlayers = await this.statisticsService.getTopPlayer(teamId);
+            //const topPlayers = await this.statisticsService.getTopPlayer(teamId);
+            const topPlayers = await this.statsTestService.getTopPlayer(teamId);
 
             return topPlayers;
         } catch (err) {
@@ -49,7 +55,8 @@ export class StatisticsController {
     @Get('team/:teamId/players')
     getPlayers(@Param('teamId') teamId: number) {
         try {
-            return this.statisticsService.getPlayers(teamId);
+            //return this.statisticsService.getPlayers(teamId);
+            return this.statsTestService.getPlayers(teamId);
         } catch (err) {
             throw new InternalServerErrorException();
         }
@@ -71,7 +78,8 @@ export class StatisticsController {
      */
     @Get('team/:teamId/cards')
     getYellowAndRedCards(@Param('teamId') teamId: number) {
-        return this.statisticsService.getYellowAndRedCards(teamId);
+        //return this.statisticsService.getYellowAndRedCards(teamId);
+        return this.statsTestService.getYellowAndRedCards(teamId);
     }
 
     /**
@@ -85,6 +93,11 @@ export class StatisticsController {
         return await this.statisticsService.getMemberHistory(req['member'].user.id);
     }
 
+    /**
+     * 멤버 개인 경기기록 가져오기
+     * @param memberId
+     * @returns
+     */
     @Get('team/:teamId/member/:memberId/record')
     async getMemberMatchRecord(@Param('memberId') memberId: number) {
         return await this.statisticsService.getMembetMatchRecord(memberId);

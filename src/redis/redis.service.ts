@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import IORedis from 'ioredis';
+import { StatisticsDto } from 'src/statistics/dto/statistics.dto';
 import { v4 } from 'uuid';
 
 @Injectable()
@@ -110,5 +111,92 @@ export class RedisService {
     async setPresignedUrl(uuid: string, imageUrl: string) {
         await this.redisClient.set(`imageUuid_${uuid}`, imageUrl);
         await this.redisClient.expire(`imageUuid_${uuid}`, 180);
+    }
+
+    /**
+     * 팀 스탯 가져오기
+     */
+    async getTeamStats(teamId: number) {
+        const result = await this.redisClient.get(`teamStats_${teamId}`);
+        console.log('redis result =>>>>>>>>>>>', result);
+        return result;
+    }
+
+    /**
+     * 팀 스탯 저장
+     * @param teamStats
+     * @param teamId
+     */
+    async setTeamStats(teamStats: string, teamId: number) {
+        await this.redisClient.set(`teamStats_${teamId}`, teamStats);
+        await this.redisClient.expire(`teamStats_${teamId}`, 3600);
+    }
+
+    /**
+     * 팀 탑 플레이어 가져오기
+     * @param teamId
+     * @returns
+     */
+    async getTeamTopPlayer(teamId: number) {
+        return await this.redisClient.get(`teamTopPlayer_${teamId}`);
+    }
+
+    /**
+     * 팀 탑 플레이어 저장
+     * @param teamTopPlayer
+     * @param teamId
+     */
+    async setTeamTopPlayer(teamTopPlayer: string, teamId: number) {
+        await this.redisClient.set(`teamTopPlayer_${teamId}`, teamTopPlayer);
+        await this.redisClient.expire(`teamTopPlayer_${teamId}`, 3600);
+    }
+
+    /**
+     * 팀 플레이어 목록 가져오기
+     * @param teamId
+     * @returns
+     */
+    async getTeamPlayers(teamId: number) {
+        return await this.redisClient.get(`teamPlayers_${teamId}`);
+    }
+
+    /**
+     * 팀 플레이어 목록 저장
+     * @param teamPlayers
+     * @param teamId
+     */
+    async setTeamPlayers(teamPlayers: string, teamId: number) {
+        await this.redisClient.set(`teamPlayers_${teamId}`, teamPlayers);
+        await this.redisClient.expire(`teamPlayers_${teamId}`, 3600);
+    }
+
+    /**
+     * 카드 수정정보 가져오기
+     * @param teamId
+     * @returns
+     */
+    async getTeamYellowAndRedCards(teamId: number) {
+        return await this.redisClient.get(`temaYellowAndRedCards_${teamId}`);
+    }
+
+    /**
+     * 카드 수집정보 세팅하기
+     * @param yellowAndRedCards
+     * @param teamId
+     */
+    async setTeamYellowAndRedCards(yellowAndRedCards: string, teamId: number) {
+        await this.redisClient.set(`temaYellowAndRedCards_${teamId}`, yellowAndRedCards);
+        await this.redisClient.expire(`temaYellowAndRedCards_${teamId}`, 3600);
+    }
+
+    /**
+     * 팀 스탯정보 캐싱 삭제하기
+     * @param teamId
+     */
+    async delTeamStats(teamId: number) {
+        await this.redisClient.del(`teamStats_${teamId}`);
+        await this.redisClient.del(`teamTopPlayer_${teamId}`);
+        await this.redisClient.del(`temaYellowAndRedCards_${teamId}`);
+        await this.redisClient.del(`teamPlayers_${teamId}`);
     }
 }
