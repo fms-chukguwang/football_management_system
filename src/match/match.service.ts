@@ -32,8 +32,8 @@ import { SoccerField } from './entities/soccer-field.entity';
 import { AwsService } from '../aws/aws.service';
 import { ResultMembersDto } from './dtos/result-final.dto';
 import { time } from 'console';
-import { SERVER_URL } from 'src/common/const/path.const';
 import { RedisService } from 'src/redis/redis.service';
+import { SERVER_URL } from '../common/const/path.const';
 
 @Injectable()
 export class MatchService {
@@ -103,6 +103,8 @@ export class MatchService {
             chk: 'create',
             token: token,
         };
+
+        console.log('emailRequest:', emailRequest);
 
         const send = await this.emailService.reqMatchEmail(emailRequest);
         console.log('send=', send);

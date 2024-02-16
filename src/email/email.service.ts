@@ -2,10 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomBytes } from 'crypto';
 import * as nodemailer from 'nodemailer';
-import { EmailRequest } from 'src/match/dtos/email-request.dto';
-import { SendJoiningEmailDto } from 'src/member/dtos/send-joining-email.dto';
-import { TeamModel } from 'src/team/entities/team.entity';
-import { User } from 'src/user/entities/user.entity';
+import { EmailRequest } from '../match/dtos/email-request.dto';
+import { SendJoiningEmailDto } from '../member/dtos/send-joining-email.dto';
+import { TeamModel } from '../team/entities/team.entity';
+import { User } from '../user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { promisify } from 'util';
 import { AuthService } from '../auth/auth.service';
@@ -14,7 +14,7 @@ import { TeamJoinRequestToken } from './entities/team-join-request-token.entity'
 import { inviteTeamHtml, joinTeamHtml, rejectTeamHtml } from './html/email.html';
 import { v4 } from 'uuid';
 import { RedisService } from '../redis/redis.service';
-import { Profile } from 'src/profile/entities/profile.entity';
+import { Profile } from '../profile/entities/profile.entity';
 
 const randomBytesAsync = promisify(randomBytes);
 
@@ -54,7 +54,7 @@ export class EmailService {
         };
 
         try {
-            console.log("sendmail before");
+            console.log('sendmail before');
             const info = await this.transporter.sendMail(mailOptions);
         } catch (error) {
             console.error('Error sending email:', error);
@@ -301,15 +301,14 @@ export class EmailService {
         }
     }
 
-
     /**
      * 멤버 팀 요청하기
      * @param from
      * @param team
      */
-     async sendInviteEmail(from: SendJoiningEmailDto, team: TeamModel, profile:Profile) {
+    async sendInviteEmail(from: SendJoiningEmailDto, team: TeamModel, profile: Profile) {
         const randomToken = v4();
-        
+
         const mailOptions = {
             from: process.env.EMAIL_USER, // 발신자 이메일
             to: profile.user.email,
@@ -318,7 +317,7 @@ export class EmailService {
         };
 
         try {
-            console.log("from2=",from);
+            console.log('from2=', from);
             const info = await this.transporter.sendMail(mailOptions);
             await this.redisService.setTeamJoinMailToken(randomToken);
             return info;

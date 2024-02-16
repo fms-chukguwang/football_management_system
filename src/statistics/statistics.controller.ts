@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { StatisticsService } from './statistics.service';
-import { IsMemberGuard } from 'src/member/guard/is-member.guard';
+import { IsMemberGuard } from '../member/guard/is-member.guard';
 
 @ApiTags('통계')
 @Controller()

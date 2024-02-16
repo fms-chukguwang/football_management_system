@@ -24,10 +24,10 @@ import { ChatsService } from '../chats/chats.service';
 import { PaginateTeamDto } from '../admin/dto/paginate-team.dto';
 import { CommonService } from '../common/common.service';
 import { ResponseMemberDto } from './dtos/response-member.dto';
-import { User } from 'src/user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
 import { MemberGateway } from './member.gateway';
-import { ChatsGateway } from 'src/chats/chats.gateway';
-import { Profile } from 'src/profile/entities/profile.entity';
+import { ChatsGateway } from '../chats/chats.gateway';
+import { Profile } from '../profile/entities/profile.entity';
 
 @Injectable()
 export class MemberService {
@@ -319,27 +319,27 @@ export class MemberService {
      * @param teamId
      * @returns
      */
-    async sendJoiningEmail(userId: number, teamId: number) {
-        const findTeam = await this.teamService.getTeamDetail(teamId);
-
+     async sendJoiningEmail(userId: number, teamId: number) {
+        const findTeam = await this.teamService.getTeamInfo(teamId);
+    
+        const reqUser = await this.userService.findOneById(userId);
+        
         if (!findTeam) {
             throw new NotFoundException('요청하신 팀이 존재하지 않습니다.');
         }
-
-        const reqUser = await this.userService.findOneById(userId);
-        /**
-         * 요청할때 정보
-         * 요청자의 아이디 , email , 이름
-         */
+        if (findTeam.isMixedGender!== true && findTeam.gender !== reqUser.profile.gender) {
+            throw new NotFoundException('신청하려는 팀과 성별이 일치하지않습니다.');
+        }
         const reqeustEmail: SendJoiningEmailDto = {
             id: reqUser.id,
             email: reqUser.email,
             name: reqUser.name,
         };
 
-        const sendResult = await this.eamilService.sendTeamJoinEmail(reqeustEmail, findTeam);
-
-        return sendResult;
+     
+     const sendResult = await this.eamilService.sendTeamJoinEmail(reqeustEmail, findTeam);
+ 
+     return sendResult;
     }
 
     /**
@@ -349,13 +349,13 @@ export class MemberService {
      * @returns
      */
     async sendInvitingEmail(userId: number, teamId: number, profileId: number) {
-        const findTeam = await this.teamService.getTeamDetail(teamId);
-
+      const findTeam = await this.teamService.getTeamInfo(teamId);
+    
+        const reqUser = await this.userService.findOneById(userId);
+        
         if (!findTeam) {
             throw new NotFoundException('요청하신 팀이 존재하지 않습니다.');
         }
-
-        const reqUser = await this.userService.findOneById(userId);
 
         /**
          * 요청할때 정보
@@ -368,21 +368,25 @@ export class MemberService {
         };
 
         // 초대된 프로필의 invited 필드와 팀 아이디를 업데이트
-        const profile = await this.profileRepository.findOne({
+        const invitee = await this.profileRepository.findOne({
             where: { id: profileId },
             relations: ['user'],
         });
-        if (!profile || !profile.user || !profile.user.email) {
+        if (!invitee || !invitee.user || !invitee.user.email) {
             throw new NotFoundException('프로필 또는 사용자 정보를 찾을 수 없습니다.');
         }
-        console.log('profile=', profile);
-        //   const profileEmail = profile.user.email;
+        if (!invitee || !invitee.user || !invitee.user.email) {
+            throw new NotFoundException('프로필 또는 사용자 정보를 찾을 수 없습니다.');
+        }
+        if (findTeam.isMixedGender!== true && findTeam.gender !== invitee.gender) {
+            throw new NotFoundException('팀과의 성별이 일치하지않습니다.');
+        }
+        const sendResult = await this.eamilService.sendInviteEmail(reqeustEmail, findTeam, invitee);
 
-        const sendResult = await this.eamilService.sendInviteEmail(reqeustEmail, findTeam, profile);
-
-        profile.invited = true;
-        profile.teamId = teamId; // 팀 아이디 저장
-        await this.profileRepository.save(profile);
+        // 초대된 프로필의 invited 필드와 팀 아이디를 업데이트
+        invitee.invited = true;
+        invitee.teamId = teamId; // 팀 아이디 저장
+        await this.profileRepository.save(invitee);
 
         return sendResult;
     }
@@ -441,12 +445,14 @@ export class MemberService {
                             preferredPosition: true,
                             imageUrl: true,
                             age: true,
+                            invited: true,
+                            teamId: true,
                         },
                     },
                     matchformation: {
                         position: true,
                     },
-                    createdAt: true, // 추가된 부분
+                    createdAt: true,
                 },
                 where: {
                     team: {
@@ -471,12 +477,73 @@ export class MemberService {
 
             const findMembers = await this.memberRepository.find(options);
 
-            console.log('findMembers:', findMembers);
+            // 초대되지 않은 멤버만 필터링
+            const nonInvitedMembers = findMembers.filter(
+                (member) =>
+                    member.user.profile.invited === false || member.user.profile.invited === null,
+            );
 
-            return await this.commonService.paginate(dto, this.memberRepository, options, 'member');
+            // Repository<Member> 타입으로 변환
+            const paginatedMembers = await this.commonService.paginate(
+                dto,
+                this.memberRepository,
+                options,
+                'member',
+            );
+
+            return paginatedMembers;
         } catch (error) {
             console.error('Error fetching team members:', error);
             throw new Error('Failed to fetch team members');
+        }
+    }
+
+    async getInvitedMembers(teamId: number, dto: PaginateTeamDto) {
+        try {
+            const options: FindManyOptions<Member> = {
+                select: {
+                    id: true,
+                    isStaff: true,
+                    team: {
+                        id: true,
+                    },
+                    user: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        profile: {
+                            preferredPosition: true,
+                            imageUrl: true,
+                            age: true,
+                            invited: true,
+                            teamId: true,
+                        },
+                    },
+                    matchformation: {
+                        position: true,
+                    },
+                    createdAt: true,
+                },
+                where: {
+                    team: {
+                        id: teamId,
+                    },
+                },
+                relations: {
+                    team: true,
+                    user: { profile: true },
+                    matchformation: true,
+                },
+            };
+
+            const findMembers = await this.memberRepository.find(options);
+
+            console.log('Invited members:', findMembers);
+
+            return await this.commonService.paginate(dto, this.memberRepository, options, 'member');
+        } catch (error) {
+            console.error('Error fetching invited members:', error);
+            throw new Error('Failed to fetch invited members');
         }
     }
 

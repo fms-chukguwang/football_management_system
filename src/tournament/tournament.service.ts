@@ -3,8 +3,8 @@ import { In, LessThan, Repository, EntityManager } from 'typeorm';
 import { TournamentModel } from './entities/tournament.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateTournamentDto } from './dtos/create-tournament.dto';
-import { LoggingService } from 'src/logging/logging.service';
-import { TeamModel } from 'src/team/entities/team.entity';
+import { LoggingService } from '../logging/logging.service';
+import { TeamModel } from '../team/entities/team.entity';
 import { UpdateTournamentDto } from './dtos/update-tournament.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
 

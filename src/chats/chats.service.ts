@@ -88,4 +88,8 @@ export class ChatsService {
             .of(chatId)
             .remove(socketId);
     }
+
+    hello() {
+        return 'hello';
+    }
 }

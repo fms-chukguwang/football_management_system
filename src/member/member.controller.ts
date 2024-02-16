@@ -15,9 +15,9 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EmailService } from 'src/email/email.service';
-import { TeamModel } from 'src/team/entities/team.entity';
-import { User } from 'src/user/entities/user.entity';
+import { EmailService } from '../email/email.service';
+import { TeamModel } from '../team/entities/team.entity';
+import { User } from '../user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PaginateMembersDto } from './dtos/paginate-members-dto';
@@ -180,6 +180,7 @@ export class MemberController {
         const userId = req['user'].id;
 
         this.memberService.sendInvitingEmail(userId, teamId, profileId);
+        
     }
 
     @ApiBearerAuth()
@@ -194,30 +195,32 @@ export class MemberController {
         const result = await this.memberService.registerMember(teamId, userId);
 
         await this.memberService.deleteEmailToken(token);
-        const owner = await this.teamRepository.findOne({
-            where: { id: teamId },
-        });
-        const user = await this.userRepository.findOne({
-            where: { id: userId },
-        });
 
-        // 이메일에 알람 메시지 포함 (구단주에게)
-        const ownerEmailContent = `
-        회원 수락 처리 완료!
-        구단주에게 보내는 내용입니다.
-        `;
+        return "회원 수락 처리 완료";
+        // const owner = await this.teamRepository.findOne({
+        //     where: { id: teamId },
+        // });
+        // const user = await this.userRepository.findOne({
+        //     where: { id: userId },
+        // });
 
-        // 이메일에 알람 메시지 포함 (멤버에게)
-        const memberEmailContent = `
-        회원 수락 처리 완료!
-        멤버에게 보내는 내용입니다.
-        `;
+        // // 이메일에 알람 메시지 포함 (구단주에게)
+        // const ownerEmailContent = `
+        // 회원 수락 처리 완료!
+        // 구단주에게 보내는 내용입니다.
+        // `;
 
-        // 구단주에게 이메일 전송
-        //await this.emailService.sendEmail(owner.creator.email, "회원 수락 처리 완료", ownerEmailContent);
-        console.log('controller send email');
-        // 멤버에게 이메일 전송
-        await this.emailService.sendEmail(user.email, '회원 수락 처리 완료', memberEmailContent);
+        // // 이메일에 알람 메시지 포함 (멤버에게)
+        // const memberEmailContent = `
+        // 회원 수락 처리 완료!
+        // 멤버에게 보내는 내용입니다.
+        // `;
+
+        // // 구단주에게 이메일 전송
+        // //await this.emailService.sendEmail(owner.creator.email, "회원 수락 처리 완료", ownerEmailContent);
+        // console.log('controller send email');
+        // // 멤버에게 이메일 전송
+        // await this.emailService.sendEmail(user.email, '회원 수락 처리 완료', memberEmailContent);
     }
 
     /**

@@ -11,31 +11,39 @@ export class LogInterceptor implements NestInterceptor {
     intercept(context: ExecutionContext, next: CallHandler<any>): Observable<any> {
         const now = new Date(); // 현재 시간과 날짜
         const req = context.switchToHttp().getRequest();
-        const path = req.originalUrl;
+        const url = req.originalUrl;
         const method = req.method;
+        const headers = req.headers ? req.headers : {};
+        const body = req.body ? req.body : {};
+        const query = req.query ? req.query : {};
+
         console.log(
-            `[REQ] ${method} ${path} ${now.toLocaleString('ko-KR', {
-                timeZone: 'Asia/Seoul',
-            })}`,
+            `[REQ] ${method} ${url} ${JSON.stringify(headers)} ${JSON.stringify(query)} ${JSON.stringify(body)} ${now.toLocaleString(
+                'ko-KR',
+                {
+                    timeZone: 'Asia/Seoul',
+                },
+            )}`,
         );
 
         return next.handle().pipe(
             tap((observable) => {
                 console.log(
-                    `[RES] ${method} ${path} ${new Date().toLocaleString('ko-KR', {
+                    `[RES] ${method} ${url} ${new Date().toLocaleString('ko-KR', {
                         timeZone: 'Asia/Seoul',
                     })} ${new Date().getMilliseconds() - now.getMilliseconds()}ms`,
                 );
-                let loggingForm = `[REQ] ${method} ${path} ${now.toLocaleString('ko-KR', {
+
+                let loggingForm = `[REQ] ${method} ${url} ${now.toLocaleString('ko-KR', {
                     timeZone: 'Asia/Seoul',
                 })} ,
-[REQ]: Body ${JSON.stringify(req.body)}
-[RES] ${method} ${path} ${new Date().toLocaleString('ko-KR', {
+[REQ]: Body ${JSON.stringify(body)}
+[RES] ${method} ${url} ${new Date().toLocaleString('ko-KR', {
                     timeZone: 'Asia/Seoul',
                 })} ${new Date().getMilliseconds() - now.getMilliseconds()}ms,
 status: ${observable?.statusCode || 200}
 message: ${observable?.message || 'OK'}
-return data: ${JSON.stringify(observable?.data)}`;
+return data: ${url.split('/')[2] === 'chats' ? '채팅 데이터 반환' : JSON.stringify(observable?.data)}`;
 
                 if (
                     method === 'GET' ||
@@ -44,7 +52,7 @@ return data: ${JSON.stringify(observable?.data)}`;
                     method === 'DELETE' ||
                     method === 'PATCH'
                 ) {
-                    if (path.split('/')[2] === 'admin') {
+                    if (url.split('/')[2] === 'admin') {
                         this.myLogger.warn(loggingForm);
                     } else {
                         this.myLogger.log(loggingForm);

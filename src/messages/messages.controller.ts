@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ChatMessagesService } from './messages.service';
 import { PaginateMessageDto } from './dto/paginate-message.dto';
-import { LoggingService } from 'src/logging/logging.service';
+import { LoggingService } from '../logging/logging.service';
 
 @Controller('chats/:chatId/messages')
 export class MessagesController {

@@ -1,5 +1,5 @@
-import { Gender } from 'src/enums/gender.enum';
-import { TeamModel } from 'src/team/entities/team.entity';
+import { Gender } from '../../enums/gender.enum';
+import { TeamModel } from '../../team/entities/team.entity';
 import { setSeederFactory } from 'typeorm-extension';
 
 export default setSeederFactory(TeamModel, (faker) => {

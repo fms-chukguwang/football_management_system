@@ -1,8 +1,8 @@
-import { SERVER_URL } from 'src/common/const/path.const';
-import { SendJoiningEmailDto } from 'src/member/dtos/send-joining-email.dto';
-import { Profile } from 'src/profile/entities/profile.entity';
-import { TeamModel } from 'src/team/entities/team.entity';
-import { User } from 'src/user/entities/user.entity';
+import { SERVER_URL } from '../../common/const/path.const';
+import { SendJoiningEmailDto } from '../../member/dtos/send-joining-email.dto';
+import { Profile } from '../../profile/entities/profile.entity';
+import { TeamModel } from '../../team/entities/team.entity';
+import { User } from '../../user/entities/user.entity';
 
 export const joinTeamHtml = (from: SendJoiningEmailDto, recipient: TeamModel, token: string) => {
     return `

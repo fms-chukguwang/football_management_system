@@ -21,7 +21,7 @@ import { Factory } from 'nestjs-seeder';
 import { Match } from '../../match/entities/match.entity';
 import { Chats } from '../../chats/entities/chats.entity';
 import { MatchFormation } from '../../formation/entities/formation.entity';
-import { TournamentModel } from 'src/tournament/entities/tournament.entity';
+import { TournamentModel } from '../../tournament/entities/tournament.entity';
 
 @Entity('team')
 export class TeamModel extends BaseModel {

@@ -5,7 +5,7 @@ import { TeamModel } from '../../team/entities/team.entity';
 import { Factory } from 'nestjs-seeder';
 import { Profile } from '../../profile/entities/profile.entity';
 import { SoccerField } from '../../match/entities/soccer-field.entity';
-import { TournamentModel } from 'src/tournament/entities/tournament.entity';
+import { TournamentModel } from '../../tournament/entities/tournament.entity';
 
 @Entity('location')
 export class LocationModel extends BaseModel {

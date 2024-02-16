@@ -65,8 +65,14 @@ export class ProfileController {
     @Get('/available')
     async findAvailableProfiles(@Request() req, @Query() dto: PaginateProfileDto) {
         const userId = req.user.id;
-        const data = await this.profileService.paginateProfile(userId, dto, dto.gender, dto.name, dto.region);
-       // console.log("dto.region=",dto.region);
+        const data = await this.profileService.paginateProfile(
+            userId,
+            dto,
+            dto.gender,
+            dto.name,
+            dto.region,
+        );
+        // console.log("dto.region=",dto.region);
         return {
             statusCode: HttpStatus.OK,
             message: '팀없는 프로필 정보 조회에 성공했습니다.',
@@ -167,7 +173,7 @@ export class ProfileController {
      */
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @Delete(':teamId/:profileId')
+    @Delete('/:profileId')
     async deleteProfileInfo(@Param('profileId') profileId: number) {
         const data = await this.profileService.deleteProfile(profileId);
 
