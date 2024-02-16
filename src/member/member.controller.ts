@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     Body,
     Controller,
     Delete,
@@ -178,7 +179,7 @@ export class MemberController {
         @Param('profileId') profileId: number,
     ) {
         const userId = req['user'].id;
-
+        console.log('controller userId=', userId);
         this.memberService.sendInvitingEmail(userId, teamId, profileId);
     }
 
@@ -189,35 +190,21 @@ export class MemberController {
         @Param('userId') userId: number,
         @Body('token') token: string,
     ) {
-        await this.memberService.verifyEmailToken(token);
+        try {
+            await this.memberService.verifyEmailToken(token);
 
-        const result = await this.memberService.registerMember(teamId, userId);
+            const result = await this.memberService.registerMember(teamId, userId);
 
-        await this.memberService.deleteEmailToken(token);
-        const owner = await this.teamRepository.findOne({
-            where: { id: teamId },
-        });
-        const user = await this.userRepository.findOne({
-            where: { id: userId },
-        });
+            await this.memberService.deleteEmailToken(token);
 
-        // 이메일에 알람 메시지 포함 (구단주에게)
-        const ownerEmailContent = `
-        회원 수락 처리 완료!
-        구단주에게 보내는 내용입니다.
-        `;
-
-        // 이메일에 알람 메시지 포함 (멤버에게)
-        const memberEmailContent = `
-        회원 수락 처리 완료!
-        멤버에게 보내는 내용입니다.
-        `;
-
-        // 구단주에게 이메일 전송
-        //await this.emailService.sendEmail(owner.creator.email, "회원 수락 처리 완료", ownerEmailContent);
-        console.log('controller send email');
-        // 멤버에게 이메일 전송
-        await this.emailService.sendEmail(user.email, '회원 수락 처리 완료', memberEmailContent);
+            return '회원 수락 처리 완료';
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                return { message: error.message };
+            } else {
+                return { message: '알 수 없는 오류가 발생했습니다.' };
+            }
+        }
     }
 
     /**
@@ -228,37 +215,26 @@ export class MemberController {
      */
     @ApiBearerAuth()
     @Post('/team/:teamId/user/:userId/reject')
-    async rejectMember(teamId: number, userId: number, token: string) {
-        await this.memberService.verifyEmailToken(token);
+    async rejectMember(
+        @Param('teamId') teamId: number,
+        @Param('userId') userId: number,
+        @Body('token') token: string,
+    ) {
+        try {
+            await this.memberService.verifyEmailToken(token);
 
-        const result = await this.memberService.rejectJoiningEamil(teamId, userId);
+            const result = await this.memberService.rejectJoiningEamil(teamId, userId);
 
-        await this.memberService.deleteEmailToken(token);
+            await this.memberService.deleteEmailToken(token);
 
-        const owner = await this.teamRepository.findOne({
-            where: { id: teamId },
-        });
-        const user = await this.userRepository.findOne({
-            where: { id: userId },
-        });
-
-        // 이메일에 알람 메시지 포함 (구단주에게)
-        const ownerEmailContent = `
-           회원 거절 처리 완료!
-            구단주에게 보내는 내용입니다.
-        `;
-
-        // 이메일에 알람 메시지 포함 (멤버에게)
-        const memberEmailContent = `
-                회원 거절 처리 완료!
-                멤버에게 보내는 내용입니다.
-   
-        `;
-        // 구단주에게 이메일 전송
-        // await this.emailService.sendEmail(owner.creator.email, "회원 거절 처리 완료", ownerEmailContent);
-
-        // 멤버에게 이메일 전송
-        await this.emailService.sendEmail(user.email, '회원 거절 처리 완료', memberEmailContent);
+            return '회원 거절 처리 완료';
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                return { message: error.message };
+            } else {
+                return { message: '알 수 없는 오류가 발생했습니다.' };
+            }
+        }
     }
 
     /**

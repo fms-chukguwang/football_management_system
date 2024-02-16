@@ -1,4 +1,7 @@
-import { IsOptional, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsBooleanString, IsOptional, IsString } from 'class-validator';
+import { IsBoolean } from 'src/common/decorators/is-boolean';
+import { transform } from 'typescript';
 import { BasePaginationDto } from '../../common/dto/base-pagination.dto';
 
 export class PaginateTeamDto extends BasePaginationDto {
@@ -18,7 +21,7 @@ export class PaginateTeamDto extends BasePaginationDto {
     region?:string;
 
 
-    @IsString()
+    @IsBoolean()
     @IsOptional()
-    isMixed?:boolean;
+    isMixedGender?:boolean;
 }

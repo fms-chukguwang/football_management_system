@@ -6,6 +6,7 @@ import {
     HttpStatus,
     NotFoundException,
     Param,
+    ParseIntPipe,
     Patch,
     Post,
     Query,
@@ -56,10 +57,10 @@ export class TeamController {
      * @param req
      */
     @Get(':teamId')
-    async getTeamDetail(@Param('teamId') teamId: number) {
-        const [data, count] = await this.memberService.getMemberCountByTeamId(teamId);
+    async getTeamDetail(@Param('teamId', ParseIntPipe) teamId: number) {
+        const [data, count] = await this.memberService.getMemberCountByTeamId(+teamId);
 
-        const team = await this.teamService.getTeamDetail(teamId);
+        const team = await this.teamService.getTeamDetail(+teamId);
         return {
             team,
             totalMember: count,
@@ -89,7 +90,8 @@ export class TeamController {
      */
     @Get('')
     async getTeam(@Query() dto: PaginateTeamDto) {
-        return await this.teamService.getTeam(dto, dto.name, dto.isMixed, dto.region, dto.gender);
+        
+        return await this.teamService.getTeam(dto, dto.name, dto.isMixedGender, dto.region, dto.gender);
     }
 
     /**

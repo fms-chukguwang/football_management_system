@@ -5,20 +5,20 @@ import { AuthService } from '../auth.service';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
-  constructor(private readonly authService: AuthService) {
-    super({
-      usernameField: 'email',
-      passwordField: 'password',
-    });
-  }
-
-  async validate(email: string, password: string) {
-    const user = await this.authService.validateUser({ email, password });
-
-    if (!user) {
-      throw new UnauthorizedException('일치하는 인증 정보가 없습니다.');
+    constructor(private readonly authService: AuthService) {
+        super({
+            usernameField: 'email',
+            passwordField: 'password',
+        });
     }
 
-    return user;
-  }
+    async validate(email: string, password: string) {
+        const user = await this.authService.validateUser({ email, password });
+
+        if (!user) {
+            throw new UnauthorizedException('일치하는 인증 정보가 없습니다.');
+        }
+
+        return user;
+    }
 }

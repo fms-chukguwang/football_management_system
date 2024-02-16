@@ -315,7 +315,7 @@ export class EmailService {
             subject: `${from.name}님의 구단 초대입니다.`,
             html: inviteTeamHtml(team, profile, randomToken), // HTML 형식의 메일 내용
         };
-
+        console.log(mailOptions);
         try {
             console.log('from2=', from);
             const info = await this.transporter.sendMail(mailOptions);

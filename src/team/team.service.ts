@@ -189,6 +189,8 @@ async paginateTeam(dto: PaginateTeamDto,
                         email: true,
                         name: true,
                     },
+                    isMixedGender:true,
+                    gender:true,
                 },
             });
 
@@ -196,9 +198,32 @@ async paginateTeam(dto: PaginateTeamDto,
 
             redisResult = await this.redisService.getTeamDetail(teamId);
         }
-
+ 
         return JSON.parse(redisResult);
     }
+
+        /**
+     * 특정 팀 조회
+     * @param teamId
+     * @returns
+     */
+         async getTeamInfo(teamId: number): Promise<TeamModel> {
+            try {
+                console.log("get team started");
+          
+                const team = await this.teamRepository.findOne({ 
+                    where: { id: teamId }, 
+                    relations: ['creator', 'location'] 
+                  });
+            
+                console.log("get team done");
+          
+                return team;
+              } catch (error) {
+                console.error("Error while getting team info:", error);
+                throw error;
+              }
+            }
 
     /**
      * 팀 전체조회
@@ -229,40 +254,37 @@ async paginateTeam(dto: PaginateTeamDto,
     async getTeam(
         dto: PaginateTeamDto,
         name?: string,
-        isMixed?: boolean,
+        isMixedGender?: boolean,
         region?: string,
         gender?: string,
     ) {
         const { page, take } = dto;
         const skip = (page - 1) * take;
-        const options: FindManyOptions<TeamModel> = {};
     
-        const query: any = {};
-        
+        const queryBuilder = this.teamRepository.createQueryBuilder('team')
+            .leftJoinAndSelect('team.location', 'location'); 
+    
         if (name) {
-            query.name = Like(`%${name}%`);
+            queryBuilder.andWhere('team.name LIKE :name', { name: `%${name}%` });
         }
     
         if (gender) {
-            query.gender = gender;
+            queryBuilder.andWhere('team.gender = :gender', { gender });
         }
     
         if (region) {
-            query.andWhere('(location.state = :region OR location.city = :region)', {
-                region,
-            });
+            queryBuilder.andWhere('(location.state = :region OR location.city = :region)', { region });
         }
+
     
-        if (isMixed !== undefined) {
-            query.andWhere('team.isMixed = :isMixed', { isMixed });
+        if (isMixedGender !== undefined) {
+            queryBuilder.andWhere('team.is_mixed_gender = :isMixedGender ', { isMixedGender  });
         }
-    
-        const [teams, total] = await this.teamRepository.findAndCount({
-            where: query,
-            take, // 페이지당 항목 수
-            skip, // 건너뛸 항목 수
-            relations: ['location'],
-        });
+        console.log(isMixedGender);
+        const [teams, total] = await queryBuilder
+            .take(take)
+            .skip(skip)
+            .getManyAndCount();
     
         const teamWithCounts = await Promise.all(
             teams.map(async (team) => {
@@ -279,6 +301,9 @@ async paginateTeam(dto: PaginateTeamDto,
     
         return { data: teamWithCounts, total };
     }
+    
+    
+    
     
     
 

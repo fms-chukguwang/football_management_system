@@ -32,6 +32,7 @@ import { Factory } from 'nestjs-seeder';
 import { LocationModel } from '../../location/entities/location.entity';
 import { Position } from '../../enums/position.enum';
 import { Member } from '../../member/entities/member.entity';
+import { Invite } from 'src/invite/entities/invite.entity';
 
 @Entity('profile')
 @Index('idx_user_id', ['user'], { unique: true })
@@ -49,7 +50,8 @@ export class Profile {
         nullable: true,
     })
     teamId: number;
-
+    @OneToMany(() => Invite, invite => invite.receiverProfile)
+    receivedInvites: Invite[];
     /**
      * 실력
      * @example 9
