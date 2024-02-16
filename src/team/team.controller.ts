@@ -89,7 +89,8 @@ export class TeamController {
      */
     @Get('')
     async getTeam(@Query() dto: PaginateTeamDto) {
-        return await this.teamService.getTeam(dto, dto.name, dto.isMixed, dto.region, dto.gender);
+        
+        return await this.teamService.getTeam(dto, dto.name, dto.isMixedGender, dto.region, dto.gender);
     }
 
     /**

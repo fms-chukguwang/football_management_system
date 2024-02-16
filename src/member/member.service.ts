@@ -319,27 +319,27 @@ export class MemberService {
      * @param teamId
      * @returns
      */
-    async sendJoiningEmail(userId: number, teamId: number) {
-        const findTeam = await this.teamService.getTeamDetail(teamId);
-
+     async sendJoiningEmail(userId: number, teamId: number) {
+        const findTeam = await this.teamService.getTeamInfo(teamId);
+    
+        const reqUser = await this.userService.findOneById(userId);
+        
         if (!findTeam) {
             throw new NotFoundException('요청하신 팀이 존재하지 않습니다.');
         }
-
-        const reqUser = await this.userService.findOneById(userId);
-        /**
-         * 요청할때 정보
-         * 요청자의 아이디 , email , 이름
-         */
+        if (findTeam.isMixedGender!== true && findTeam.gender !== reqUser.profile.gender) {
+            throw new NotFoundException('신청하려는 팀과 성별이 일치하지않습니다.');
+        }
         const reqeustEmail: SendJoiningEmailDto = {
             id: reqUser.id,
             email: reqUser.email,
             name: reqUser.name,
         };
 
-        const sendResult = await this.eamilService.sendTeamJoinEmail(reqeustEmail, findTeam);
-
-        return sendResult;
+     
+     const sendResult = await this.eamilService.sendTeamJoinEmail(reqeustEmail, findTeam);
+ 
+     return sendResult;
     }
 
     /**
@@ -349,13 +349,13 @@ export class MemberService {
      * @returns
      */
     async sendInvitingEmail(userId: number, teamId: number, profileId: number) {
-        const findTeam = await this.teamService.getTeamDetail(teamId);
-
+      const findTeam = await this.teamService.getTeamInfo(teamId);
+    
+        const reqUser = await this.userService.findOneById(userId);
+        
         if (!findTeam) {
             throw new NotFoundException('요청하신 팀이 존재하지 않습니다.');
         }
-
-        const reqUser = await this.userService.findOneById(userId);
 
         /**
          * 요청할때 정보
@@ -368,20 +368,25 @@ export class MemberService {
         };
 
         // 초대된 프로필의 invited 필드와 팀 아이디를 업데이트
-        const profile = await this.profileRepository.findOne({
+        const invitee = await this.profileRepository.findOne({
             where: { id: profileId },
             relations: ['user'],
         });
-        if (!profile || !profile.user || !profile.user.email) {
+        if (!invitee || !invitee.user || !invitee.user.email) {
             throw new NotFoundException('프로필 또는 사용자 정보를 찾을 수 없습니다.');
         }
-
-        const sendResult = await this.eamilService.sendInviteEmail(reqeustEmail, findTeam, profile);
+        if (!invitee || !invitee.user || !invitee.user.email) {
+            throw new NotFoundException('프로필 또는 사용자 정보를 찾을 수 없습니다.');
+        }
+        if (findTeam.isMixedGender!== true && findTeam.gender !== invitee.gender) {
+            throw new NotFoundException('팀과의 성별이 일치하지않습니다.');
+        }
+        const sendResult = await this.eamilService.sendInviteEmail(reqeustEmail, findTeam, invitee);
 
         // 초대된 프로필의 invited 필드와 팀 아이디를 업데이트
-        profile.invited = true;
-        profile.teamId = teamId; // 팀 아이디 저장
-        await this.profileRepository.save(profile);
+        invitee.invited = true;
+        invitee.teamId = teamId; // 팀 아이디 저장
+        await this.profileRepository.save(invitee);
 
         return sendResult;
     }
