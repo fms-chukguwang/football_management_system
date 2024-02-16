@@ -47,8 +47,6 @@ export class ChatsService {
             users: createChatDto.userIds.map((id) => ({ id })),
         });
 
-        console.log('chat', chat);
-
         return this.chatsRepository.findOne({
             where: { id: chat.id },
         });

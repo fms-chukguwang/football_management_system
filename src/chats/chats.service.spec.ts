@@ -17,6 +17,7 @@ describe('ChatsService', () => {
         };
         const mockRepository = {
             find: jest.fn(),
+            findOne: jest.fn(),
             save: jest.fn(),
             exists: jest.fn(),
             createQueryBuilder: jest.fn(),
@@ -90,21 +91,19 @@ describe('ChatsService', () => {
         );
     });
 
-    it('채팅방 생성(createChat)', async () => {
-        const createChatDto = {
-            userIds: [1],
-        };
+    describe('채팅방 생성(createChat)', () => {
+        it('채팅방 생성(createChat)', async () => {
+            const createChatDto = {
+                userIds: [1],
+            };
+            const savedChat: Chats = new Chats();
+            savedChat.id = 1;
 
-        const savedChat = repository.create({
-            id: 1,
-            users: createChatDto.userIds.map((id) => ({ id })),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            deletedAt: null,
+            jest.spyOn(repository, 'save').mockResolvedValue(savedChat);
+            jest.spyOn(repository, 'findOne').mockResolvedValue(savedChat);
+            const result = await service.createChat(createChatDto);
+            expect(result).toEqual(savedChat);
         });
-        jest.spyOn(repository, 'save').mockResolvedValue(savedChat);
-        const result = await service.createChat(createChatDto);
-        expect(result).toEqual(savedChat);
     });
 
     it('채팅방 초대(inviteChat)', async () => {
