@@ -102,10 +102,7 @@ export class MatchService {
             token: token,
         };
 
-        console.log('emailRequest:',emailRequest);
-
         const send = await this.emailService.reqMatchEmail(emailRequest);
-        console.log('send=', send);
         return send;
     }
 
@@ -150,7 +147,6 @@ export class MatchService {
         }
 
         await this.matchRepository.save(match);
-        console.log(match);
         return match;
     }
 
