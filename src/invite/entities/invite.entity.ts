@@ -1,15 +1,18 @@
-
+import { InviteStatus } from 'src/enums/invite-status.enum';
 import { Profile } from 'src/profile/entities/profile.entity';
 import { TeamModel } from 'src/team/entities/team.entity';
+import { User } from 'src/user/entities/user.entity';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+
 
 @Entity()
 export class Invite {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  senderUserId: number;
+  @ManyToOne(() => User)
+  @JoinColumn()
+  senderUser: User;
 
   @ManyToOne(() => Profile)
   @JoinColumn()
@@ -19,8 +22,8 @@ export class Invite {
   @JoinColumn()
   team: TeamModel;
 
-  @Column({ default: 'pending' }) // 초대 상태: pending(보류), accepted(수락), rejected(거절) 등
-  status: string;
+  @Column({ type: 'enum', enum: InviteStatus, default: InviteStatus.NONE })
+  status: InviteStatus;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

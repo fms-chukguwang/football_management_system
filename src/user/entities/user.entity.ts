@@ -34,12 +34,14 @@ import { Message } from '../../messages/entities/messages.entity';
 import { Profile } from '../../profile/entities/profile.entity';
 import { profile } from 'console';
 import { UserRole } from '../../enums/user-role.enum';
+import { Invite } from 'src/invite/entities/invite.entity';
 
 @Entity('users')
 export class User {
     @PrimaryGeneratedColumn()
     id: number;
-
+    @OneToMany(() => Invite, invite => invite.senderUser)
+    sentInvites: Invite[];
     /**
      * 이메일
      * @example "example@example.com"

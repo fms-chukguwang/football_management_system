@@ -22,12 +22,14 @@ import { Match } from '../../match/entities/match.entity';
 import { Chats } from '../../chats/entities/chats.entity';
 import { MatchFormation } from '../../formation/entities/formation.entity';
 import { TournamentModel } from '../../tournament/entities/tournament.entity';
+import { Invite } from 'src/invite/entities/invite.entity';
 
 @Entity('team')
 export class TeamModel extends BaseModel {
     @PrimaryGeneratedColumn()
     id: number;
-
+    @OneToMany(() => Invite, invite => invite.team)
+    teamInvites: Invite[];
     /**
      * 팀명
      * @example '태풍fc'
