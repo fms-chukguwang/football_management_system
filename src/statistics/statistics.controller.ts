@@ -85,6 +85,11 @@ export class StatisticsController {
         return await this.statisticsService.getMemberHistory(req['member'].user.id);
     }
 
+    /**
+     * 멤버 개인 경기기록 가져오기
+     * @param memberId
+     * @returns
+     */
     @Get('team/:teamId/member/:memberId/record')
     async getMemberMatchRecord(@Param('memberId') memberId: number) {
         return await this.statisticsService.getMembetMatchRecord(memberId);

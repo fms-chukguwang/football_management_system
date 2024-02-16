@@ -32,6 +32,7 @@ import { SoccerField } from './entities/soccer-field.entity';
 import { AwsService } from '../aws/aws.service';
 import { ResultMembersDto } from './dtos/result-final.dto';
 import { time } from 'console';
+import { RedisService } from 'src/redis/redis.service';
 import { SERVER_URL } from '../common/const/path.const';
 
 @Injectable()
@@ -67,6 +68,7 @@ export class MatchService {
         private configService: ConfigService,
         private readonly awsService: AwsService,
         private readonly dataSource: DataSource,
+        private readonly redisService: RedisService,
     ) {}
 
     /**
@@ -102,7 +104,7 @@ export class MatchService {
             token: token,
         };
 
-        console.log('emailRequest:',emailRequest);
+        console.log('emailRequest:', emailRequest);
 
         const send = await this.emailService.reqMatchEmail(emailRequest);
         console.log('send=', send);
@@ -565,6 +567,7 @@ export class MatchService {
         }
 
         await this.playerStatsRepository.save(playerStats);
+        await this.redisService.delTeamStats(homeCreator[0].id);
 
         return playerStats;
     }
@@ -819,6 +822,7 @@ export class MatchService {
             );
 
             await queryRunner.commitTransaction();
+            await this.redisService.delTeamStats(homeCreator[0].id);
         } catch (error) {
             await queryRunner.rollbackTransaction();
             if (error instanceof HttpException) {
