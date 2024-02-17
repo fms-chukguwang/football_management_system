@@ -90,8 +90,7 @@ export class ProfileService {
         //     '(invite.status = :pending OR invite.status = :rejected OR invite.status = :none)', 
         //     { none: InviteStatus.NONE, pending: InviteStatus.PENDING, rejected: InviteStatus.REJECTED }
         //   )
-          .andWhere('invite.senderUser IS NULL OR invite.senderUser != :userId', { userId });  // 내가 보낸 초대는 제외
-        
+
         if (gender) {
           query = query.andWhere('profile.gender = :gender', { gender });
         }
@@ -114,7 +113,9 @@ export class ProfileService {
           .take(take)
           .skip((page - 1) * take)
           .getMany();
-    
+          console.log(query.getSql());
+          console.log(userId, gender, name, region);
+          console.log(currentPageResults);
         return {
           total: totalCount,
           totalPages: totalPages,
