@@ -37,7 +37,6 @@ export class TeamService {
         private readonly locationService: LocationService,
         @Inject(forwardRef(() => MemberService))
         private readonly memberService: MemberService,
-        private readonly dataSource: DataSource,
         private readonly commonService: CommonService,
         private readonly chatService: ChatsService,
         private readonly redisService: RedisService,
@@ -58,42 +57,42 @@ export class TeamService {
         return team;
     }
 
-    
-async paginateTeam(dto: PaginateTeamDto,
-    gender?: string,
+    async paginateTeam(
+        dto: PaginateTeamDto,
+        gender?: string,
         name?: string,
         region?: string,
-        isMixed?: boolean) {
-    const { page, take } = dto;
-    const skip = (page - 1) * take;
+        isMixed?: boolean,
+    ) {
+        const { page, take } = dto;
+        const skip = (page - 1) * take;
 
-    const query: any = {};
+        const query: any = {};
 
-    if (name) {
-        query.name = { $regex: name, $options: 'i' };
+        if (name) {
+            query.name = { $regex: name, $options: 'i' };
+        }
+
+        if (gender) {
+            query.gender = gender;
+        }
+
+        if (region) {
+            query.region = region;
+        }
+
+        if (isMixed !== undefined) {
+            query.isMixed = isMixed;
+        }
+
+        const [teams, total] = await this.teamRepository.findAndCount({
+            where: query,
+            take,
+            skip,
+        });
+
+        return { data: teams, total, page: Math.ceil(total / take) };
     }
-
-    if (gender) {
-        query.gender = gender;
-    }
-
-    if (region) {
-        query.region = region;
-    }
-
-    if (isMixed !== undefined) {
-        query.isMixed = isMixed;
-    }
-
-    const [teams, total] = await this.teamRepository.findAndCount({
-        where: query,
-        take,
-        skip,
-    });
-
-    return { data: teams, total, page: Math.ceil(total / take) };
-}
-
 
     /**
      * 팀 생성하기
@@ -102,7 +101,6 @@ async paginateTeam(dto: PaginateTeamDto,
      * @param file
      * @returns
      */
-    //@Transactional()
     async createTeam(createTeamDto: CreateTeamDto, userId: number, file: Express.Multer.File) {
         const existTeam = await this.teamRepository.findOne({
             where: {
@@ -189,8 +187,8 @@ async paginateTeam(dto: PaginateTeamDto,
                         email: true,
                         name: true,
                     },
-                    isMixedGender:true,
-                    gender:true,
+                    isMixedGender: true,
+                    gender: true,
                 },
             });
 
@@ -198,35 +196,37 @@ async paginateTeam(dto: PaginateTeamDto,
 
             redisResult = await this.redisService.getTeamDetail(teamId);
         }
- 
+
         return JSON.parse(redisResult);
     }
 
-        /**
+    /**
      * 특정 팀 조회
      * @param teamId
      * @returns
      */
-         async getTeamInfo(teamId: number): Promise<TeamModel> {
-            try {
-                console.log("get team started");
-          
-                const team = await this.teamRepository.findOne({ 
-                    where: { id: teamId }, 
-                    relations: ['creator', 'location'] 
-                  });
-            
-                console.log("get team done");
-          
-                return team;
-              } catch (error) {
-                console.error("Error while getting team info:", error);
-                throw error;
-              }
+    async getTeamInfo(teamId: number): Promise<TeamModel> {
+        try {
+            console.log('get team started');
+
+            const team = await this.teamRepository.findOne({
+                where: { id: teamId },
+                relations: ['creator', 'location'],
+            });
+
+            if (!team) {
+                throw new NotFoundException('팀을 찾을 수 없습니다.');
             }
 
+            return team;
+        } catch (error) {
+            console.error('Error while getting team info:', error);
+            throw error;
+        }
+    }
+
     /**
-     * 팀 전체조회
+     x* 팀 전체조회
      * @returns
      */
     async getTeams() {
@@ -250,7 +250,6 @@ async paginateTeam(dto: PaginateTeamDto,
         return teamWithCounts;
     }
 
- 
     async getTeam(
         dto: PaginateTeamDto,
         name?: string,
@@ -260,32 +259,31 @@ async paginateTeam(dto: PaginateTeamDto,
     ) {
         const { page, take } = dto;
         const skip = (page - 1) * take;
-    
-        const queryBuilder = this.teamRepository.createQueryBuilder('team')
-            .leftJoinAndSelect('team.location', 'location'); 
-    
+
+        const queryBuilder = this.teamRepository
+            .createQueryBuilder('team')
+            .leftJoinAndSelect('team.location', 'location');
+
         if (name) {
             queryBuilder.andWhere('team.name LIKE :name', { name: `%${name}%` });
         }
-    
+
         if (gender) {
             queryBuilder.andWhere('team.gender = :gender', { gender });
         }
-    
+
         if (region) {
-            queryBuilder.andWhere('(location.state = :region OR location.city = :region)', { region });
+            queryBuilder.andWhere('(location.state = :region OR location.city = :region)', {
+                region,
+            });
         }
 
-    
         if (isMixedGender !== undefined) {
-            queryBuilder.andWhere('team.is_mixed_gender = :isMixedGender ', { isMixedGender  });
+            queryBuilder.andWhere('team.is_mixed_gender = :isMixedGender ', { isMixedGender });
         }
-        console.log(isMixedGender);
-        const [teams, total] = await queryBuilder
-            .take(take)
-            .skip(skip)
-            .getManyAndCount();
-    
+
+        const [teams, total] = await queryBuilder.take(take).skip(skip).getManyAndCount();
+
         const teamWithCounts = await Promise.all(
             teams.map(async (team) => {
                 const [data, count] = await this.memberService.getMemberCountByTeamId(team.id);
@@ -298,40 +296,9 @@ async paginateTeam(dto: PaginateTeamDto,
                 };
             }),
         );
-    
+
         return { data: teamWithCounts, total };
     }
-    
-    
-    
-    
-    
-
-    async getTeamByGender(userId, dto: PaginateTeamDto, name?: string) {
-        const options: FindManyOptions<TeamModel> = {};
-        if (name) {
-            options.where = { name: Like(`%${name}%`) };
-        }
-
-        const data = await this.teamRepository.find(options);
-
-        const result = await this.commonService.paginate(dto, this.teamRepository, options, 'team');
-
-        if ('total' in result) {
-            const { data, total } = result;
-            const teamWithCounts = await Promise.all(
-                data.map(async (team) => {
-                    const [data, count] = await this.memberService.getMemberCountByTeamId(team.id);
-                    return {
-                        team,
-                        totalMember: count,
-                    };
-                }),
-            );
-            return { data: teamWithCounts, total };
-        }
-    }
-
 
     /**
      * 팀 수정하기
@@ -349,7 +316,6 @@ async paginateTeam(dto: PaginateTeamDto,
                 type: 'Point',
                 coordinates: [longitude, latitude],
             };
-
             const updatedTeam = {
                 ...rest,
                 location: locationUpdate,
@@ -364,7 +330,6 @@ async paginateTeam(dto: PaginateTeamDto,
 
             await this.redisService.delTeamDetail(teamId);
         } catch (err) {
-            console.error(err);
             throw new InternalServerErrorException(
                 '팀 업데이트 중 예기치 못한 오류가 발생했습니다.',
             );
@@ -380,13 +345,14 @@ async paginateTeam(dto: PaginateTeamDto,
     async deleteTeam(teamId: number) {
         const team = await this.teamRepository.findOneBy({ id: teamId });
         if (!team) {
-            throw new NotFoundException(`User with ID ${team} not found`);
+            throw new NotFoundException(`팀 ID ${teamId}를 찾을 수 없습니다.`);
         }
 
-        console.log('teamId : ', teamId);
         // Soft delete 처리
         await this.teamRepository.softDelete({
             id: teamId,
         });
+
+        return `팀 ID ${teamId}가 삭제되었습니다.`;
     }
 }
