@@ -35,6 +35,8 @@
         "test:commonService": "jest --verbose src/common/common.service.spec.ts --coverage",
         "test:teamService": "jest --verbose src/team/team.service.spec.ts",
         "test:teamController": "jest --verbose src/team/team.controller.spec.ts",
+        "test:tournamentService": "jest --verbose src/tournament/tournament.service.spec.ts",
+        "test:tournamentController": "jest --verbose src/tournament/tournament.controller.spec.ts",
         "coverage": "jest --coverage",
         "seed": "ts-node src/seed.ts",
         "seed:ho0": "ts-node -r tsconfig-paths/register ./node_modules/typeorm-extension/bin/cli.cjs seed:run",
