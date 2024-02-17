@@ -1456,6 +1456,11 @@ export class MatchService {
         const match = await this.matchRepository.findOne({
             where: { id: matchId },
         });
+
+        // 여기서 match 객체의 존재 여부를 확인
+        if (!match) {
+            throw new NotFoundException('경기 정보가 존재하지 않습니다.');
+        }
         const homeTeamId = match.home_team_id;
         const awayTeamId = match.away_team_id;
         const date = match.date;
