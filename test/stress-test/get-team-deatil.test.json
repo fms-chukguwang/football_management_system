@@ -1,9 +1,9 @@
 {
     "config": {
-        "target": "http://localhost:3000/api",
+        "target": "https://api.fms-chukguwang.site/api",
         "phases": [
             {
-                "duration": 30,
+                "duration": 60,
                 "arrivalRate": 10
             }
         ],
