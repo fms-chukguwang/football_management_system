@@ -36,7 +36,7 @@ describe('TournamentController', () => {
             ],
         })
             .overrideGuard(JwtAuthGuard)
-            .useValue({ canActivate: () => true })
+            .useValue({ canActivate: jest.fn(() => true) })
             .overrideGuard(IsAdminGuard)
             .useValue({ canActivate: jest.fn(() => true) })
             .overrideGuard(IsStaffGuard)
