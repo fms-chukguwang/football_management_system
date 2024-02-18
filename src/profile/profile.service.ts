@@ -75,57 +75,56 @@ export class ProfileService {
         gender?: string,
         name?: string,
         region?: string,
-      ) {
+    ) {
         const { page, take } = dto;
-        console.log("aaa!!!");
-   
+        console.log('aaa!!!');
+
         let query = this.profileRepository
-          .createQueryBuilder('profile')
-          .leftJoinAndSelect('profile.user', 'user')
-          .leftJoinAndSelect('user.member', 'member')
-          .leftJoinAndSelect('profile.location', 'location')
-          .leftJoinAndSelect('profile.receivedInvites', 'invite')
-          .where('member.id IS NULL') // 팀이 없는 사람들
+            .createQueryBuilder('profile')
+            .leftJoinAndSelect('profile.user', 'user')
+            .leftJoinAndSelect('user.member', 'member')
+            .leftJoinAndSelect('profile.location', 'location')
+            .leftJoinAndSelect('profile.receivedInvites', 'invite')
+            .where('member.id IS NULL'); // 팀이 없는 사람들
         //   .andWhere(
-        //     '(invite.status = :pending OR invite.status = :rejected OR invite.status = :none)', 
+        //     '(invite.status = :pending OR invite.status = :rejected OR invite.status = :none)',
         //     { none: InviteStatus.NONE, pending: InviteStatus.PENDING, rejected: InviteStatus.REJECTED }
         //   )
 
         if (gender) {
-          query = query.andWhere('profile.gender = :gender', { gender });
+            query = query.andWhere('profile.gender = :gender', { gender });
         }
-    
-        if (name) {
-          query = query.andWhere('user.name LIKE :name', { name: `%${name}%` });
-        }
-    
-        if (region) {
-          query = query.andWhere('(location.state = :region OR location.city = :region)', {
-            region,
-          });
-        }
-       
-        const totalCount = await query.getCount();
-    
-        const totalPages = Math.ceil(totalCount / take);
-    
-        const currentPageResults = await query
-          .take(take)
-          .skip((page - 1) * take)
-          .getMany();
-          console.log(query.getSql());
-          console.log(userId, gender, name, region);
-          console.log(currentPageResults);
-        return {
-          total: totalCount,
-          totalPages: totalPages,
-          currentPage: page,
-          data: currentPageResults,
-        };
-      }
-    
 
-  async paginateProfileHo(
+        if (name) {
+            query = query.andWhere('user.name LIKE :name', { name: `%${name}%` });
+        }
+
+        if (region) {
+            query = query.andWhere('(location.state = :region OR location.city = :region)', {
+                region,
+            });
+        }
+
+        const totalCount = await query.getCount();
+
+        const totalPages = Math.ceil(totalCount / take);
+
+        const currentPageResults = await query
+            .take(take)
+            .skip((page - 1) * take)
+            .getMany();
+        console.log(query.getSql());
+        console.log(userId, gender, name, region);
+        console.log(currentPageResults);
+        return {
+            total: totalCount,
+            totalPages: totalPages,
+            currentPage: page,
+            data: currentPageResults,
+        };
+    }
+
+    async paginateProfileHo(
         userId: number,
         dto: PaginateProfileDto,
         gender?: string,
@@ -361,7 +360,7 @@ export class ProfileService {
                 where: { id: userId },
                 relations: ['profile', 'profile.location'],
             });
-
+            console.log('file', file);
             if (!user) {
                 throw new NotFoundException('User not found');
             }
@@ -394,7 +393,9 @@ export class ProfileService {
 
             // 파일이 제공되었다면 이미지 UUID 업데이트
             if (file) {
+                console.log('imageUUID', imageUUID);
                 user.profile.imageUUID = imageUUID;
+                console.log('업데이트 ');
             }
 
             // 업데이트된 프로필 저장

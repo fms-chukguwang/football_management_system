@@ -6,7 +6,6 @@ import { CreateMessagesDto } from './dto/create-message.dto';
 import { PaginateMessageDto } from './dto/paginate-message.dto';
 import { CommonService } from '../common/common.service';
 import { badWordsList } from '../chats/bad-words/badWordsList.kr';
-import { create } from 'domain';
 @Injectable()
 export class ChatMessagesService {
     constructor(

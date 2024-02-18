@@ -17,7 +17,7 @@ export class TournamentController {
      * @description 어드민만 생성 가능
      */
     @Post()
-    // @UseGuards(JwtAuthGuard, IsAdminGuard)
+    @UseGuards(JwtAuthGuard, IsAdminGuard)
     createTournament(@Body() createTournamentDto: CreateTournamentDto) {
         return this.tournamentService.createTournament(createTournamentDto);
     }
@@ -56,7 +56,7 @@ export class TournamentController {
      * @description 오너만 취소 가능
      */
     @Patch(':tournamentId/:teamId/cancel')
-    // @UseGuards(JwtAuthGuard, IsStaffGuard)
+    @UseGuards(JwtAuthGuard, IsStaffGuard)
     async cancelTournament(
         @Param('tournamentId') tournamentId: number,
         @Param('teamId') teamId: number,
@@ -77,7 +77,7 @@ export class TournamentController {
      * @description 어드민만 수정 가능
      */
     @Patch(':tournamentId')
-    // @UseGuards(JwtAuthGuard, IsAdminGuard)
+    @UseGuards(JwtAuthGuard, IsAdminGuard)
     async updateTournament(
         @Param('tournamentId') tournamentId: number,
         @Body() updateTournamentDto: UpdateTournamentDto,

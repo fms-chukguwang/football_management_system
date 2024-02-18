@@ -20,6 +20,7 @@ import { SoccerField } from './entities/soccer-field.entity';
 import { TeamJoinRequestToken } from '../email/entities/team-join-request-token.entity';
 import { AwsService } from '../aws/aws.service';
 import { MatchFormation } from '../formation/entities/formation.entity';
+import { AwsModule } from 'src/aws/aws.module';
 
 @Module({
     imports: [
@@ -34,19 +35,12 @@ import { MatchFormation } from '../formation/entities/formation.entity';
             TeamStats,
             EmailVerification,
             TeamJoinRequestToken,
-            MatchFormation
+            MatchFormation,
         ]),
         AuthModule,
+        AwsModule,
     ],
     controllers: [MatchController],
-    providers: [
-        MatchService,
-        EmailService,
-        AuthService,
-        JwtService,
-        UserService,
-        AwsService,
-        RedisService,
-    ],
+    providers: [MatchService, EmailService, AuthService, JwtService, UserService, RedisService],
 })
 export class MatchModule {}

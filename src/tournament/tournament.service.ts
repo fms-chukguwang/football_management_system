@@ -13,14 +13,12 @@ export class TournamentService {
     constructor(
         @InjectRepository(TournamentModel)
         private tournamentRepository: Repository<TournamentModel>,
-        @InjectRepository(TeamModel)
-        private teamRepository: Repository<TeamModel>,
         private readonly loggingService: LoggingService,
         private readonly entityManager: EntityManager,
     ) {}
 
-    createTournament(createTournamentDto: CreateTournamentDto) {
-        return this.tournamentRepository.save(createTournamentDto);
+    async createTournament(createTournamentDto: CreateTournamentDto) {
+        return await this.tournamentRepository.save(createTournamentDto);
     }
 
     async applyTournament(tournamentId: number, teamId: number) {
@@ -68,8 +66,9 @@ export class TournamentService {
                 where: { id: teamId },
             });
 
+            console.log('team from ', team);
             if (!team) {
-                throw new Error('존재하지 않는 팀입니다.');
+                return '존재하지 않는 팀입니다.';
             }
 
             // TypeORM의 save 메소드를 사용하여 ManyToMany 관계를 업데이트

@@ -68,46 +68,20 @@ export class TeamController {
     }
 
     /**
-     * 팀 전체조회
-     * @param req
-     */
-
-    // @Get()
-    // async getEveryTeams() {
-    //     console.log('전체 조회');
-
-    //     const teams = await this.teamService.getTeams();
-    //     if (!teams) {
-    //         throw new NotFoundException('팀을 찾을 수 없습니다.');
-    //     }
-    //     return teams;
-    // }
-
-    /**
      * 팀 목록 조회
      * @param query
      * @returns
      */
     @Get('')
     async getTeam(@Query() dto: PaginateTeamDto) {
-        
-        return await this.teamService.getTeam(dto, dto.name, dto.isMixedGender, dto.region, dto.gender);
+        return await this.teamService.getTeam(
+            dto,
+            dto.name,
+            dto.isMixedGender,
+            dto.region,
+            dto.gender,
+        );
     }
-
-    /**
-     * 성별 따른 팀 목록 조회
-     * @param req
-     * @param query
-     * @returns
-     */
-    //    @ApiBearerAuth()
-    //    @UseGuards(JwtAuthGuard)
-    //    @Get('/list/gender')
-    //    async getTeamByGender(@Request() req, @Query() dto: PaginateTeamDto) {
-    //     const userId = req.user.id;
-    //     return  await this.teamService.getTeamByGender(userId, dto, dto.name);
-
-    //    }
 
     /**
      * 팀 정보 수정
