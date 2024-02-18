@@ -495,23 +495,31 @@ export class MatchService {
      * @returns
      */
     async getMembers(teamId: number) {
-        const members = await this.memberRepository.find({
-            relations: {
-                team: true,
-                user: true,
-            },
-            select: {
-                id: true,
-                user: {
-                    name: true,
-                },
-            },
-            where: {
-                team: {
-                    id: teamId,
-                },
-            },
-        });
+        // const members = await this.memberRepository.find({
+        //     relations: {
+        //         team: true,
+        //         user: true,
+        //     },
+        //     select: {
+        //         id: true,
+        //         user: {
+        //             name: true,
+        //         },
+        //     },
+        //     where: {
+        //         team: {
+        //             id: teamId,
+        //         },
+        //     },
+        // });
+
+        const members = await this.memberRepository
+        .createQueryBuilder("member")
+        .leftJoinAndSelect("member.user", "user")
+        .leftJoinAndSelect("member.team", "team")
+        .where("member.team_id = :teamId", { teamId })
+        .andWhere("member.deleted_at IS NULL") // deleted_at이 null인 조건 추가
+        .getMany();
 
         if (!members) {
             throw new BadRequestException('멤버 정보가 없습니다.');
