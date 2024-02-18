@@ -11,16 +11,6 @@ import { YellowAndRedCardsDto } from './dto/yellow-and-red-cards.dto';
 import { MemberRecordDto } from './dto/member-record.dto';
 import { MemberHistoryDto } from './dto/member-history.dto';
 
-type _Request = typeof globalThis extends { onmessage: any } ? {} : import('undici-types').Request;
-
-interface Request extends _Request {}
-var Request: typeof globalThis extends {
-    onmessage: any;
-    Request: infer T;
-}
-    ? T
-    : typeof import('undici-types').Request;
-
 describe('StatisticsController', () => {
     let controller: StatisticsController;
     let service: StatisticsService;

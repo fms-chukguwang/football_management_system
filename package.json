@@ -42,6 +42,8 @@
         "test:awsService": "jest --verbose src/aws/aws.service.spec.ts",
         "test:statisticsController": "jest --verbose src/statistics/statistics.controller.spec.ts",
         "test:statisticsService": "jest --verbose src/statistics/statistics.service.spec.ts",
+        "test:messagesController": "jest --verbose src/messages/messages.controller.spec.ts",
+        "test:messagesService": "jest --verbose src/messages/messages.service.spec.ts",
         "seed": "ts-node src/seed.ts",
         "seed:ho0": "ts-node -r tsconfig-paths/register ./node_modules/typeorm-extension/bin/cli.cjs seed:run",
         "seed:match": "ts-node -r tsconfig-paths/register src/database/seeds/match.seeder.ts",
