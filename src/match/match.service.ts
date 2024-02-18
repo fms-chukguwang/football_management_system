@@ -1387,7 +1387,7 @@ export class MatchService {
         return member;
     }
 
-    private async teamTotalGames(teamId: number) {
+    async teamTotalGames(teamId: number) {
         const teamStats = await this.teamStatsRepository.findOne({
             select: ['wins', 'loses', 'draws', 'total_games'],
             where: { team_id: teamId },
@@ -1488,18 +1488,24 @@ export class MatchService {
             }
             // 골 정보
             let goals = 0;
-            for (let i = 0; i < rs.goals.length; i++) {
-                goals += rs.goals[i].count;
+            if (rs.goals) {
+                for (let i = 0; i < rs.goals.length; i++) {
+                    goals += rs.goals[i].count;
+                }
             }
+
 
             let saves = 0;
-            for (let i = 0; i < rs.saves.length; i++) {
-                saves += rs.saves[i].count;
+            if (rs.saves) {
+                for (let i = 0; i < rs.saves.length; i++) {
+                    saves += rs.saves[i].count;
+                }
             }
 
+
             rs['counted_goals'] = goals;
-            rs['counted_yellow_cards'] = rs.yellow_cards.length;
-            rs['counted_red_cards'] = rs.red_cards.length;
+            rs['counted_yellow_cards'] = rs.yellow_cards ? rs.yellow_cards.length : 0;
+            rs['counted_red_cards'] = rs.red_cards ? rs.red_cards.length : 0;
             rs['counted_saves'] = saves;
             delete rs.goals;
             delete rs.yellow_cards;
