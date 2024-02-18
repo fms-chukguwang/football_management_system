@@ -6,25 +6,29 @@ import { UserService } from '../user/user.service';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { faker } from '@faker-js/faker';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 
 describe('AuthController', () => {
   let authController: AuthController;
   let authService: AuthService;
   let emailService: EmailService;
   let userService: UserService;
+  let configService: ConfigService;
+
   let app: INestApplication;
   
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
-      providers: [AuthService, EmailService, UserService],
+      providers: [AuthService, EmailService, UserService, ConfigService, JwtService],
     }).compile();
 
     authController = module.get<AuthController>(AuthController);
     authService = module.get<AuthService>(AuthService);
     emailService = module.get<EmailService>(EmailService);
     userService = module.get<UserService>(UserService);
-
+    configService = module.get<ConfigService>(ConfigService);
     app = module.createNestApplication();
     await app.init();
   });
