@@ -26,8 +26,8 @@ export class StatisticsController {
      */
     @Get('statistics/:teamId')
     getTeamStats(@Param('teamId') teamId: number) {
-        //return this.statisticsService.getTeamStats(teamId);
-        return this.statsTestService.getTeamStats(teamId);
+        return this.statisticsService.getTeamStats(teamId);
+        //return this.statsTestService.getTeamStats(teamId);
     }
 
     /**
@@ -38,8 +38,8 @@ export class StatisticsController {
     @Get('statistics/:teamId/top-player')
     async getTopPlayer(@Param('teamId') teamId: number) {
         try {
-            //const topPlayers = await this.statisticsService.getTopPlayer(teamId);
-            const topPlayers = await this.statsTestService.getTopPlayer(teamId);
+            const topPlayers = await this.statisticsService.getTopPlayer(teamId);
+            //const topPlayers = await this.statsTestService.getTopPlayer(teamId);
 
             return topPlayers;
         } catch (err) {
@@ -55,8 +55,8 @@ export class StatisticsController {
     @Get('team/:teamId/players')
     getPlayers(@Param('teamId') teamId: number) {
         try {
-            //return this.statisticsService.getPlayers(teamId);
-            return this.statsTestService.getPlayers(teamId);
+            return this.statisticsService.getPlayers(teamId);
+            //return this.statsTestService.getPlayers(teamId);
         } catch (err) {
             throw new InternalServerErrorException();
         }
@@ -78,8 +78,8 @@ export class StatisticsController {
      */
     @Get('team/:teamId/cards')
     getYellowAndRedCards(@Param('teamId') teamId: number) {
-        //return this.statisticsService.getYellowAndRedCards(teamId);
-        return this.statsTestService.getYellowAndRedCards(teamId);
+        return this.statisticsService.getYellowAndRedCards(teamId);
+        //return this.statsTestService.getYellowAndRedCards(teamId);
     }
 
     /**
