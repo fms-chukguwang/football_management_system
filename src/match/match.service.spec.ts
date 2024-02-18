@@ -138,6 +138,7 @@ describe('MatchService', () => {
             id: 1,
         }),
         save:jest.fn(),
+        update:jest.fn(),
         findOne:jest.fn()
     };
     const mockSoccerFieldRepository = {
@@ -147,7 +148,17 @@ describe('MatchService', () => {
 
     const mockDataSource = { 
         createQueryRunner: jest.fn(),
-        query: jest.fn()
+        query: jest.fn(),
+        connect: jest.fn().mockResolvedValue(undefined),
+        startTransaction: jest.fn().mockResolvedValue(undefined),
+        manager: {
+          save: jest.fn().mockResolvedValue(undefined),
+          update: jest.fn().mockResolvedValue(undefined), // update 메서드 모킹 추가
+          // 필요한 다른 메서드들도 모킹...
+        },
+        commitTransaction: jest.fn().mockResolvedValue(undefined),
+        rollbackTransaction: jest.fn().mockResolvedValue(undefined),
+        release: jest.fn().mockResolvedValue(undefined),
     };
 
     beforeEach(async () => {
@@ -813,7 +824,7 @@ describe('MatchService', () => {
             await expect(service.resultMatchCreate(userId, matchId, mockCreateMatchResultDto)).rejects.toThrow(NotFoundException);
         });
     
-        it('트랜잭션 중 오류가 발생하면 NotFoundException 던져야 한다', async () => {
+        it('트랜잭션 중 오류가 발생하면 NotFoundException 던지고 롤백 한다', async () => {
             const userId = 1;
             const matchId = 1;
             // 트랜잭션 중 오류를 던지도록 설정
@@ -832,8 +843,48 @@ describe('MatchService', () => {
             });
             
             await expect(service.resultMatchCreate(userId, matchId, mockCreateMatchResultDto)).rejects.toThrow(NotFoundException);
-            
+      });
+
+        
+      it('트랜잭션 중 오류가 발생하면 롤백이 수행되어야 한다', async () => {
+
+        const queryRunnerMock = {
+          connect: jest.fn().mockResolvedValue(undefined),
+          startTransaction: jest.fn().mockResolvedValue(undefined),
+          manager: {
+            save: jest.fn().mockResolvedValue(undefined),
+          },
+          commitTransaction: jest.fn().mockResolvedValue(undefined),
+          rollbackTransaction: jest.fn().mockResolvedValue(undefined),
+          release: jest.fn().mockResolvedValue(undefined),
+        };
+
+        const userId = 1;
+        const matchId = 1;
+  
+        // 모의 구현
+        jest.spyOn(service, 'findIfMatchOver').mockResolvedValue(true);
+        jest.spyOn(service, 'verifyTeamCreator').mockResolvedValue([{ id: userId } as any]);
+        jest.spyOn(service, 'verifyOneMatch').mockResolvedValue({ id: matchId } as Match);
+        jest.spyOn(service, 'isMatchDetail').mockResolvedValue(null);
+        jest.spyOn(service, 'chkResultMember').mockResolvedValue(true as any);
+        // jest.spyOn(queryRunnerMock.manager, 'save').mockImplementation(() => {
+        //   throw new InternalServerErrorException('서버 에러가 발생했습니다.');
+        // });
+
+        mockDataSource.createQueryRunner().manager.save.mockImplementation(() => {
+          throw new Error('DB Error');
         });
+
+        await expect(service.resultMatchCreate(userId, matchId, mockCreateMatchResultDto))
+            .rejects
+            .toThrow(InternalServerErrorException); // 롤백이 수행된 후 InternalServerErrorException이 발생해야 합니다.
+
+        const queryRunner = mockDataSource.createQueryRunner();
+        expect(queryRunner.startTransaction).toHaveBeenCalled();
+        expect(queryRunner.rollbackTransaction).toHaveBeenCalled();
+        expect(queryRunner.release).toHaveBeenCalled();
+    });
       
     });
 
@@ -972,6 +1023,40 @@ describe('MatchService', () => {
             // 필요한 경우 여기에 추가 선수 결과를 포함
           ],
         };
+
+        const queryRunnerMock = {
+          connect: jest.fn().mockResolvedValue(undefined),
+          startTransaction: jest.fn().mockResolvedValue(undefined),
+          manager: {
+            save: jest.fn().mockResolvedValue(undefined),
+            update: jest.fn().mockResolvedValue(undefined), // update 메서드 모킹 추가
+            // 필요한 다른 메서드들도 모킹...
+          },
+          commitTransaction: jest.fn().mockResolvedValue(undefined),
+          rollbackTransaction: jest.fn().mockResolvedValue(undefined),
+          release: jest.fn().mockResolvedValue(undefined),
+        };
+
+        beforeEach(() => {
+  
+          mockDataSource.createQueryRunner = jest.fn().mockReturnValue({
+            connect: jest.fn().mockResolvedValue(undefined),
+            startTransaction: jest.fn().mockResolvedValue(undefined),
+            manager: {
+              save: jest.fn().mockResolvedValue(undefined),
+              update: jest.fn().mockResolvedValue(undefined), // update 메서드 모킹 추가
+              // 필요한 다른 메서드들도 모킹...
+            },
+            commitTransaction: jest.fn().mockResolvedValue(undefined),
+            rollbackTransaction: jest.fn().mockResolvedValue(undefined),
+            release: jest.fn().mockResolvedValue(undefined),
+          });
+
+          jest.spyOn(service, 'findIfMatchOver').mockResolvedValue(true);
+          jest.spyOn(service, 'verifyTeamCreator').mockResolvedValue([{ id: userId } as any]);
+          jest.spyOn(service, 'verifyOneMatch').mockResolvedValue({ id: matchId } as Match);
+          jest.spyOn(service, 'isTeamMember').mockResolvedValue(true as any);
+      });
     
         it('경기 후 선수 기록 및 팀별 기록 업데이트 성공 시나리오', async () => {
           jest.spyOn(service, 'findIfMatchOver').mockResolvedValue(true);
@@ -983,18 +1068,6 @@ describe('MatchService', () => {
           mockTeamStatsRepository.create.mockImplementation((data) => data);
           mockTeamStatsRepository.save.mockResolvedValue({});
 
-          const queryRunnerMock = {
-            connect: jest.fn().mockResolvedValue(undefined),
-            startTransaction: jest.fn().mockResolvedValue(undefined),
-            manager: {
-              save: jest.fn().mockResolvedValue(undefined),
-              update: jest.fn().mockResolvedValue(undefined), // update 메서드 모킹 추가
-              // 필요한 다른 메서드들도 모킹...
-            },
-            commitTransaction: jest.fn().mockResolvedValue(undefined),
-            rollbackTransaction: jest.fn().mockResolvedValue(undefined),
-            release: jest.fn().mockResolvedValue(undefined),
-          };
           mockDataSource.createQueryRunner.mockReturnValue(queryRunnerMock);
     
           await service.resultMathfinal(userId, matchId, resultMembersDto);
@@ -1003,6 +1076,50 @@ describe('MatchService', () => {
           // 여기에 더 많은 검증을 추가할 수 있습니다.
         });
 
+        it('트랜잭션 중 에러 발생 시 롤백이 이루어져야 한다', async () => {
+
+          mockDataSource.createQueryRunner.mockReturnValue(queryRunnerMock);
+
+          queryRunnerMock.manager.save.mockImplementation(() => {
+            throw new Error('DB Error');
+          });
+        
+          await expect(service.resultMathfinal(userId, matchId, resultMembersDto)).rejects.toThrow();
+        
+          expect(queryRunnerMock.rollbackTransaction).toHaveBeenCalled();
+
+          expect(queryRunnerMock.release).toHaveBeenCalled();
+        });
+
+    //     it('팀 통계가 정상적으로 업데이트 되어야 한다', async () => {
+    //       jest.spyOn(service, 'teamTotalGames').mockResolvedValue({ total_games: 1 } as any);
+    //       jest.spyOn(service, 'verifyOneMatch').mockResolvedValue({ id: matchId } as any);
+    //       jest.spyOn(mockTeamStatsRepository, 'findOne').mockResolvedValue({ wins: 0, loses: 0, draws: 0, total_games: 1 });
+    //       mockTeamStatsRepository.update.mockResolvedValue({});
+      
+    //       await service.resultMathfinal(userId, matchId, resultMembersDto);
+      
+    //       expect(mockTeamStatsRepository.update).toHaveBeenCalled();
+    //       expect(mockTeamStatsRepository.update).toHaveBeenCalledWith(
+    //           { team_id: 1, id: expect.any(Number) },
+    //           expect.objectContaining({
+    //               wins: expect.any(Number),
+    //               loses: expect.any(Number),
+    //               draws: expect.any(Number),
+    //               total_games: expect.any(Number),
+    //           }),
+    //       );
+    //   });
+
+    //   it('경기 결과가 이미 존재할 경우 NotFoundException을 던져야 한다', async () => {
+    //     jest.spyOn(service, 'matchResultCount').mockResolvedValue({ count: 2 } as any); // 이미 두 팀의 결과가 등록되어 있음
+    //     jest.spyOn(service, 'verifyOneMatch').mockResolvedValue({ id: matchId } as any);
+    
+    //     await expect(service.resultMathfinal(userId, matchId, resultMembersDto)).rejects.toThrow(NotFoundException);
+    
+    //     expect(service.matchResultCount).toHaveBeenCalledWith(matchId);
+    // });    
+      
         // it('팀 통계가 없으면 새로운 통계를 생성해야 한다', async () => {
         //     // 필요한 모킹
         //     //jest.spyOn(service, 'teamTotalGames').mockResolvedValue(undefined as any); // 팀 통계가 없음을 가정
@@ -1787,24 +1904,135 @@ describe('MatchService', () => {
           expect(mockMatchResultRepository.find).toHaveBeenCalledWith(expect.any(Object));
           expect(mockMatchRepository.findOne).toHaveBeenCalledWith({ where: { id: matchId } });
         });
+
+        it('경기 결과에 homeTeamId와 awayTeamId가 정확하게 매핑되어야 한다', async () => {
+
+          // 반환 타입 정의
+          interface MatchResult {
+            home?: MatchTeamResult; // home 팀 결과, 존재하지 않을 수도 있으므로 optional
+            away?: MatchTeamResult; // away 팀 결과, 존재하지 않을 수도 있으므로 optional
+            date: string;
+            time: string;
+          }
+
+          interface MatchTeamResult {
+            team_id: number;
+            counted_goals: number;
+            // ...기타 필요한 속성들
+          }
+
+          const homeTeamId = 1;
+          const awayTeamId = 2;
+          const matchId = 3;
+          const mockResults = [
+            { team_id: homeTeamId, goals: [{ count: 2 }], yellow_cards: [], red_cards: [], saves: [{ count: 1 }] },
+            { team_id: awayTeamId, goals: [{ count: 1 }], yellow_cards: [], red_cards: [], saves: [{ count: 3 }] }
+        ];
+          const mockMatch = {
+            id: matchId,
+            home_team_id: 1,
+            away_team_id: 2,
+            date: '2023-01-01',
+            time: '15:00:00',
+          };
+
+          mockMatchResultRepository.find.mockResolvedValue(mockResults);
+          mockMatchRepository.findOne.mockResolvedValue(mockMatch);
+
+          const result = await service.getMatchResultByMatchId(matchId, homeTeamId) as MatchResult;
+
+          expect(result.home).toBeDefined();
+          expect(result.away).toBeDefined();
+          expect(result.home.team_id).toEqual(homeTeamId);
+          expect(result.away.team_id).toEqual(awayTeamId);
+  
+          // // service.getMatchResultByMatchId를 호출하여 결과를 받아온다.
+          // const resultHome = await service.getMatchResultByMatchId(matchId, homeTeamId);
+          // const resultAway = await service.getMatchResultByMatchId(matchId, awayTeamId);
+  
+          // // 결과 검증: homeTeamId와 awayTeamId가 기대하는 값으로 설정되어 있는지 확인한다.
+          // expect(resultHome[0].home_team_id).toEqual(homeTeamId);
+          // expect(resultHome[0].away_team_id).toEqual(awayTeamId);
+          // expect(resultAway[0].home_team_id).toEqual(awayTeamId);
+          // expect(resultAway[0].away_team_id).toEqual(homeTeamId);
+      });
+  
+      it('경기 결과의 goals와 saves를 정확하게 계산하여 반영해야 한다', async () => {
+
+          // 반환 타입 정의
+          interface MatchResult {
+            home?: MatchTeamResult; // home 팀 결과, 존재하지 않을 수도 있으므로 optional
+            away?: MatchTeamResult; // away 팀 결과, 존재하지 않을 수도 있으므로 optional
+            date: string;
+            time: string;
+          }
+
+          interface MatchTeamResult {
+            team_id: number;
+            counted_goals: number;
+            counted_saves: number;
+            yellow_cards:number;
+            red_cards:number;
+            saves:[{count:number}]
+            goals:[{count:number}]
+            // ...기타 필요한 속성들
+          }
+
+          const matchId = 3;
+          const homeTeamId = 1;
+          const awayTeamId = 2;
+          const mockResults = [
+            { team_id: homeTeamId, goals: [{ count: 2 }], yellow_cards: [], red_cards: [], saves: [{ count: 1 }] },
+            { team_id: awayTeamId, goals: [{ count: 1 }], yellow_cards: [], red_cards: [], saves: [{ count: 3 }] }
+        ];
+          const mockMatch = {
+            id: matchId,
+            home_team_id: 1,
+            away_team_id: 2,
+            date: '2023-01-01',
+            time: '15:00:00',
+          };
+
+          mockMatchResultRepository.find.mockResolvedValue(mockResults);
+          mockMatchRepository.findOne.mockResolvedValue(mockMatch);
+
+          // 함수 실행
+          const result = await service.getMatchResultByMatchId(matchId, homeTeamId) as MatchResult;
+
+          // 결과 검증
+          expect(result.home?.counted_goals).toBe(2); // 홈 팀의 총 골 수 검증
+          expect(result.home?.counted_saves).toBe(1); // 홈 팀의 총 세이브 수 검증
+          expect(result.away?.counted_goals).toBe(1); // 어웨이 팀의 총 골 수 검증
+          expect(result.away?.counted_saves).toBe(3); // 어웨이 팀의 총 세이브 수 검증
+  
+          // // service.getMatchResultExist(matchId)를 호출하여 결과를 받아온다.
+          // const resultHome = await service.getMatchResultByMatchId(matchId, homeTeamId) as MatchResult;
+          // const resultAway = await service.getMatchResultByMatchId(matchId, awayTeamId) as MatchResult;
+  
+          // // 결과 검증: goals와 saves의 합이 정확하게 반영되어 있는지 확인한다.
+          // expect(resultHome.home?.counted_goals).toEqual(2); // 첫 번째 팀의 총 골 수
+          // expect(resultHome.home?.counted_saves).toEqual(1); // 첫 번째 팀의 총 세이브 수
+          // expect(resultAway.away?.counted_goals).toEqual(1); // 두 번째 팀의 총 골 수
+          // expect(resultAway.away?.counted_saves).toEqual(3); // 두 번째 팀의 총 세이브 수
+      });
       
-        it('경기 결과가 존재하지 않을 경우, NotFoundException을 발생시켜야 한다', async () => {
-          const matchId = 2;
-          const teamId = 1;
-      
-          mockMatchResultRepository.find.mockResolvedValue(undefined);
-          mockMatchRepository.findOne.mockResolvedValue(undefined);
-      
-          await expect(service.getMatchResultByMatchId(matchId, teamId)).rejects.toThrow(NotFoundException);
-      
-          //expect(mockMatchResultRepository.find).toHaveBeenCalledWith(expect.any(Object));
-          expect(mockMatchResultRepository.find).toHaveBeenCalledWith({
-            where: { match_id: matchId },
-            relations: { match: true },
-            select: expect.any(Object),
+      it('경기 결과가 존재하지 않을 경우, NotFoundException을 발생시켜야 한다', async () => {
+        const matchId = 2;
+        const teamId = 1;
+    
+        mockMatchResultRepository.find.mockResolvedValue(undefined);
+        mockMatchRepository.findOne.mockResolvedValue(undefined);
+    
+        await expect(service.getMatchResultByMatchId(matchId, teamId)).rejects.toThrow(NotFoundException);
+    
+        //expect(mockMatchResultRepository.find).toHaveBeenCalledWith(expect.any(Object));
+        expect(mockMatchResultRepository.find).toHaveBeenCalledWith({
+          where: { match_id: matchId },
+          relations: { match: true },
+          select: expect.any(Object),
         });
-          expect(mockMatchRepository.findOne).toHaveBeenCalledWith({ where: { id: matchId } });
-        });
+        expect(mockMatchRepository.findOne).toHaveBeenCalledWith({ where: { id: matchId } });
+      });
       
         // 추가적인 테스트 케이스를 여기에 구현할 수 있습니다.
     });
