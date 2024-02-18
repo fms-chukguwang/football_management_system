@@ -52,37 +52,19 @@ export class FormationService {
             match_id: matchId,
           };
         
-          // position 변수가 제공되면 where 조건에 추가
-          if (id) {
-            whereCondition['member_id'] = id;
-          }
-        
-          const matchFormation = await this.matchFormationRepository.find({
-            where: whereCondition,
-            relations: {
-              member: true,
-            },
-          });
-
-        if (!matchFormation) {
-            throw new NotFoundException('팀별 포메이션 정보가 없습니다.');
+        // position 변수가 제공되면 where 조건에 추가
+        if (id) {
+        whereCondition['member_id'] = id;
         }
 
-        
-        // 각 member에 대해 user 정보를 불러옵니다.
-        for (const formation of matchFormation) {
-            if (formation.member) {
-                const memberInfo = await this.memberRepository.findOne({
-                    where:{
-                        id:formation.member.id
-                    },relations:{
-                        user:true
-                    }
-                });
-
-                formation.member.user = memberInfo.user; // 여기서 user 정보를 member 객체에 할당
-            }
-        }
+        const matchFormation = await this.matchFormationRepository
+        .createQueryBuilder("matchFormation")
+        .innerJoinAndSelect("matchFormation.member", "member", "member.deleted_at IS NULL")
+        .leftJoinAndSelect("member.user", "user") // 여기서는 LEFT JOIN을 사용하여 user 정보는 있으면 가져오고 없으면 무시합니다.
+        .where("matchFormation.team_id = :teamId", { teamId })
+        .andWhere("matchFormation.match_id = :matchId", { matchId })
+        .andWhere(id ? "matchFormation.member_id = :id" : "1=1", { id })
+        .getMany();
 
         return matchFormation;
     }
@@ -103,7 +85,6 @@ export class FormationService {
         await queryRunner.startTransaction();
 
         try{
-            console.log('11111111111111')
             // 조회한 모든 기존 포메이션 정보를 삭제
             if (matchFormation.length > 0) {
                 await queryRunner.manager.delete('match_formations', {
@@ -203,23 +184,48 @@ export class FormationService {
 
         `,[teamId,teamId]);
 
-        const result = await Promise.all(
+        // const result = await Promise.all(
+        //     rawResults.map(async (member) => {
+        //         // const memberData =  await this.memberRepository.findOne({
+        //         //     relations:{
+        //         //         user: true
+        //         //     },
+        //         //     select : {
+        //         //         user:{
+        //         //             name: true
+        //         //         }
+        //         //     },where :{
+        //         //         id:member.member_id,
+        //         //         deleted_at: null
+        //         //     }
+        //         // });
+        //         const memberData = await this.memberRepository
+        //         .createQueryBuilder("member")
+        //         .leftJoinAndSelect("member.user", "user")
+        //         .where("member.id = :id", { id: member.member_id })
+        //         .andWhere("member.deleted_at IS NULL") // deleted_at이 NULL인 조건을 추가
+        //         .select([
+        //             "member.id",
+        //             "user.name"
+        //         ])
+        //         .getOne();
+        //         return { ...member, memberData};
+        //     }),
+        // );
+
+        const result = (await Promise.all(
             rawResults.map(async (member) => {
-                const memberData =  await this.memberRepository.findOne({
-                    relations:{
-                        user: true
-                    },
-                    select : {
-                        user:{
-                            name: true
-                        }
-                    },where :{
-                        id:member.member_id
-                    }
-                });
-                return { ...member, memberData};
+                const memberData = await this.memberRepository
+                    .createQueryBuilder("member")
+                    .leftJoinAndSelect("member.user", "user")
+                    .where("member.id = :id", { id: member.member_id })
+                    .andWhere("member.deleted_at IS NULL")
+                    .select(["member.id", "user.name"])
+                    .getOne();
+        
+                return memberData ? { ...member, memberData } : null;
             }),
-        );
+        )).filter(item => item !== null); // `null`인 항목을 결과에서 제외
 
         return result;
     }
