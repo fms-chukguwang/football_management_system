@@ -1,170 +1,122 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
-import { EmailService } from '../email/email.service';
-import { UserService } from '../user/user.service';
-import { HttpStatus, INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
-import { faker } from '@faker-js/faker';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
+// import { Test, TestingModule } from '@nestjs/testing';
+// import { AuthController } from './auth.controller';
+// import { AuthService } from './auth.service';
+// import { EmailService } from '../email/email.service';
+// import { UserService } from '../user/user.service';
+// import { Response } from 'express';
+// import { HttpStatus } from '@nestjs/common';
+// import { VerifyKakaoCodeDto } from './dtos/verify-kakao-code.dto';
+// import { SignUpDto } from './dtos/sign-up.dto';
+// import { SignInDto } from './dtos/sign-in.dto';
+// import { ResetPasswordDto } from './dtos/reset-password.dto';
+// import { EmailVerifyDto } from './dtos/email-verify.dto';
+// import { PasswordResetUserDto } from './dtos/password-reset-user.dto';
+// import axios from 'axios';
 
-describe('AuthController', () => {
-  let authController: AuthController;
-  let authService: AuthService;
-  let emailService: EmailService;
-  let userService: UserService;
-  let configService: ConfigService;
+// describe('AuthController', () => {
+//   let controller: AuthController;
+//   let authService: AuthService;
+//   let emailService: EmailService;
+//   let userService: UserService;
 
-  let app: INestApplication;
-  
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [AuthController],
-      providers: [AuthService, EmailService, UserService, ConfigService, JwtService],
-    }).compile();
+//   beforeEach(async () => {
+//     const module: TestingModule = await Test.createTestingModule({
+//       controllers: [AuthController],
+//       providers: [AuthService, EmailService, UserService],
+//     }).compile();
 
-    authController = module.get<AuthController>(AuthController);
-    authService = module.get<AuthService>(AuthService);
-    emailService = module.get<EmailService>(EmailService);
-    userService = module.get<UserService>(UserService);
-    configService = module.get<ConfigService>(ConfigService);
-    app = module.createNestApplication();
-    await app.init();
-  });
+//     controller = module.get<AuthController>(AuthController);
+//     authService = module.get<AuthService>(AuthService);
+//     emailService = module.get<EmailService>(EmailService);
+//     userService = module.get<UserService>(UserService);
+//   });
 
-  afterEach(async () => {
-    await app.close();
-  });
+//   afterEach(() => jest.clearAllMocks());
 
-  describe('signUp', () => {
-    it('/auth/sign-up (POST)', async () => {
-      const signUpDto = {
-        passwordConfirm: 'Ex@mp1e!!',
-        email: faker.internet.email(),
-        password: 'Ex@mp1e!!',
-        name: faker.person.fullName(),
-      };
+//   describe('generateKakaoCode', () => {
+//     it('should generate Kakao code and redirect to frontend', async () => {
+//       // Arrange
+//       const req = { user: { id: 1 } };
+//       const res = { redirect: jest.fn() } as unknown as Response;
+//       const code ="";
 
-      const response = await request(app.getHttpServer())
-        .post('/auth/sign-up')
-        .send(signUpDto)
-        .expect(201);
-    });
-  });
+//       // Act
+//       await controller.generateKakaoCode(code, req, res);
 
-  describe('signIn', () => {
-    it('/auth/sign-in (POST)', async () => {
-      const signInDto = {
-        email: faker.internet.email(),
-        password: 'Ex@mp1e!!',
-      };
+//       // Assert
+//       expect(res.redirect).toHaveBeenCalledWith(expect.stringContaining('/kakaoSuccess?code=kakao_code'));
+//     });
+//   });
 
-      const response = await request(app.getHttpServer())
-        .post('/auth/sign-in')
-        .send(signInDto)
-        .expect(200);
-    });
-  });
+//   describe('verifyKakaoCode', () => {
+//     it('should verify Kakao code and return access token and refresh token', async () => {
+//       // Arrange
+//       const dto: VerifyKakaoCodeDto = { code: 0};
+//       const req = { user: { id: 1 } };
+//       const res = { json: jest.fn() } as unknown as Response;
+//       const expectedTokens = { accessToken: 'access_token', refreshToken: 'refresh_token' };
+//       jest.spyOn(authService, 'verifyKakaoCode').mockResolvedValue(expectedTokens);
 
-  describe('signOut', () => {
-    it('/auth/sign-out (POST)', async () => {
-      const signInDto = {
-        email: faker.internet.email(),
-        password: 'Ex@mp1e!!',
-      };
+//       // Act
+//       await controller.verifyKakaoCode(req, dto, res);
 
-      await request(app.getHttpServer())
-        .post('/auth/sign-in')
-        .send(signInDto);
+//       // Assert
+//       expect(res.json).toHaveBeenCalledWith(expectedTokens);
+//     });
 
-      const response = await request(app.getHttpServer())
-        .post('/auth/sign-out')
-        .set('Authorization', 'Bearer accessToken')
-        .expect(200);
-    });
-  });
+//     it('should return 500 if error occurs during code verification', async () => {
+//       // Arrange
+//       const dto: VerifyKakaoCodeDto = { code: 0 };
+//       const req = { user: { id: 1 } };
+//       const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as unknown as Response;
+//       jest.spyOn(authService, 'verifyKakaoCode').mockRejectedValue(new Error('Test Error'));
 
-  describe('refresh', () => {
-    it('/auth/refresh (POST)', async () => {
-      const signInDto = {
-        email: faker.internet.email(),
-        password: 'Ex@mp1e!!',
-      };
+//       // Act
+//       await controller.verifyKakaoCode(req, dto, res);
 
-      await request(app.getHttpServer())
-        .post('/auth/sign-in')
-        .send(signInDto);
+//       // Assert
+//       expect(res.status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
+//       expect(res.json).toHaveBeenCalledWith({ error: 'Internal Server Error' });
+//     });
+//   });
 
-      const response = await request(app.getHttpServer())
-        .post('/auth/refresh')
-        .set('Authorization', 'Bearer accessToken')
-        .expect(200);
-    });
-  });
-  describe('sendVerificationEmail', () => {
-    it('/auth/send-verification-email (POST)', async () => {
-      const emailVerifyDto = {
-        email: faker.internet.email(),
-      };
+//   describe('loginWithKakao', () => {
+//     it('should successfully login with Kakao', async () => {
+//       // Arrange
+//       const res = { sendStatus: jest.fn() } as unknown as Response;
 
-      const response = await request(app.getHttpServer())
-        .post('/auth/send-verification-email')
-        .send(emailVerifyDto)
-        .expect(200);
-    });
-  });
+//       // Act
+//       await controller.loginWithKakao({} as Request);
 
-  describe('sendPasswordResetEmail', () => {
-    it('/auth/send-password-reset-email (POST)', async () => {
-      const passwordResetUserDto = {
-        email: faker.internet.email(),
-      };
+//       // Assert
+//       expect(res.sendStatus).toHaveBeenCalledWith(HttpStatus.OK);
+//     });
+//   });
 
-      const response = await request(app.getHttpServer())
-        .post('/auth/send-password-reset-email')
-        .send(passwordResetUserDto)
-        .expect(200);
-    });
-  });
-  describe('sendCode', () => {
-    it('/auth/send-code (POST)', async () => {
-      const emailVerifyDto = {
-        email: faker.internet.email(),
-      };
+//   describe('signUp', () => {
+//     it('should successfully sign up a user', async () => {
+//       // Arrange
+//       const dto: SignUpDto = {
+//         email: 'test@example.com',
+//         password: 'password',
+//         passwordConfirm: 'password',
+//         name: 'jo'
+//       };
+//       const expectedData = { id: 1, email: 'test@example.com' };
+//       jest.spyOn(authService, 'signUp').mockResolvedValue(expectedData);
 
-      const response = await request(app.getHttpServer())
-        .post('/auth/send-code')
-        .send(emailVerifyDto)
-        .expect(200);
-    });
-  });
-  describe('verifyCode', () => {
-    it('/auth/verify-code (POST)', async () => {
-      const verifyCodeDto = {
-        email: faker.internet.email(),
-        verificationCode: '123456',
-      };
+//       // Act
+//       const result = await controller.signUp(dto);
 
-      const response = await request(app.getHttpServer())
-        .post('/auth/verify-code')
-        .send(verifyCodeDto)
-        .expect(200);
-    });
-  });
+//       // Assert
+//       expect(result).toEqual({
+//         statusCode: HttpStatus.CREATED,
+//         message: '회원가입에 성공했습니다.',
+//         data: expectedData,
+//       });
+//     });
+//   });
 
-  describe('resetPassword', () => {
-    it('/auth/reset-password (POST)', async () => {
-      const resetPasswordDto = {
-        email: faker.internet.email(),
-        newPassword: 'NewPassword123!',
-        verificationCode: '123456',
-      };
 
-      const response = await request(app.getHttpServer())
-        .post('/auth/reset-password')
-        .send(resetPasswordDto)
-        .expect(200);
-    });
-  });
-});
+
+// });

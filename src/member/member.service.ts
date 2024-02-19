@@ -150,25 +150,25 @@ export class MemberService {
       
 
     //많은 멤버 한번에 추가하기
-    async registerManyMembers(teamId: number, userIds: number[]): Promise<Member[]> {
-        const users = await Promise.all(
-            userIds.map((userId) => this.userService.findOneById(userId)),
-        );
-        const existingMembers = await Promise.all(
-            users.map((user) => this.findMemberForUserId(user.id)),
-        );
+    // async registerManyMembers(teamId: number, userIds: number[]): Promise<Member[]> {
+    //     const users = await Promise.all(
+    //         userIds.map((userId) => this.userService.findOneById(userId)),
+    //     );
+    //     const existingMembers = await Promise.all(
+    //         users.map((user) => this.findMemberForUserId(user.id)),
+    //     );
 
-        const registerMembers = await Promise.all(
-            users.map((user) =>
-                this.memberRepository.save({
-                    user: { id: user.id },
-                    team: { id: teamId },
-                }),
-            ),
-        );
+    //     const registerMembers = await Promise.all(
+    //         users.map((user) =>
+    //             this.memberRepository.save({
+    //                 user: { id: user.id },
+    //                 team: { id: teamId },
+    //             }),
+    //         ),
+    //     );
 
-        return registerMembers;
-    }
+    //     return registerMembers;
+    // }
 
     /**
      * 멤버 찾기

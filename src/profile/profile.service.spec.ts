@@ -1,17 +1,20 @@
 import { NotFoundException } from "@nestjs/common/exceptions";
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { AwsService } from "src/aws/aws.service";
-import { CommonService } from "src/common/common.service";
-import { Gender } from "src/enums/gender.enum";
-import { LocationModel } from "src/location/entities/location.entity";
-import { Member } from "src/member/entities/member.entity";
-import { TeamModel } from "src/team/entities/team.entity";
-import { User } from "src/user/entities/user.entity";
-import { Repository } from "typeorm";
-import { PaginateProfileDto } from "./dtos/paginate-profile-dto";
-import { Profile } from "./entities/profile.entity";
+import { DataSource, Repository } from "typeorm";
 import { ProfileService } from "./profile.service";
+import { Profile } from "./entities/profile.entity";
+import { PaginateProfileDto } from "./dtos/paginate-profile-dto";
+import { User } from "src/user/entities/user.entity";
+import { Member } from "src/member/entities/member.entity";
+import { LocationModel } from "src/location/entities/location.entity";
+import { TeamModel } from "src/team/entities/team.entity";
+import { Gender } from "src/enums/gender.enum";
+import { CommonService } from "src/common/common.service";
+import { AwsService } from "src/aws/aws.service";
+import { ConfigService } from "@nestjs/config";
+import { RedisService } from "src/redis/redis.service";
+
 
 describe('ProfileService', () => {
   let service: ProfileService;
@@ -21,9 +24,21 @@ describe('ProfileService', () => {
   let locationRepository: Repository<LocationModel>;
 
   beforeEach(async () => {
+    const mockDataSource = {
+      getConnection: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProfileService,
+        CommonService,
+        AwsService,
+        ConfigService,
+        //RedisService,
+        {
+          provide: DataSource,
+          useValue: mockDataSource, 
+        },
         {
           provide: getRepositoryToken(Profile),
           useClass: Repository,
@@ -40,8 +55,6 @@ describe('ProfileService', () => {
           provide: getRepositoryToken(LocationModel),
           useClass: Repository,
         },
-        CommonService, 
-        AwsService, 
       ],
     }).compile();
 
@@ -51,6 +64,7 @@ describe('ProfileService', () => {
     memberRepository = module.get<Repository<Member>>(getRepositoryToken(Member));
     locationRepository = module.get<Repository<LocationModel>>(getRepositoryToken(LocationModel));
   });
+
 
   describe('paginateMyProfile', () => {
     it('should return null if the user is not a staff member', async () => {
@@ -116,8 +130,9 @@ describe('ProfileService', () => {
       const result = await service.paginateMyProfile(userId, mockDto);
 
       // Assertions
-     expect(profileRepository.findOne).toHaveBeenCalledWith({ where: { user: { id: userId } } });
-     expect(memberRepository.findOne).toHaveBeenCalledWith({ where: { user: { id: userId } } });
+      expect(result).toBe(mockProfile);
+      expect(profileRepository.findOne).toHaveBeenCalledWith({ where: { user: { id: userId } } });
+      expect(memberRepository.findOne).toHaveBeenCalledWith({ where: { user: { id: userId } } });
     });
   });
 
@@ -130,76 +145,105 @@ describe('ProfileService', () => {
         order__createdAt: 'ASC',
       };
 
-      // Call the service method
-      const result = await service.paginateProfile(1, mockDto, 'male', 'John Doe', 'New York');
+      // Mock profile data
+      const mockProfile = new Profile();
 
-       // Assertions
-      //expect(profileRepository.findOne).toHaveBeenCalledWith({ where: { user: { id: userId } } });
+      // Mock repository methods
+      jest.spyOn(profileRepository, 'findAndCount').mockResolvedValue([[mockProfile], 1]);
+
+      // Call the service method
+    //const result = await service.paginateProfile(1,1,1,mockProfile );
+
+      // Assertions
+     // expect(result).toEqual({ profiles: [mockProfile], totalCount: 1 });
+      expect(profileRepository.findAndCount).toHaveBeenCalledWith({
+        where: {
+          gender: 'male',
+          name: 'John Doe',
+          location: 'New York',
+        },
+        take: 10,
+        skip: 0,
+        order: { createdAt: 'ASC' },
+      });
     });
   });
 
   describe('paginateProfileHo', () => {
     it('should return paginated profiles based on team gender', async () => {
-      // Mock user data
-      const userId = 1;
-      const mockUser = new User();
-      mockUser.id = userId;
-
       // Mock team data
       const mockTeam = new TeamModel();
       mockTeam.gender = Gender.Male;
 
       // Mock profile data
       const mockProfile = new Profile();
-      mockProfile.user = mockUser;
       //mockProfile.team = mockTeam;
 
       // Mock repository methods
-      jest.spyOn(userRepository, 'findOne').mockResolvedValue(mockUser);
+      jest.spyOn(profileRepository, 'findAndCount').mockResolvedValue([[mockProfile], 1]);
 
       // Call the service method
-      //const result = await service.paginateProfileHo(userId, mockDto);
+     // const result = await service.paginateProfileHo(1, 10, 'ASC');
 
       // Assertions
-     
+      //expect(result).toEqual({ profiles: [mockProfile], totalCount: 1 });
+      expect(profileRepository.findAndCount).toHaveBeenCalledWith({
+        where: {
+          team: { gender: Gender.Male },
+        },
+        take: 10,
+        skip: 0,
+        order: { createdAt: 'ASC' },
+      });
     });
   });
 
   describe('searchProfile', () => {
     it('should return profiles matching the given name', async () => {
+      // Mock profile data
+      const mockProfile = new Profile();
+
       // Mock repository method
-      jest.spyOn(profileRepository, 'find').mockResolvedValue([]);
+      jest.spyOn(profileRepository, 'find').mockResolvedValue([mockProfile]);
 
       // Call the service method
       const result = await service.searchProfile('John Doe');
 
       // Assertions
-
+      expect(result).toEqual([mockProfile]);
+      expect(profileRepository.find).toHaveBeenCalledWith({ where: { name: 'John Doe' } });
     });
 
     it('should return all profiles if no name is provided', async () => {
+      // Mock profile data
+      const mockProfile = new Profile();
+
       // Mock repository method
-      jest.spyOn(profileRepository, 'find').mockResolvedValue([]);
+      jest.spyOn(profileRepository, 'find').mockResolvedValue([mockProfile]);
 
       // Call the service method
       const result = await service.searchProfile();
 
       // Assertions
-
+      expect(result).toEqual([mockProfile]);
+      expect(profileRepository.find).toHaveBeenCalledWith();
     });
   });
 
   describe('findAllProfiles', () => {
     it('should return all profiles', async () => {
+      // Mock profile data
+      const mockProfile = new Profile();
+
       // Mock repository method
-      jest.spyOn(profileRepository, 'find').mockResolvedValue([]);
+      jest.spyOn(profileRepository, 'find').mockResolvedValue([mockProfile]);
 
       // Call the service method
       const result = await service.findAllProfiles();
 
-     // Assertions
-     expect(result).toBeNull();
-     expect(profileRepository.findOne).toHaveBeenCalledWith({ where: { user: true }});
+      // Assertions
+      expect(result).toEqual([mockProfile]);
+      expect(profileRepository.find).toHaveBeenCalledWith();
     });
 
     it('should throw NotFoundException if no profiles are found', async () => {
@@ -208,15 +252,6 @@ describe('ProfileService', () => {
 
       // Call the service method and expect it to throw an exception
       await expect(service.findAllProfiles()).rejects.toThrow(NotFoundException);
-
-        // Assertions
-        expect(result).toBeNull();
-
     });
   });
-
 });
-function result(result: any) {
-  throw new Error("Function not implemented.");
-}
-

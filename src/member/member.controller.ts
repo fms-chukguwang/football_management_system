@@ -271,6 +271,11 @@ export class MemberController {
         return this.memberService.getMember(req['member'].team.id, req['member'].id);
     }
 
+       /**
+     * 멤버 강퇴
+     * @param req
+     * @returns
+     */
     @UseGuards(JwtAuthGuard)
     @Delete('team/:teamId/member/:memberId/expulsion')
     async expulsionMember(

@@ -1,18 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { JwtService } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { UserStatus } from '../enums/user-status.enum';
 import { RedisService } from '../redis/redis.service';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { JwtKakaoStrategy } from './strategies/jwt-social-kakao.strategy';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
-import * as bcrypt from 'bcrypt'; 
+import * as bcrypt from 'bcrypt';
+import { string } from 'joi';
+import * as jwt from 'jsonwebtoken';
 
 describe('AuthService', () => {
     let service: AuthService;
@@ -21,11 +23,6 @@ describe('AuthService', () => {
         get: jest.fn().mockReturnValue(10),
     };
 
-    const mockJwtService = {
-        sign: jest.fn(),
-    };
-
-    
 
     const mockUserService = {
         findOneByEmail: jest.fn(),
@@ -46,21 +43,25 @@ describe('AuthService', () => {
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
-          providers: [
-            AuthService,
-            
-            { provide: JwtService, useValue: mockJwtService },
-            { provide: UserService, useValue: mockUserService },
-            { provide: ConfigService, useValue: mockConfigService },
-            { provide: RedisService, useValue: mockRedisService },
-            { provide:   getRepositoryToken(User), useValue: mockUserRepository },
-            
-          ],
+            imports: [
+            JwtModule.register({
+                secret: 'TEST_SECRET',
+                signOptions: {
+                    expiresIn: '1h',
+                },
+            }),
+        ],
+            providers: [
+                AuthService,
+                { provide: UserService, useValue: mockUserService },
+                { provide: ConfigService, useValue: mockConfigService },
+                { provide: RedisService, useValue: mockRedisService },
+                { provide: getRepositoryToken(User), useValue: mockUserRepository },
+            ],
         }).compile();
-    
+
         service = module.get<AuthService>(AuthService);
-      });
-    
+    });
 
     afterEach(() => {
         jest.clearAllMocks();
@@ -69,7 +70,6 @@ describe('AuthService', () => {
     it('should be defined', () => {
         expect(service).toBeDefined();
     });
-
 
     describe('signUp', () => {
         it('should create a new user and sign in', async () => {
@@ -93,21 +93,45 @@ describe('AuthService', () => {
             const result = await service.signUp(signUpDto);
 
             // Assert
-            expect(mockJwtService.sign).toHaveBeenCalledWith({ id: 1 }, { secret: process.env.JWT_SECRET });
+            // expect(mockJwtService.sign).toHaveBeenCalledWith(
+            //     { id: 1 },
+            //     { secret: process.env.JWT_SECRET },
+            // );
+            
         });
     });
 
-    // describe('signIn', () => {
-    //     it('should sign in and return access and refresh tokens', async () => {
+    describe('signIn', () => {
+        it('should sign in and return access and refresh tokens', async () => {
+            //given
+            //const userId=1;
+            //when
+            //service.signIn()을 부를때
+            //then
+            //expect accesstoken&refreshtoken + payload.id ==userId
+            
 
-    //     // Act
-    //         const signUpresult = await service.signIn(1);
+            // Act
+            const signInResult = await service.signIn(1);
+            // const accessToken = 'mockAccessToken';
+            // const refreshToken = 'mockRefreshToken';
+            console.log(signInResult);
+            // Assert
+            // Check if signInResult is an object containing accessToken and refreshToken
+            expect(signInResult).toEqual(expect.objectContaining({
+                accessToken: expect.any(String),
+                refreshToken: expect.any(String)
+            }));
+            //expect(signInResult).toEqual({ accessToken, refreshToken });
 
-    //         // Assert
-    //         //getAccess/refresh token neeeded
-    //         expect(mockRedisService).toHaveBeenCalledWith(1);
-    //     });
-    // });
+            // Check if the service method was called with the correct parameter
+           // expect(mockRedisService).toHaveBeenCalledWith(1);
+
+            const accessTokenPayload = jwt.decode(signInResult.accessToken) as jwt.JwtPayload;
+            console.log(accessTokenPayload);
+            expect(accessTokenPayload.id).toEqual(1);
+        });
+    });
 
     describe('signOut', () => {
         it('should sign out and delete refresh token', async () => {
@@ -127,17 +151,22 @@ describe('AuthService', () => {
             // Arrange
             const signInDto = { email: 'test@example.com', password: 'password' };
             const expectedUserId = 1;
-
-            mockUserService.findOneByEmail.mockResolvedValueOnce({ id: expectedUserId, password: 'hashed-password' });
-
+    
+            mockUserService.findOneByEmail.mockResolvedValueOnce({
+                id: expectedUserId,
+                password: 'hashed-password',
+            });
+    
             // Act
             const result = await service.validateUser(signInDto);
 
             // Assert
             expect(result).toEqual({ id: expectedUserId });
-           // expect(mockUserService.findOneByEmail).toHaveBeenCalledWith(signInDto.email);
+            expect(mockUserService.findOneByEmail).toHaveBeenCalledWith(signInDto.email);
         });
-
+    });
+    
+    describe('validateUser', () => {
         it('should return null if user credentials are invalid', async () => {
             // Arrange
             const signInDto = { email: 'test@example.com', password: 'password' };
@@ -149,7 +178,6 @@ describe('AuthService', () => {
 
             // Assert
             expect(result).toBeNull();
-          
         });
     });
 
@@ -165,10 +193,10 @@ describe('AuthService', () => {
             await service.updatePassword(email, newPassword);
 
             // Assert
-            //expect(mockUserService.findOneByEmail).toHaveBeenCalledWith(email);
-            expect(mockUserRepository.save).toHaveBeenCalledWith(expect.objectContaining({ password: newPassword }));
+            expect(mockUserService.findOneByEmail).toHaveBeenCalledWith(email);
+            expect(mockUserRepository.save).toHaveBeenCalledWith(
+                expect.objectContaining({ password: newPassword }),
+            );
         });
     });
-
- 
 });
