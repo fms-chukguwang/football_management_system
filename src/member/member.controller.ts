@@ -57,17 +57,23 @@ export class MemberController {
         };
     }
 
-    //TODO TESTING
-    /**
-     * 많은 멤버 팀에 추가하기
-     * @param userId
-     * @param teamId
-     * @returns
-     */
+    // //TODO TESTING
+    // /**
+    //  * 많은 멤버 팀에 추가하기
+    //  * @param userId
+    //  * @param teamId
+    //  * @returns
+    //  */
     // @Post('register-many-members/:teamId')
     // async registerManyMembers(@Param('teamId') teamId: number, @Body() userIds: number[]) {
     //     const registerMembers = await this.memberService.registerManyMembers(teamId, userIds);
 
+    //     return {
+    //         statusCode: HttpStatus.OK,
+    //         data: registerMembers,
+    //         success: true,
+    //     };
+    // }
     //     return {
     //         statusCode: HttpStatus.OK,
     //         data: registerMembers,
@@ -271,7 +277,7 @@ export class MemberController {
         return this.memberService.getMember(req['member'].team.id, req['member'].id);
     }
 
-       /**
+    /**
      * 멤버 강퇴
      * @param req
      * @returns

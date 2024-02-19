@@ -23,7 +23,6 @@ import { UserService } from '../user/user.service';
     namespace: /^\/chats\/.+$/,
 })
 export class ChatsGateway implements OnGatewayConnection {
-    private userToSocketMap = new Map<number, string>();
     constructor(
         private readonly chatsService: ChatsService,
         private readonly messagesService: ChatMessagesService,
@@ -53,7 +52,6 @@ export class ChatsGateway implements OnGatewayConnection {
             console.log(`roomId: ${roomId}`);
             this.enterRoom({ teamId: Number(roomId) }, socket);
             console.log('룸에 입장했습니다.');
-            this.userToSocketMap.set(socket['userId'], socket.id);
 
             return true;
         } catch (e) {
@@ -239,7 +237,7 @@ export class ChatsGateway implements OnGatewayConnection {
                 email: message.author.email,
             },
             message: message.message,
-            createdAt: message.createdAt, //
+            createdAt: message.createdAt,
         });
     }
 }
