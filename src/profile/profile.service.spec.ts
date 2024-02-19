@@ -169,66 +169,6 @@ describe('ProfileService', () => {
     });
   });
 
-  describe('paginateProfileHo', () => {
-    it('should return paginated profiles based on team gender', async () => {
-      // Mock team data
-      const mockTeam = new TeamModel();
-      mockTeam.gender = Gender.Male;
-
-      // Mock profile data
-      const mockProfile = new Profile();
-      //mockProfile.team = mockTeam;
-
-      // Mock repository methods
-      jest.spyOn(profileRepository, 'findAndCount').mockResolvedValue([[mockProfile], 1]);
-
-      // Call the service method
-     // const result = await service.paginateProfileHo(1, 10, 'ASC');
-
-      // Assertions
-      //expect(result).toEqual({ profiles: [mockProfile], totalCount: 1 });
-      expect(profileRepository.findAndCount).toHaveBeenCalledWith({
-        where: {
-          team: { gender: Gender.Male },
-        },
-        take: 10,
-        skip: 0,
-        order: { createdAt: 'ASC' },
-      });
-    });
-  });
-
-  describe('searchProfile', () => {
-    it('should return profiles matching the given name', async () => {
-      // Mock profile data
-      const mockProfile = new Profile();
-
-      // Mock repository method
-      jest.spyOn(profileRepository, 'find').mockResolvedValue([mockProfile]);
-
-      // Call the service method
-      const result = await service.searchProfile('John Doe');
-
-      // Assertions
-      expect(result).toEqual([mockProfile]);
-      expect(profileRepository.find).toHaveBeenCalledWith({ where: { name: 'John Doe' } });
-    });
-
-    it('should return all profiles if no name is provided', async () => {
-      // Mock profile data
-      const mockProfile = new Profile();
-
-      // Mock repository method
-      jest.spyOn(profileRepository, 'find').mockResolvedValue([mockProfile]);
-
-      // Call the service method
-      const result = await service.searchProfile();
-
-      // Assertions
-      expect(result).toEqual([mockProfile]);
-      expect(profileRepository.find).toHaveBeenCalledWith();
-    });
-  });
 
   describe('findAllProfiles', () => {
     it('should return all profiles', async () => {
@@ -254,4 +194,69 @@ describe('ProfileService', () => {
       await expect(service.findAllProfiles()).rejects.toThrow(NotFoundException);
     });
   });
+
+  describe('findOneById', () => {
+           //given
+            //const userId=1;
+            //when
+            //service.signIn()을 부를때
+            //then
+            //expect accesstoken&refreshtoken + payload.id ==userId
+    it('should return a profile', async () => {
+      // Mock profile data
+      const mockProfile = new Profile();
+      const userId = 1;
+      // Mock repository method
+      jest.spyOn(profileRepository, 'find').mockResolvedValue([mockProfile]);
+
+      // Call the service method
+      const result = await service.findOneById(userId);
+
+      // Assertions
+      expect(result).toEqual([mockProfile]);
+      expect(profileRepository.find).toHaveBeenCalledWith();
+    });
+
+    it('should throw NotFoundException if no profiles are found', async () => {
+      // Mock repository method
+      jest.spyOn(profileRepository, 'find').mockResolvedValue([]);
+
+      // Call the service method and expect it to throw an exception
+      await expect(service.findOneById(1)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+//   describe('registerProfile', () => {
+//     //given
+//      //const userId=1;
+//      //when
+//      //service.signIn()을 부를때
+//      //then
+//      //expect accesstoken&refreshtoken + payload.id ==userId
+// it('should return a profile', async () => {
+// // Mock profile data
+// const mockProfile = new Profile();
+// const userId = 1;
+// const profileDto ={};
+// const file = "";
+// // Mock repository method
+// jest.spyOn(profileRepository, 'find').mockResolvedValue([mockProfile]);
+
+// // Call the service method
+// const result = await service.registerProfile(userId,profileDto,file);
+
+// // Assertions
+// expect(result).toEqual([mockProfile]);
+// expect(profileRepository.find).toHaveBeenCalledWith();
+// });
+
+// it('should throw NotFoundException if no profiles are found', async () => {
+// // Mock repository method
+// jest.spyOn(profileRepository, 'find').mockResolvedValue([]);
+
+// // Call the service method and expect it to throw an exception
+// await expect(service.findOneById(1)).rejects.toThrow(NotFoundException);
+// });
+// });
+            
 });

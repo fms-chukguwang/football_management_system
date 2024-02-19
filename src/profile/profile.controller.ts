@@ -171,16 +171,16 @@ export class ProfileController {
      * @param  memberId
      * @returns
      */
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard)
-    @Delete('/:profileId')
-    async deleteProfileInfo(@Param('profileId') profileId: number) {
-        const data = await this.profileService.deleteProfile(profileId);
+    // @ApiBearerAuth()
+    // @UseGuards(JwtAuthGuard)
+    // @Delete('/:profileId')
+    // async deleteProfileInfo(@Param('profileId') profileId: number) {
+    //     const data = await this.profileService.deleteProfile(profileId);
 
-        return {
-            statusCode: HttpStatus.OK,
-            message: '프로필 정보 삭제에 성공했습니다.',
-            data,
-        };
-    }
+    //     return {
+    //         statusCode: HttpStatus.OK,
+    //         message: '프로필 정보 삭제에 성공했습니다.',
+    //         data,
+    //     };
+    // }
 }

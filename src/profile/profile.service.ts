@@ -124,122 +124,122 @@ export class ProfileService {
         };
     }
 
-    async paginateProfileHo(
-        userId: number,
-        dto: PaginateProfileDto,
-        gender?: string,
-        name?: string,
-    ) {
-        try {
-            const user = await this.userRepository.findOne({
-                where: { id: userId },
-                relations: ['team'],
-            });
-            console.log('uesr=', user);
-            if (!user || !user.team) {
-                throw new Error('User or team not found');
-            }
-            // 팀이 혼성이 아니라면 동일한 성별의 프로필들만 보여줌
-            // const mixedGenderTeam = user.team.isMixedGender;
-            const teamGender = user.team.gender;
-            let options: FindManyOptions<Profile>;
+    // async paginateProfileHo(
+    //     userId: number,
+    //     dto: PaginateProfileDto,
+    //     gender?: string,
+    //     name?: string,
+    // ) {
+    //     try {
+    //         const user = await this.userRepository.findOne({
+    //             where: { id: userId },
+    //             relations: ['team'],
+    //         });
+    //         console.log('uesr=', user);
+    //         if (!user || !user.team) {
+    //             throw new Error('User or team not found');
+    //         }
+    //         // 팀이 혼성이 아니라면 동일한 성별의 프로필들만 보여줌
+    //         // const mixedGenderTeam = user.team.isMixedGender;
+    //         const teamGender = user.team.gender;
+    //         let options: FindManyOptions<Profile>;
 
-            if (teamGender === Gender.Male) {
-                // 프로필이 없는 경우 필터링
-                options = {
-                    relations: ['user', 'user.member', 'user.member.team'],
-                    where: {
-                        gender: Gender.Male,
-                    },
-                };
-                // 1. member.length === 0인 경우
-                // 2. member(리스트)에 모든 member가 deletedAt이 NULL 아닌 경우
-            } else if (teamGender === Gender.Female) {
-                options = {
-                    relations: ['member'],
-                    where: {
-                        gender: Gender.Female,
-                    },
-                };
-            } else if (teamGender === Gender.Mixed) {
-                options = {
-                    relations: ['member'],
-                };
-            }
-            const profiles = await this.commonService.paginate(
-                dto,
-                this.profileRepository,
-                options,
-                'profile',
-            );
+    //         if (teamGender === Gender.Male) {
+    //             // 프로필이 없는 경우 필터링
+    //             options = {
+    //                 relations: ['user', 'user.member', 'user.member.team'],
+    //                 where: {
+    //                     gender: Gender.Male,
+    //                 },
+    //             };
+    //             // 1. member.length === 0인 경우
+    //             // 2. member(리스트)에 모든 member가 deletedAt이 NULL 아닌 경우
+    //         } else if (teamGender === Gender.Female) {
+    //             options = {
+    //                 relations: ['member'],
+    //                 where: {
+    //                     gender: Gender.Female,
+    //                 },
+    //             };
+    //         } else if (teamGender === Gender.Mixed) {
+    //             options = {
+    //                 relations: ['member'],
+    //             };
+    //         }
+    //         const profiles = await this.commonService.paginate(
+    //             dto,
+    //             this.profileRepository,
+    //             options,
+    //             'profile',
+    //         );
 
-            const profileDatas = profiles.data;
-            const temp = [];
-            // user.member가 null인 경우
-            profileDatas.forEach((profile) => {
-                if (profile.user.member.length === 0) {
-                    temp.push(profile);
-                }
-            });
+    //         const profileDatas = profiles.data;
+    //         const temp = [];
+    //         // user.member가 null인 경우
+    //         profileDatas.forEach((profile) => {
+    //             if (profile.user.member.length === 0) {
+    //                 temp.push(profile);
+    //             }
+    //         });
 
-            profiles.data = temp;
+    //         profiles.data = temp;
 
-            return profiles;
-            // if (!mixedGenderTeam) {
-            //     options = {
-            //         relations: { user: { member: { team: true } } },
-            //         where: {
-            //             user: {
-            //                 profile: {
-            //                     gender: user.team.gender, // 팀의 성별을 기준으로 검색
-            //                 },
-            //                 member: {
-            //                     team: IsNull(),
-            //                 },
-            //             },
-            //         },
-            //     };
-            // } else {
-            //     // 혼성 팀이면 모든 프로필 허용
-            //     options = {
-            //         relations: { user: { member: { team: true } } },
-            //         where: {
-            //             user: {
-            //                 member: {
-            //                     team: IsNull(),
-            //                 },
-            //             },
-            //         },
-            //     };
-            // }
-            // if (name) {
-            //     options.where = { user: { name: Like(`%${name}%`) } };
-            // }
-            // const data = await this.profileRepository.find(options);
-            // return await this.commonService.paginate(
-            //     dto,
-            //     this.profileRepository,
-            //     options,
-            //     'profile',
-            // );
-        } catch (error) {
-            console.error('Error in paginateProfile:', error);
-            throw new Error('Error in paginateProfile');
-        }
-    }
+    //         return profiles;
+    //         // if (!mixedGenderTeam) {
+    //         //     options = {
+    //         //         relations: { user: { member: { team: true } } },
+    //         //         where: {
+    //         //             user: {
+    //         //                 profile: {
+    //         //                     gender: user.team.gender, // 팀의 성별을 기준으로 검색
+    //         //                 },
+    //         //                 member: {
+    //         //                     team: IsNull(),
+    //         //                 },
+    //         //             },
+    //         //         },
+    //         //     };
+    //         // } else {
+    //         //     // 혼성 팀이면 모든 프로필 허용
+    //         //     options = {
+    //         //         relations: { user: { member: { team: true } } },
+    //         //         where: {
+    //         //             user: {
+    //         //                 member: {
+    //         //                     team: IsNull(),
+    //         //                 },
+    //         //             },
+    //         //         },
+    //         //     };
+    //         // }
+    //         // if (name) {
+    //         //     options.where = { user: { name: Like(`%${name}%`) } };
+    //         // }
+    //         // const data = await this.profileRepository.find(options);
+    //         // return await this.commonService.paginate(
+    //         //     dto,
+    //         //     this.profileRepository,
+    //         //     options,
+    //         //     'profile',
+    //         // );
+    //     } catch (error) {
+    //         console.error('Error in paginateProfile:', error);
+    //         throw new Error('Error in paginateProfile');
+    //     }
+    // }
 
-    async searchProfile(name?: string) {
-        const options: FindManyOptions<Profile> = {
-            relations: { user: { member: { team: true } } },
-        };
+    // async searchProfile(name?: string) {
+    //     const options: FindManyOptions<Profile> = {
+    //         relations: { user: { member: { team: true } } },
+    //     };
 
-        if (name) {
-            options.where = { user: { name: Like(`%${name}%`) } };
-        }
+    //     if (name) {
+    //         options.where = { user: { name: Like(`%${name}%`) } };
+    //     }
 
-        const data = await this.profileRepository.find(options);
-        return data;
-    }
+    //     const data = await this.profileRepository.find(options);
+    //     return data;
+    // }
 
     async findAllProfiles() {
         const profiles = await this.profileRepository.find({
