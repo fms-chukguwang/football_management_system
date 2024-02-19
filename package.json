@@ -45,6 +45,8 @@
         "test:messagesController": "jest --verbose src/messages/messages.controller.spec.ts",
         "test:messagesService": "jest --verbose src/messages/messages.service.spec.ts",
         "test:chatsGateway": "jest --verbose src/chats/chats.gateway.spec.ts",
+        "test:profileController": "jest --verbose src/profile/profile.controller.spec.ts",
+        "test:profileService": "jest --verbose src/profile/profile.service.spec.ts",
         "seed": "ts-node src/seed.ts",
         "seed:ho0": "ts-node -r tsconfig-paths/register ./node_modules/typeorm-extension/bin/cli.cjs seed:run",
         "seed:match": "ts-node -r tsconfig-paths/register src/database/seeds/match.seeder.ts",
