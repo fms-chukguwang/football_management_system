@@ -27,16 +27,7 @@ import { PaginateProfileDto } from './dtos/paginate-profile-dto';
 @Controller('profile')
 export class ProfileController {
     constructor(private readonly profileService: ProfileService) {}
-    /**
-     * 유저 팀이름  조회
-     * @param req
-     * @returns
-     */
-    //     @Get('team/:user_id')
-    //   async getTeamNameByUserId(@Param('user_id') userId: string) {
-    //     const teamName = await this.profileService.getTeamNameByUserId(userId);
-    //     return { teamName };
-    //   }
+
     /**
      * 전체 프로필 정보 조회
      * @param req
@@ -66,13 +57,11 @@ export class ProfileController {
     async findAvailableProfiles(@Request() req, @Query() dto: PaginateProfileDto) {
         const userId = req.user.id;
         const data = await this.profileService.paginateProfile(
-            userId,
             dto,
             dto.gender,
             dto.name,
             dto.region,
         );
-        // console.log("dto.region=",dto.region);
         return {
             statusCode: HttpStatus.OK,
             message: '팀없는 프로필 정보 조회에 성공했습니다.',
@@ -80,15 +69,6 @@ export class ProfileController {
         };
     }
 
-    //   @Get('search')
-    //   async searchProfiles( @Query('name') name: string) {
-    //     const data = await this.profileService.searchProfile(name);
-    //     return {
-    //       statusCode: HttpStatus.OK,
-    //       message: '전체 프로필 정보 조회에 성공했습니다.',
-    //       data,
-    //     };
-    //   }
     /**
      * 프로필 정보 조회
      * @param req
@@ -114,15 +94,12 @@ export class ProfileController {
     @ApiBearerAuth()
     @Post()
     @UseGuards(JwtAuthGuard)
-    // @UseInterceptors(Transa3ctionInterceptor)
     @UseInterceptors(FileInterceptor('file'))
     async registerprofile(
         @Request() req,
         @Body() registerProfileInfoDto: any,
         @UploadedFile() file: Express.Multer.File,
     ) {
-        console.log('data from frontend', registerProfileInfoDto);
-        console.log('file from frontend', file);
         const data = await this.profileService.registerProfile(
             req.user.id,
             registerProfileInfoDto,
@@ -164,23 +141,4 @@ export class ProfileController {
             data,
         };
     }
-
-    /**
-     * 테스트용! 프로필 정보 삭제
-     * @param teamId
-     * @param  memberId
-     * @returns
-     */
-    // @ApiBearerAuth()
-    // @UseGuards(JwtAuthGuard)
-    // @Delete('/:profileId')
-    // async deleteProfileInfo(@Param('profileId') profileId: number) {
-    //     const data = await this.profileService.deleteProfile(profileId);
-
-    //     return {
-    //         statusCode: HttpStatus.OK,
-    //         message: '프로필 정보 삭제에 성공했습니다.',
-    //         data,
-    //     };
-    // }
 }

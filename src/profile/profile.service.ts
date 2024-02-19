@@ -41,18 +41,8 @@ export class ProfileService {
         private readonly dataSource: DataSource,
     ) {}
 
-    //   async getTeamNameByUserId(userId: string): Promise<string | null> {
-    //     const profile = await this.profileRepository.findOne({ where: { user_id: userId } });
-    //     return profile ? profile.team_name : null;
-    //   }
-
     async paginateMyProfile(userId: number, dto: PaginateProfileDto, name?: string) {
-        const user = await this.userRepository.findOne({ where: { id: userId } });
-        const profile = await this.profileRepository.findOne({ where: { user: { id: userId } } });
         const member = await this.memberRepository.findOne({ where: { user: { id: userId } } });
-        console.log('user=', user);
-        console.log('profile=', profile);
-        console.log('member=', member);
         if (member.isStaff != true) {
             return null;
         }
@@ -65,19 +55,16 @@ export class ProfileService {
             options.where = { user: { name: Like(`%${name}%`) } };
         }
 
-        const data = await this.profileRepository.find(options);
-
         return await this.commonService.paginate(dto, this.profileRepository, options, 'profile');
     }
+
     async paginateProfile(
-        userId,
         dto: PaginateProfileDto,
         gender?: string,
         name?: string,
         region?: string,
     ) {
         const { page, take } = dto;
-        console.log('aaa!!!');
 
         let query = this.profileRepository
             .createQueryBuilder('profile')
@@ -86,10 +73,6 @@ export class ProfileService {
             .leftJoinAndSelect('profile.location', 'location')
             .leftJoinAndSelect('profile.receivedInvites', 'invite')
             .where('member.id IS NULL'); // 팀이 없는 사람들
-        //   .andWhere(
-        //     '(invite.status = :pending OR invite.status = :rejected OR invite.status = :none)',
-        //     { none: InviteStatus.NONE, pending: InviteStatus.PENDING, rejected: InviteStatus.REJECTED }
-        //   )
 
         if (gender) {
             query = query.andWhere('profile.gender = :gender', { gender });
@@ -113,9 +96,6 @@ export class ProfileService {
             .take(take)
             .skip((page - 1) * take)
             .getMany();
-        console.log(query.getSql());
-        console.log(userId, gender, name, region);
-        console.log(currentPageResults);
         return {
             total: totalCount,
             totalPages: totalPages,
@@ -124,122 +104,18 @@ export class ProfileService {
         };
     }
 
-    // async paginateProfileHo(
-    //     userId: number,
-    //     dto: PaginateProfileDto,
-    //     gender?: string,
-    //     name?: string,
-    // ) {
-    //     try {
-    //         const user = await this.userRepository.findOne({
-    //             where: { id: userId },
-    //             relations: ['team'],
-    //         });
-    //         console.log('uesr=', user);
-    //         if (!user || !user.team) {
-    //             throw new Error('User or team not found');
-    //         }
-    //         // 팀이 혼성이 아니라면 동일한 성별의 프로필들만 보여줌
-    //         // const mixedGenderTeam = user.team.isMixedGender;
-    //         const teamGender = user.team.gender;
-    //         let options: FindManyOptions<Profile>;
+    async searchProfile(name?: string) {
+        const options: FindManyOptions<Profile> = {
+            relations: { user: { member: { team: true } } },
+        };
 
-    //         if (teamGender === Gender.Male) {
-    //             // 프로필이 없는 경우 필터링
-    //             options = {
-    //                 relations: ['user', 'user.member', 'user.member.team'],
-    //                 where: {
-    //                     gender: Gender.Male,
-    //                 },
-    //             };
-    //             // 1. member.length === 0인 경우
-    //             // 2. member(리스트)에 모든 member가 deletedAt이 NULL 아닌 경우
-    //         } else if (teamGender === Gender.Female) {
-    //             options = {
-    //                 relations: ['member'],
-    //                 where: {
-    //                     gender: Gender.Female,
-    //                 },
-    //             };
-    //         } else if (teamGender === Gender.Mixed) {
-    //             options = {
-    //                 relations: ['member'],
-    //             };
-    //         }
-    //         const profiles = await this.commonService.paginate(
-    //             dto,
-    //             this.profileRepository,
-    //             options,
-    //             'profile',
-    //         );
+        if (name) {
+            options.where = { user: { name: Like(`%${name}%`) } };
+        }
 
-    //         const profileDatas = profiles.data;
-    //         const temp = [];
-    //         // user.member가 null인 경우
-    //         profileDatas.forEach((profile) => {
-    //             if (profile.user.member.length === 0) {
-    //                 temp.push(profile);
-    //             }
-    //         });
-
-    //         profiles.data = temp;
-
-    //         return profiles;
-    //         // if (!mixedGenderTeam) {
-    //         //     options = {
-    //         //         relations: { user: { member: { team: true } } },
-    //         //         where: {
-    //         //             user: {
-    //         //                 profile: {
-    //         //                     gender: user.team.gender, // 팀의 성별을 기준으로 검색
-    //         //                 },
-    //         //                 member: {
-    //         //                     team: IsNull(),
-    //         //                 },
-    //         //             },
-    //         //         },
-    //         //     };
-    //         // } else {
-    //         //     // 혼성 팀이면 모든 프로필 허용
-    //         //     options = {
-    //         //         relations: { user: { member: { team: true } } },
-    //         //         where: {
-    //         //             user: {
-    //         //                 member: {
-    //         //                     team: IsNull(),
-    //         //                 },
-    //         //             },
-    //         //         },
-    //         //     };
-    //         // }
-    //         // if (name) {
-    //         //     options.where = { user: { name: Like(`%${name}%`) } };
-    //         // }
-    //         // const data = await this.profileRepository.find(options);
-    //         // return await this.commonService.paginate(
-    //         //     dto,
-    //         //     this.profileRepository,
-    //         //     options,
-    //         //     'profile',
-    //         // );
-    //     } catch (error) {
-    //         console.error('Error in paginateProfile:', error);
-    //         throw new Error('Error in paginateProfile');
-    //     }
-    // }
-
-    // async searchProfile(name?: string) {
-    //     const options: FindManyOptions<Profile> = {
-    //         relations: { user: { member: { team: true } } },
-    //     };
-
-    //     if (name) {
-    //         options.where = { user: { name: Like(`%${name}%`) } };
-    //     }
-
-    //     const data = await this.profileRepository.find(options);
-    //     return data;
-    // }
+        const data = await this.profileRepository.find(options);
+        return data;
+    }
 
     async findAllProfiles() {
         const profiles = await this.profileRepository.find({
@@ -269,28 +145,6 @@ export class ProfileService {
         return user;
     }
 
-    // async findOneByName(name: string): Promise<Profile | null> {
-    //     const profile = await this.profileRepository.findOne({ where: { name } });
-
-    //     if (!profile) {
-    //         return null;
-    //     }
-
-    //     return profile;
-    // }
-
-    getProfileRepository(qr?: QueryRunner) {
-        return qr ? qr.manager.getRepository<Profile>(Profile) : this.profileRepository;
-    }
-
-    getUserRepository(qr?: QueryRunner) {
-        return qr ? qr.manager.getRepository<User>(User) : this.userRepository;
-    }
-
-    getMemberRepository(qr?: QueryRunner) {
-        return qr ? qr.manager.getRepository<Member>(Member) : this.memberRepository;
-    }
-
     async registerProfile(
         userId: number,
         registerProfileInfoDto: RegisterProfileInfoDto,
@@ -305,11 +159,6 @@ export class ProfileService {
                 where: { id: userId },
                 relations: ['profile'],
             });
-
-            // const member = await this.memberRepository.findOne({
-            //     where: { user: { id: userId } },
-            //     relations: ['profile'],
-            // });
 
             const location = await this.locationRepository.save({
                 latitude: registerProfileInfoDto.latitude,
@@ -333,7 +182,6 @@ export class ProfileService {
             const registeredProfile = await this.profileRepository.save({
                 ...registerProfileInfoDto,
                 user: user,
-                // member: member,
                 location: location,
                 imageUUID: imageUUID,
             });
@@ -341,9 +189,7 @@ export class ProfileService {
             await queryRunner.commitTransaction();
             return registeredProfile;
         } catch (err) {
-            console.log(err);
             await queryRunner.rollbackTransaction();
-            throw new Error('Failed to register profile');
         } finally {
             await queryRunner.release();
         }
@@ -360,11 +206,9 @@ export class ProfileService {
                 where: { id: userId },
                 relations: ['profile', 'profile.location'],
             });
-            console.log('file', file);
             if (!user) {
                 throw new NotFoundException('User not found');
             }
-
             if (!user.profile) {
                 throw new NotFoundException('Profile not found');
             }
@@ -393,20 +237,24 @@ export class ProfileService {
 
             // 파일이 제공되었다면 이미지 UUID 업데이트
             if (file) {
-                console.log('imageUUID', imageUUID);
                 user.profile.imageUUID = imageUUID;
-                console.log('업데이트 ');
             }
 
             // 업데이트된 프로필 저장
             const updatedProfile = await this.profileRepository.save(user.profile);
 
-            console.log('Updated Profile:', updatedProfile);
-
             return updatedProfile;
         } catch (error) {
-            console.error('Error updating profile info:', error.message);
-            throw new Error('Failed to update profile info');
+            if (error instanceof NotFoundException) {
+                if (error.message === 'User not found') {
+                    throw new NotFoundException('User not found');
+                }
+                if (error.message === 'Profile not found') {
+                    throw new NotFoundException('Profile not found');
+                }
+            } else {
+                throw new Error('Failed to update profile info');
+            }
         }
     }
 
