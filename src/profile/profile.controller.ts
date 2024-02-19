@@ -149,7 +149,7 @@ export class ProfileController {
     async updateprofileInfo(
         @Request() req,
         @Body() updateProfileInfoDto: any,
-        @UploadedFile() file: Express.Multer.File,
+        @UploadedFile() file?: Express.Multer.File,
     ) {
         console.log('updateProfileInfoDto', updateProfileInfoDto);
         const data = await this.profileService.updateProfileInfo(

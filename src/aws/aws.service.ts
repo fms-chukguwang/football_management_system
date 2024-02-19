@@ -12,20 +12,11 @@ import { v4 } from 'uuid';
 
 @Injectable()
 export class AwsService {
-    private readonly awsS3: S3Client;
-
     constructor(
         private readonly configService: ConfigService,
         private readonly redisService: RedisService,
-    ) {
-        this.awsS3 = new S3Client({
-            region: this.configService.get('AWS_REGION'),
-            credentials: {
-                accessKeyId: this.configService.get('AWS_ACCESS_KEY'),
-                secretAccessKey: this.configService.get('AWS_SECRET_KEY'),
-            },
-        });
-    }
+        private readonly awsS3: S3Client,
+    ) {}
 
     /**
      * s3 이미지 업로드

@@ -64,7 +64,7 @@ export class JobsService {
         }
     }
 
-    private parseXml<T>(xml: string): Promise<T> {
+    parseXml<T>(xml: string): Promise<T> {
         return new Promise((resolve, reject) => {
             parseString(xml, (err, result) => {
                 if (err) reject(err);
@@ -73,7 +73,7 @@ export class JobsService {
         });
     }
 
-    private async saveLocationAndSoccerField(item: SportField, address: string): Promise<void> {
+    async saveLocationAndSoccerField(item: SportField, address: string): Promise<void> {
         // 주소 분해
         const addressParts = address.split(' ');
 

@@ -43,7 +43,7 @@ export class AdminController {
      */
     @ApiBearerAuth()
     @Get('users')
-    async getAllUsers(@Query() dto: PaginateUserDto, @Req() req: Request) {
+    async getAllUsers(@Query() dto: PaginateUserDto) {
         return await this.adminService.paginateUser(dto);
     }
 

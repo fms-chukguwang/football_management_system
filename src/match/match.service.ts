@@ -495,23 +495,31 @@ export class MatchService {
      * @returns
      */
     async getMembers(teamId: number) {
-        const members = await this.memberRepository.find({
-            relations: {
-                team: true,
-                user: true,
-            },
-            select: {
-                id: true,
-                user: {
-                    name: true,
-                },
-            },
-            where: {
-                team: {
-                    id: teamId,
-                },
-            },
-        });
+        // const members = await this.memberRepository.find({
+        //     relations: {
+        //         team: true,
+        //         user: true,
+        //     },
+        //     select: {
+        //         id: true,
+        //         user: {
+        //             name: true,
+        //         },
+        //     },
+        //     where: {
+        //         team: {
+        //             id: teamId,
+        //         },
+        //     },
+        // });
+
+        const members = await this.memberRepository
+        .createQueryBuilder("member")
+        .leftJoinAndSelect("member.user", "user")
+        .leftJoinAndSelect("member.team", "team")
+        .where("member.team_id = :teamId", { teamId })
+        .andWhere("member.deleted_at IS NULL") // deleted_at이 null인 조건 추가
+        .getMany();
 
         if (!members) {
             throw new BadRequestException('멤버 정보가 없습니다.');
@@ -1379,7 +1387,7 @@ export class MatchService {
         return member;
     }
 
-    private async teamTotalGames(teamId: number) {
+    async teamTotalGames(teamId: number) {
         const teamStats = await this.teamStatsRepository.findOne({
             select: ['wins', 'loses', 'draws', 'total_games'],
             where: { team_id: teamId },
@@ -1480,18 +1488,24 @@ export class MatchService {
             }
             // 골 정보
             let goals = 0;
-            for (let i = 0; i < rs.goals.length; i++) {
-                goals += rs.goals[i].count;
+            if (rs.goals) {
+                for (let i = 0; i < rs.goals.length; i++) {
+                    goals += rs.goals[i].count;
+                }
             }
+
 
             let saves = 0;
-            for (let i = 0; i < rs.saves.length; i++) {
-                saves += rs.saves[i].count;
+            if (rs.saves) {
+                for (let i = 0; i < rs.saves.length; i++) {
+                    saves += rs.saves[i].count;
+                }
             }
 
+
             rs['counted_goals'] = goals;
-            rs['counted_yellow_cards'] = rs.yellow_cards.length;
-            rs['counted_red_cards'] = rs.red_cards.length;
+            rs['counted_yellow_cards'] = rs.yellow_cards ? rs.yellow_cards.length : 0;
+            rs['counted_red_cards'] = rs.red_cards ? rs.red_cards.length : 0;
             rs['counted_saves'] = saves;
             delete rs.goals;
             delete rs.yellow_cards;
