@@ -14,6 +14,7 @@ import { CommonService } from 'src/common/common.service';
 import { AwsService } from 'src/aws/aws.service';
 import { ConfigService } from '@nestjs/config';
 import { RedisService } from 'src/redis/redis.service';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 describe('ProfileService', () => {
     let service: ProfileService;
@@ -21,6 +22,9 @@ describe('ProfileService', () => {
     let userRepository: Repository<User>;
     let memberRepository: Repository<Member>;
     let locationRepository: Repository<LocationModel>;
+    let redisService: RedisService;
+    let awsService: AwsService;
+    let commonService: CommonService;
 
     beforeEach(async () => {
         const mockDataSource = {
@@ -30,21 +34,47 @@ describe('ProfileService', () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 ProfileService,
-                CommonService,
                 AwsService,
                 ConfigService,
-                //RedisService,
                 {
                     provide: DataSource,
                     useValue: mockDataSource,
                 },
                 {
+                    provide: AwsService,
+                    useValue: {
+                        uploadFile: jest.fn(),
+                        deleteFile: jest.fn(),
+                    },
+                },
+                {
+                    provide: RedisService,
+                    useValue: {
+                        getTeamDetail: jest.fn(),
+                        setTeamDetail: jest.fn(),
+                        delTeamDetail: jest.fn(),
+                    },
+                },
+                {
+                    provide: CommonService,
+                    useValue: {
+                        paginate: jest.fn(),
+                    },
+                },
+                {
                     provide: getRepositoryToken(Profile),
-                    useClass: Repository,
+                    useValue: {
+                        createQueryBuilder: jest.fn(),
+                        find: jest.fn(),
+                        findOne: jest.fn(),
+                        remove: jest.fn(),
+                    },
                 },
                 {
                     provide: getRepositoryToken(User),
-                    useClass: Repository,
+                    useValue: {
+                        findOne: jest.fn(),
+                    },
                 },
                 {
                     provide: getRepositoryToken(Member),
@@ -55,9 +85,16 @@ describe('ProfileService', () => {
                     useClass: Repository,
                 },
             ],
-        }).compile();
+        })
+            .overrideGuard(JwtAuthGuard)
+            .useValue({
+                canActivate: jest.fn().mockReturnValue(true),
+            })
+            .compile();
 
         service = module.get<ProfileService>(ProfileService);
+        commonService = module.get<CommonService>(CommonService);
+        redisService = module.get<RedisService>(RedisService);
         profileRepository = module.get<Repository<Profile>>(getRepositoryToken(Profile));
         userRepository = module.get<Repository<User>>(getRepositoryToken(User));
         memberRepository = module.get<Repository<Member>>(getRepositoryToken(Member));
@@ -68,137 +105,332 @@ describe('ProfileService', () => {
 
     describe('paginateMyProfile', () => {
         it('should return null if the user is not a staff member', async () => {
-            // Mock user data
             const userId = 1;
-            const mockUser = new User();
-            mockUser.id = userId;
-
-            // Mock profile data
-            const mockProfile = new Profile();
-            mockProfile.user = mockUser;
-
-            // Mock member data
-            const mockMember = new Member();
-            mockMember.isStaff = false;
-
-            // Mock repository methods
-            jest.spyOn(profileRepository, 'findOne').mockResolvedValue(mockProfile);
-            jest.spyOn(memberRepository, 'findOne').mockResolvedValue(mockMember);
-
-            // Mock pagination DTO
-            const mockDto: PaginateProfileDto = {
-                page: 1,
-                take: 10,
-                order__createdAt: 'ASC',
-            };
-
-            // Call the service method
-            const result = await service.paginateMyProfile(userId, mockDto);
-
-            // Assertions
+            const dto = new PaginateProfileDto();
+            const member = new Member();
+            member.isStaff = false;
+            jest.spyOn(memberRepository, 'findOne').mockResolvedValue(member);
+            const result = await service.paginateMyProfile(userId, dto);
             expect(result).toBeNull();
-            expect(profileRepository.findOne).toHaveBeenCalledWith({
-                where: { user: { id: userId } },
-            });
-            expect(memberRepository.findOne).toHaveBeenCalledWith({
-                where: { user: { id: userId } },
-            });
         });
 
-        it('should return profiles for staff members', async () => {
-            // Mock user data
+        it('should return a paginated profile', async () => {
             const userId = 1;
-            const mockUser = new User();
-            mockUser.id = userId;
+            const dto = new PaginateProfileDto();
+            const member = new Member();
+            member.isStaff = true;
+            jest.spyOn(memberRepository, 'findOne').mockResolvedValue(member);
+            jest.spyOn(commonService, 'paginate').mockResolvedValue({ data: [], total: 1 });
+            const result = await service.paginateMyProfile(userId, dto);
+            expect(result).toEqual({ data: [], total: 1 });
+        });
 
-            // Mock profile data
-            const mockProfile = new Profile();
-            mockProfile.user = mockUser;
-
-            // Mock member data
-            const mockMember = new Member();
-            mockMember.isStaff = true;
-
-            // Mock repository methods
-            jest.spyOn(profileRepository, 'findOne').mockResolvedValue(mockProfile);
-            jest.spyOn(memberRepository, 'findOne').mockResolvedValue(mockMember);
-
-            // Mock pagination DTO
-            const mockDto: PaginateProfileDto = {
-                page: 1,
-                take: 10,
-                order__createdAt: 'ASC',
-            };
-
-            // Call the service method
-            const result = await service.paginateMyProfile(userId, mockDto);
-
-            // Assertions
-            expect(result).toBe(mockProfile);
-            expect(profileRepository.findOne).toHaveBeenCalledWith({
-                where: { user: { id: userId } },
-            });
-            expect(memberRepository.findOne).toHaveBeenCalledWith({
-                where: { user: { id: userId } },
-            });
+        it('should return a paginated profile with a name filter', async () => {
+            const userId = 1;
+            const dto = new PaginateProfileDto();
+            const name = 'test';
+            const member = new Member();
+            member.isStaff = true;
+            jest.spyOn(memberRepository, 'findOne').mockResolvedValue(member);
+            jest.spyOn(commonService, 'paginate').mockResolvedValue({ data: [], total: 1 });
+            const result = await service.paginateMyProfile(userId, dto, name);
+            expect(result).toEqual({ data: [], total: 1 });
         });
     });
 
     describe('paginateProfile', () => {
-        it('should return paginated profiles with given filters', async () => {
-            // Mock pagination DTO
-            const mockDto: PaginateProfileDto = {
-                page: 1,
-                take: 10,
-                order__createdAt: 'ASC',
+        it('성공', async () => {
+            const dto = new PaginateProfileDto();
+            const gender = Gender.Male;
+            const name = 'test';
+            const region = 'test';
+            dto.page = 1;
+            dto.take = 10;
+            const mockQueryBuilder = {
+                andWhere: jest.fn().mockReturnThis(),
+                leftJoinAndSelect: jest.fn().mockReturnThis(),
+                where: jest.fn().mockReturnThis(),
+                take: jest.fn().mockReturnThis(),
+                skip: jest.fn().mockReturnThis(),
+                getCount: jest.fn().mockResolvedValue(0),
+                getMany: jest.fn().mockResolvedValue([]),
             };
+            jest.spyOn(profileRepository, 'createQueryBuilder').mockReturnValue(
+                mockQueryBuilder as any,
+            );
+            const mockReturn = {
+                total: 0,
+                totalPages: 0,
+                currentPage: 1,
+                data: [],
+            };
+            const result = await service.paginateProfile(dto);
+            expect(result).toEqual(mockReturn);
+            expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith('profile.user', 'user');
+            expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+                'user.member',
+                'member',
+            );
+            expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+                'profile.location',
+                'location',
+            );
+            expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+                'profile.receivedInvites',
+                'invite',
+            );
+            expect(mockQueryBuilder.where).toHaveBeenCalledWith('member.id IS NULL');
+        });
 
-            // Mock profile data
-            const mockProfile = new Profile();
+        it('성공 _ gender 있는 경우', async () => {
+            const dto = new PaginateProfileDto();
+            const gender = Gender.Male;
+            const name = 'test';
+            const region = 'test';
+            dto.page = 1;
+            dto.take = 10;
+            const mockQueryBuilder = {
+                andWhere: jest.fn().mockReturnThis(),
+                leftJoinAndSelect: jest.fn().mockReturnThis(),
+                where: jest.fn().mockReturnThis(),
+                take: jest.fn().mockReturnThis(),
+                skip: jest.fn().mockReturnThis(),
+                getCount: jest.fn().mockResolvedValue(0),
+                getMany: jest.fn().mockResolvedValue([]),
+            };
+            jest.spyOn(profileRepository, 'createQueryBuilder').mockReturnValue(
+                mockQueryBuilder as any,
+            );
+            const mockReturn = {
+                total: 0,
+                totalPages: 0,
+                currentPage: 1,
+                data: [],
+            };
+            const result = await service.paginateProfile(dto, gender);
+            expect(result).toEqual(mockReturn);
+            expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith('profile.user', 'user');
+            expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+                'user.member',
+                'member',
+            );
+            expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+                'profile.location',
+                'location',
+            );
+            expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+                'profile.receivedInvites',
+                'invite',
+            );
+            expect(mockQueryBuilder.where).toHaveBeenCalledWith('member.id IS NULL');
+            expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('profile.gender = :gender', {
+                gender,
+            });
+        });
 
-            // Mock repository methods
-            jest.spyOn(profileRepository, 'findAndCount').mockResolvedValue([[mockProfile], 1]);
+        it('성공 _ gender, name 있는 경우', async () => {
+            const dto = new PaginateProfileDto();
+            const gender = Gender.Male;
+            const name = 'test';
+            const region = 'test';
+            dto.page = 1;
+            dto.take = 10;
+            const mockQueryBuilder = {
+                andWhere: jest.fn().mockReturnThis(),
+                leftJoinAndSelect: jest.fn().mockReturnThis(),
+                where: jest.fn().mockReturnThis(),
+                take: jest.fn().mockReturnThis(),
+                skip: jest.fn().mockReturnThis(),
+                getCount: jest.fn().mockResolvedValue(0),
+                getMany: jest.fn().mockResolvedValue([]),
+            };
+            jest.spyOn(profileRepository, 'createQueryBuilder').mockReturnValue(
+                mockQueryBuilder as any,
+            );
+            const mockReturn = {
+                total: 0,
+                totalPages: 0,
+                currentPage: 1,
+                data: [],
+            };
+            const result = await service.paginateProfile(dto, gender, name);
+            expect(result).toEqual(mockReturn);
+            expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith('profile.user', 'user');
+            expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+                'user.member',
+                'member',
+            );
+            expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+                'profile.location',
+                'location',
+            );
+            expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+                'profile.receivedInvites',
+                'invite',
+            );
+            expect(mockQueryBuilder.where).toHaveBeenCalledWith('member.id IS NULL');
+            expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('profile.gender = :gender', {
+                gender,
+            });
+            expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('user.name LIKE :name', {
+                name: `%${name}%`,
+            });
+        });
+        it('성공 _ gender, name, region 있는 경우', async () => {
+            const dto = new PaginateProfileDto();
+            const gender = Gender.Male;
+            const name = 'test';
+            const region = 'test';
+            dto.page = 1;
+            dto.take = 10;
+            const mockQueryBuilder = {
+                andWhere: jest.fn().mockReturnThis(),
+                leftJoinAndSelect: jest.fn().mockReturnThis(),
+                where: jest.fn().mockReturnThis(),
+                take: jest.fn().mockReturnThis(),
+                skip: jest.fn().mockReturnThis(),
+                getCount: jest.fn().mockResolvedValue(0),
+                getMany: jest.fn().mockResolvedValue([]),
+            };
+            jest.spyOn(profileRepository, 'createQueryBuilder').mockReturnValue(
+                mockQueryBuilder as any,
+            );
+            const mockReturn = {
+                total: 0,
+                totalPages: 0,
+                currentPage: 1,
+                data: [],
+            };
+            const result = await service.paginateProfile(dto, gender, name, region);
+            expect(result).toEqual(mockReturn);
+            expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith('profile.user', 'user');
+            expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+                'user.member',
+                'member',
+            );
+            expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+                'profile.location',
+                'location',
+            );
+            expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+                'profile.receivedInvites',
+                'invite',
+            );
+            expect(mockQueryBuilder.where).toHaveBeenCalledWith('member.id IS NULL');
+            expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('profile.gender = :gender', {
+                gender,
+            });
+            expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('user.name LIKE :name', {
+                name: `%${name}%`,
+            });
 
-            // Call the service method
-            //const result = await service.paginateProfile(1,1,1,mockProfile );
-
-            // Assertions
-            // expect(result).toEqual({ profiles: [mockProfile], totalCount: 1 });
-            expect(profileRepository.findAndCount).toHaveBeenCalledWith({
-                where: {
-                    gender: 'male',
-                    name: 'John Doe',
-                    location: 'New York',
+            expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+                '(location.state = :region OR location.city = :region)',
+                {
+                    region,
                 },
-                take: 10,
-                skip: 0,
-                order: { createdAt: 'ASC' },
+            );
+        });
+    });
+
+    describe('searchProfile', () => {
+        it('성공_name 있는 경우', async () => {
+            const name = 'test';
+            const mockReturn = [];
+            jest.spyOn(profileRepository, 'find').mockResolvedValue(mockReturn);
+            const result = await service.searchProfile(name);
+            expect(result).toEqual(mockReturn);
+            expect(profileRepository.find).toHaveBeenCalledWith({
+                relations: { user: { member: { team: true } } },
+                where: { user: { name: expect.any(Object) } },
+            });
+        });
+
+        it('성공_name 없는 경우', async () => {
+            const mockReturn = [];
+            jest.spyOn(profileRepository, 'find').mockResolvedValue(mockReturn);
+            const result = await service.searchProfile();
+            expect(result).toEqual(mockReturn);
+            expect(profileRepository.find).toHaveBeenCalledWith({
+                relations: { user: { member: { team: true } } },
+            });
+            expect(profileRepository.find).toHaveBeenCalledWith({
+                relations: { user: { member: { team: true } } },
             });
         });
     });
 
     describe('findAllProfiles', () => {
-        it('should return all profiles', async () => {
-            // Mock profile data
-            const mockProfile = new Profile();
-
-            // Mock repository method
-            jest.spyOn(profileRepository, 'find').mockResolvedValue([mockProfile]);
-
-            // Call the service method
+        it('성공', async () => {
+            const mockReturn = [new Profile()];
+            jest.spyOn(profileRepository, 'find').mockResolvedValue(mockReturn);
             const result = await service.findAllProfiles();
-
-            // Assertions
-            expect(result).toEqual([mockProfile]);
-            expect(profileRepository.find).toHaveBeenCalledWith();
+            expect(result).toEqual(mockReturn);
+            expect(profileRepository.find).toHaveBeenCalledWith({
+                relations: { user: { member: { team: true } } },
+            });
         });
 
-        it('should throw NotFoundException if no profiles are found', async () => {
-            // Mock repository method
-            jest.spyOn(profileRepository, 'find').mockResolvedValue([]);
+        it('성공 _ profile 없는 경우', async () => {
+            const mockReturn = [];
+            jest.spyOn(profileRepository, 'find').mockResolvedValue(mockReturn);
 
-            // Call the service method and expect it to throw an exception
             await expect(service.findAllProfiles()).rejects.toThrow(NotFoundException);
+
+            expect(profileRepository.find).toHaveBeenCalledWith({
+                relations: { user: { member: { team: true } } },
+            });
+        });
+    });
+
+    describe('findOneById', () => {
+        it('성공 _ profile 있는 경우', async () => {
+            const mockReturn = new Profile();
+            jest.spyOn(profileRepository, 'findOne').mockResolvedValue(mockReturn);
+            const result = await service.findOneById(1);
+            expect(result).toEqual(mockReturn);
+            expect(profileRepository.findOne).toHaveBeenCalledWith({ where: { id: 1 } });
+        });
+
+        it('성공 _ profile 없는 경우', async () => {
+            const id = 1;
+            jest.spyOn(userRepository, 'findOne').mockResolvedValue(null);
+            await expect(service.findOneByUserId(id)).rejects.toThrow(NotFoundException);
+        });
+    });
+
+    describe('deleteProfile', () => {
+        it('성공', async () => {
+            const id = 1;
+            const mockReturn = new Profile();
+            jest.spyOn(profileRepository, 'findOne').mockResolvedValue(mockReturn);
+            jest.spyOn(profileRepository, 'remove').mockResolvedValue(mockReturn);
+            const result = await service.deleteProfile(id);
+            expect(result).toEqual(mockReturn);
+            expect(profileRepository.findOne).toHaveBeenCalledWith({ where: { id } });
+        });
+
+        it('profile 없는 경우', async () => {
+            const id = 1;
+            jest.spyOn(profileRepository, 'findOne').mockResolvedValue(null);
+            await expect(service.deleteProfile(id)).rejects.toThrow(NotFoundException);
+        });
+    });
+
+    describe('getProfileByUserId', () => {
+        it('성공', async () => {
+            const userId = 1;
+            const mockReturn = new Profile();
+            jest.spyOn(profileRepository, 'findOne').mockResolvedValue(mockReturn);
+            const result = await service.getProfileByUserId(userId);
+            expect(result).toEqual(mockReturn);
+            expect(profileRepository.findOne).toHaveBeenCalledWith({
+                where: {
+                    user: {
+                        id: userId,
+                    },
+                },
+            });
         });
     });
 });
