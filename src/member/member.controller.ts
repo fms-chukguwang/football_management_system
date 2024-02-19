@@ -64,16 +64,16 @@ export class MemberController {
      * @param teamId
      * @returns
      */
-    @Post('register-many-members/:teamId')
-    async registerManyMembers(@Param('teamId') teamId: number, @Body() userIds: number[]) {
-        const registerMembers = await this.memberService.registerManyMembers(teamId, userIds);
+    // @Post('register-many-members/:teamId')
+    // async registerManyMembers(@Param('teamId') teamId: number, @Body() userIds: number[]) {
+    //     const registerMembers = await this.memberService.registerManyMembers(teamId, userIds);
 
-        return {
-            statusCode: HttpStatus.OK,
-            data: registerMembers,
-            success: true,
-        };
-    }
+    //     return {
+    //         statusCode: HttpStatus.OK,
+    //         data: registerMembers,
+    //         success: true,
+    //     };
+    // }
 
     /**
      * 입단일 수정기능(스태프용)
