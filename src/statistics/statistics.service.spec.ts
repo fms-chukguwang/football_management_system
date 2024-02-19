@@ -196,13 +196,10 @@ describe('StatisticsService', () => {
             const teamId = 1;
             const expectedConcededGoals = 5;
 
-            // Mock the subquery response
             const subQueryResponse = [{ match_id: 1 }, { match_id: 2 }];
 
-            // Mock the main query response
             const getRawOneResponse = { goals: expectedConcededGoals.toString() };
 
-            // Mock the subquery creation
             const subQueryBuilder = {
                 select: jest.fn().mockReturnThis(),
                 where: jest.fn().mockReturnThis(),
@@ -210,7 +207,6 @@ describe('StatisticsService', () => {
                 getRawMany: jest.fn().mockResolvedValue(subQueryResponse),
             };
 
-            // Mock the main query creation
             const mainQueryBuilder = {
                 select: jest.fn().mockReturnThis(),
                 where: jest.fn().mockReturnThis(),
@@ -219,18 +215,14 @@ describe('StatisticsService', () => {
                 getRawOne: jest.fn().mockResolvedValue(getRawOneResponse),
             };
 
-            // Mock the repository to use the mock query builders
             jest.spyOn(playerStatsRepository, 'createQueryBuilder').mockReturnValue(
                 mainQueryBuilder as any,
             );
 
-            // Execute the getConceded method
             const concededGoals = await service.getConceded(teamId);
 
-            // Assert the response
             expect(concededGoals).toEqual(expectedConcededGoals);
 
-            // Verify the query builder methods were called with correct arguments
             expect(subQueryBuilder.select).toHaveBeenCalledWith('sub_stats.match_id');
             expect(subQueryBuilder.where).toHaveBeenCalledWith('sub_stats.team_id = :teamId', {
                 teamId,
