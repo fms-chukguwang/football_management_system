@@ -443,7 +443,7 @@ describe('ProfileService', () => {
         });
     });
 
-    describe.only('registerProfile', () => {
+    describe('registerProfile', () => {
         it('성공', async () => {
             const userId = 1;
             const registerProfileDto = new RegisterProfileInfoDto();
