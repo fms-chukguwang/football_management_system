@@ -15,6 +15,9 @@ import { AwsService } from 'src/aws/aws.service';
 import { ConfigService } from '@nestjs/config';
 import { RedisService } from 'src/redis/redis.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RegisterProfileInfoDto } from './dtos/register-profile-info-dto';
+import { UpdateProfileInfoDto } from './dtos/update-profile-info-dto';
+import { Position } from 'src/enums/position.enum';
 
 describe('ProfileService', () => {
     let service: ProfileService;
@@ -25,10 +28,11 @@ describe('ProfileService', () => {
     let redisService: RedisService;
     let awsService: AwsService;
     let commonService: CommonService;
+    let dataSource: DataSource;
 
     beforeEach(async () => {
         const mockDataSource = {
-            getConnection: jest.fn(),
+            createQueryRunner: jest.fn(),
         };
 
         const module: TestingModule = await Test.createTestingModule({
@@ -68,6 +72,7 @@ describe('ProfileService', () => {
                         find: jest.fn(),
                         findOne: jest.fn(),
                         remove: jest.fn(),
+                        save: jest.fn(),
                     },
                 },
                 {
@@ -82,7 +87,9 @@ describe('ProfileService', () => {
                 },
                 {
                     provide: getRepositoryToken(LocationModel),
-                    useClass: Repository,
+                    useValue: {
+                        save: jest.fn(),
+                    },
                 },
             ],
         })
@@ -93,6 +100,7 @@ describe('ProfileService', () => {
             .compile();
 
         service = module.get<ProfileService>(ProfileService);
+        awsService = module.get<AwsService>(AwsService);
         commonService = module.get<CommonService>(CommonService);
         redisService = module.get<RedisService>(RedisService);
         profileRepository = module.get<Repository<Profile>>(getRepositoryToken(Profile));
@@ -101,6 +109,7 @@ describe('ProfileService', () => {
         locationRepository = module.get<Repository<LocationModel>>(
             getRepositoryToken(LocationModel),
         );
+        dataSource = module.get<DataSource>(DataSource);
     });
 
     describe('paginateMyProfile', () => {
@@ -430,6 +439,86 @@ describe('ProfileService', () => {
                         id: userId,
                     },
                 },
+            });
+        });
+    });
+
+    describe.only('registerProfile', () => {
+        it('성공', async () => {
+            const userId = 1;
+            const registerProfileDto = new RegisterProfileInfoDto();
+            registerProfileDto.latitude = 1;
+            registerProfileDto.longitude = 1;
+            registerProfileDto.state = 'test';
+            registerProfileDto.city = 'test';
+            registerProfileDto.district = 'test';
+            registerProfileDto.address = 'test';
+            const file = {} as Express.Multer.File;
+
+            const mockQueryBuilder = {
+                connect: jest.fn(),
+                startTransaction: jest.fn(),
+                commitTransaction: jest.fn(),
+                rollbackTransaction: jest.fn(),
+                release: jest.fn(),
+            };
+
+            const profile = new Profile();
+            jest.spyOn(dataSource, 'createQueryRunner').mockReturnValue(mockQueryBuilder as any);
+            jest.spyOn(userRepository, 'findOne').mockResolvedValue(new User());
+            jest.spyOn(locationRepository, 'save').mockResolvedValue(new LocationModel());
+            jest.spyOn(awsService, 'uploadFile').mockResolvedValue('test');
+            jest.spyOn(profileRepository, 'save').mockResolvedValue(profile);
+            const result = await service.registerProfile(userId, registerProfileDto, file);
+            expect(result).toEqual(profile);
+            expect(dataSource.createQueryRunner).toHaveBeenCalled();
+            expect(mockQueryBuilder.connect).toHaveBeenCalled();
+            expect(mockQueryBuilder.startTransaction).toHaveBeenCalled();
+            expect(mockQueryBuilder.commitTransaction).toHaveBeenCalled();
+            expect(mockQueryBuilder.release).toHaveBeenCalled();
+            expect(userRepository.findOne).toHaveBeenCalledWith({
+                where: { id: userId },
+                relations: ['profile'],
+            });
+            expect(locationRepository.save).toHaveBeenCalledWith({
+                latitude: registerProfileDto.latitude,
+                longitude: registerProfileDto.longitude,
+                state: registerProfileDto.state,
+                city: registerProfileDto.city,
+                district: registerProfileDto.district,
+                address: registerProfileDto.address,
+            });
+        });
+    });
+
+    describe('updateProfileInfo', () => {
+        it('성공', async () => {
+            const userId = 1;
+            const updateProfileInfoDto = new UpdateProfileInfoDto();
+            const file = {} as Express.Multer.File;
+            updateProfileInfoDto.preferredPosition = Position.CenterBack;
+            updateProfileInfoDto.weight = 1;
+            updateProfileInfoDto.height = 1;
+            updateProfileInfoDto.age = 1;
+            updateProfileInfoDto.gender = Gender.Female;
+            updateProfileInfoDto.latitude = 1;
+            updateProfileInfoDto.longitude = 1;
+            updateProfileInfoDto.state = 'test';
+            updateProfileInfoDto.city = 'test';
+            updateProfileInfoDto.district = 'test';
+            updateProfileInfoDto.address = 'test';
+
+            const user = new User();
+            const profile = new Profile();
+            user.profile = profile;
+
+            jest.spyOn(userRepository, 'findOne').mockResolvedValue(user);
+            jest.spyOn(profileRepository, 'save').mockResolvedValue(profile);
+            const result = await service.updateProfileInfo(userId, updateProfileInfoDto, file);
+            expect(result).toEqual(profile);
+            expect(userRepository.findOne).toHaveBeenCalledWith({
+                where: { id: userId },
+                relations: ['profile', 'profile.location'],
             });
         });
     });
