@@ -44,6 +44,7 @@
         "test:statisticsService": "jest --verbose src/statistics/statistics.service.spec.ts",
         "test:messagesController": "jest --verbose src/messages/messages.controller.spec.ts",
         "test:messagesService": "jest --verbose src/messages/messages.service.spec.ts",
+        "test:chatsGateway": "jest --verbose src/chats/chats.gateway.spec.ts",
         "seed": "ts-node src/seed.ts",
         "seed:ho0": "ts-node -r tsconfig-paths/register ./node_modules/typeorm-extension/bin/cli.cjs seed:run",
         "seed:match": "ts-node -r tsconfig-paths/register src/database/seeds/match.seeder.ts",
@@ -163,6 +164,41 @@
         "testEnvironment": "node",
         "moduleNameMapper": {
             "^src/(.*)$": "<rootDir>/$1"
-        }
+        },
+        "coveragePathIgnorePatterns": [
+            ".module.ts",
+            ".entity.ts",
+            ".strategy.ts",
+            "/guards",
+            "/guard",
+            "/decorators",
+            "/dtos",
+            "src/configs",
+            "src/enum",
+            "/detectOpenHandles",
+            "src/seed.ts",
+            "src/main.ts",
+            "src/auth/guards",
+            "src/auth/strategies",
+            "src/auth/decorators",
+            "src/chats/guard",
+            "src/configs",
+            "src/email",
+            "src/database/factories",
+            "src/database/migrations",
+            "src/database/seeds",
+            "src/seed",
+            "src/common/const",
+            "src/common/decorators",
+            "src/common/interfaces",
+            "src/common/types",
+            "src/common/utils",
+            "src/common/exception",
+            "src/common/exception-filter",
+            "src/common/interceptors",
+            "src/common/middleware",
+            "src/common/return-type",
+            "src/statistics/statistics.service.test.ts"
+        ]
     }
 }
