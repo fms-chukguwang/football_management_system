@@ -12,23 +12,32 @@
 // import { EmailVerifyDto } from './dtos/email-verify.dto';
 // import { PasswordResetUserDto } from './dtos/password-reset-user.dto';
 // import axios from 'axios';
+// import { ConfigService } from '@nestjs/config';
+// import { Config } from 'cache-manager';
+// import { JwtService } from '@nestjs/jwt';
+// import { Repository } from 'typeorm';
+// import { User } from 'src/user/entities/user.entity';
+// import { getRepositoryToken } from '@nestjs/typeorm';
 
 // describe('AuthController', () => {
 //   let controller: AuthController;
 //   let authService: AuthService;
 //   let emailService: EmailService;
 //   let userService: UserService;
+//   let configService: ConfigService;
+//   let userRepository: Repository<User>;
 
 //   beforeEach(async () => {
 //     const module: TestingModule = await Test.createTestingModule({
 //       controllers: [AuthController],
-//       providers: [AuthService, EmailService, UserService],
+//       providers: [AuthService, EmailService, UserService, ConfigService,JwtService],
 //     }).compile();
-
+//     userRepository = module.get<Repository<User>>(getRepositoryToken(User)); 
 //     controller = module.get<AuthController>(AuthController);
 //     authService = module.get<AuthService>(AuthService);
 //     emailService = module.get<EmailService>(EmailService);
 //     userService = module.get<UserService>(UserService);
+//     configService = module.get<ConfigService>(ConfigService);
 //   });
 
 //   afterEach(() => jest.clearAllMocks());
@@ -116,7 +125,5 @@
 //       });
 //     });
 //   });
-
-
 
 // });
