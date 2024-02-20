@@ -1,4 +1,5 @@
-# 축구왕 - 대용량 트래픽 관리를 위한 Football Management System (FMS) **⚽🔥**
+# 축구왕 - 대용량 트래픽 관리를 위한 Football Management System (FMS) **⚽**
+![1 (1)](https://github.com/fms-chukguwang/.github/assets/39757235/88b7bc7f-cf9f-4423-9c57-a98e7ad90e9a)
 
 ## 0. 목차
 
@@ -19,30 +20,27 @@
 
 **Service Link** : https://www.fms-chukguwang.site/
 
-**GitHub Link** : https://github.com/fms-chukguwang
+**Notion Link :** [https://www.notion.so/b972006f1c854d748e138ec260b04c84](https://www.notion.so/b972006f1c854d748e138ec260b04c84?pvs=21)        
 
-**Notion Link :** [https://www.notion.so/b972006f1c854d748e138ec260b04c84](https://www.notion.so/b972006f1c854d748e138ec260b04c84?pvs=21)                                              
+**프론트** : https://github.com/fms-chukguwang/fms_react
 
-## 3. ⚙️ 서비스 아키텍쳐
+**백엔드** : https://github.com/fms-chukguwang/football_management_system                                      
+
+## 2. ⚙️ 서비스 아키텍쳐
 
 ---
 
 ![image](https://github.com/HoyeongJeon/security/assets/78394999/6d6a031d-a6ef-46bf-9b00-927781f18d1f)
 
-## 4. 𓊳 ERD 다이어그램
+## 3. 𓊳 ERD 다이어그램
 
 ---
-
-<details>
-<summary>가독성을 위해 간소화한 ERD</summary>
-<div markdown="1">
+가독성을 위해 간소화한 ERD
 
 ![image](https://github.com/HoyeongJeon/security/assets/78394999/cd328130-aa07-4a29-b577-0f95213c39d8)
 
-</div>
-</details>
 
-## 5. ⚔️ 기술적 의사결정
+## 4. ⚔️ 기술적 의사결정
 
 | 사용 기술               | 도입 이유                                                                                                                                                                                                                                                                                                                                                          |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -64,7 +62,7 @@
 | TypeScript              | 서버 개발을 위한 언어로 선택. JS와 고민했지만, JS는 런타임에 에러가 발견된다는 단점으로 꺼려짐.TS는 타입을 명시할 수 있고, 정적 타입 검사를 제공하기에 코드를 더 쉽게 이해하고, 오류를 런타임이 아닌 컴파일 시 발견할 수 있다는 장점이 있음. 타입을 통해 동료가 짠 코드를 더 명확히 이해할 수 있다는 점에서도 협업에 더 뛰어날 것이라 생각해 TS를 개발 언어로 선택 |
 | NestJS                  | 서버를 구성하기 위한 프레임워크로 선택. Express와 고민했지만, 협업 시 자유도가 높은 Express보단 더 구조화되어 있는 NestJS가 협업에 유리할 것이라 생각해 사용. 추가적으로 프레임워크에서 지원해주는 기능이 많아 개발에 더 용이할 것이라 판단함. TS를 100% 지원하는 프레임워크라는 점도 선택이유 중 하나                                                             |
 
-## 6. 🦄 프로젝트 주요 기능
+## 5. 🦄 프로젝트 주요 기능
 
 <details>
 <summary>시연 영상</summary>
@@ -83,7 +81,7 @@
  </div>
  </details>
 
-## 7. 💎 기능 소개
+## 6. 💎 기능 소개
 
 <details>
 <summary>기능 소개</summary>
@@ -109,7 +107,7 @@
    </div>
    </details>
 
-## 8. 💥 기술적인 도전 과제
+## 7. 💥 기술적인 도전 과제
 
 <details>
 <summary>실시간채팅 및 알림을 위한 Socket.io</summary>
@@ -464,7 +462,7 @@ async def insert_soccer_field(connection, location_id, field_data):
 </div>
 </details>
 
-## 9. ⚠️ 트러블 슈팅
+## 8. ⚠️ 트러블 슈팅
 
 <details>
 <summary>대용량 트래픽 관리</summary>
