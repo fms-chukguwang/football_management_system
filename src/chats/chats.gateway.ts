@@ -47,11 +47,8 @@ export class ChatsGateway implements OnGatewayConnection {
             const decoded = jwt.verify(token as string, jwtSecret);
             socket['userId'] = decoded['id'];
             const namespace = socket.nsp;
-            console.log('namespace: ', namespace.name);
             const roomId = namespace.name.split('/')[2];
-            console.log(`roomId: ${roomId}`);
             this.enterRoom({ teamId: Number(roomId) }, socket);
-            console.log('룸에 입장했습니다.');
 
             return true;
         } catch (e) {
