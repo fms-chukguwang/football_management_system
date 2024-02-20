@@ -61,6 +61,7 @@ export class ChatsService {
             .add(userId);
     }
 
+    // chatId에 해당하는 채팅방이 존재하는지 확인
     async checkIdChatExists(chatId: number) {
         const exists = await this.chatsRepository.exists({
             where: {
@@ -70,6 +71,7 @@ export class ChatsService {
         return exists;
     }
 
+    // chatId에 해당하는 채팅방에 userId가 속해있는지 확인
     async checkMember(chatId: number, userId: number) {
         const exists = await this.chatsRepository
             .createQueryBuilder('chat')
@@ -81,15 +83,12 @@ export class ChatsService {
         return exists;
     }
 
+    // 채팅방 나가기
     async leaveChat(chatId: number, socketId: number) {
         return await this.chatsRepository
             .createQueryBuilder('chat')
             .relation('users')
             .of(chatId)
             .remove(socketId);
-    }
-
-    hello() {
-        return 'hello';
     }
 }
