@@ -48,6 +48,8 @@
         "test:profileController": "jest --verbose src/profile/profile.controller.spec.ts",
         "test:profileService": "jest --verbose src/profile/profile.service.spec.ts",
         "test:taskService": "jest --verbose src/task/task.service.spec.ts",
+        "test:loggingController": "jest --verbose src/logging/logging.controller.spec.ts",
+        "test:loggingService": "jest --verbose src/logging/logging.service.spec.ts",
         "seed": "ts-node src/seed.ts",
         "seed:ho0": "ts-node -r tsconfig-paths/register ./node_modules/typeorm-extension/bin/cli.cjs seed:run",
         "seed:match": "ts-node -r tsconfig-paths/register src/database/seeds/match.seeder.ts",
@@ -202,7 +204,8 @@
             "src/common/middleware",
             "src/common/return-type",
             "src/statistics/statistics.service.test.ts",
-            "src/task/task.controller.ts"
+            "src/task/task.controller.ts",
+            "src/helpers"
         ]
     }
 }
