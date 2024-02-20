@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { MatchResult } from '../match/entities/match-result.entity';
 import { TeamStats } from '../match/entities/team-stats.entity';
-import { Repository, getConnection, getManager } from 'typeorm';
+import { Repository, getRepository } from 'typeorm';
 import { StatisticsDto } from './dto/statistics.dto';
 import { PlayerStats } from '../match/entities/player-stats.entity';
 import { TopPlayerDto } from './dto/top-player.dto';
@@ -51,6 +51,8 @@ export class StatisticsService {
                 const cleanSheet = await this.getCleanSheet(teamId);
                 const assists = await this.getAssists(teamId);
                 const otherTeamStats = await this.getStatsForOtherTeams(teamId);
+
+                console.log('다른팀 통계=>>>>>>>>>>>>>>>>>>>>>>>', otherTeamStats);
 
                 const teamStatsObject: StatisticsDto = {
                     ...getWinsAndLosesAndDraws,
@@ -289,10 +291,11 @@ export class StatisticsService {
                 'users.name userName',
                 'profile.image_uuid as image',
             ])
-            .leftJoin('members', 'members', 'stats.member_id = members.id')
-            .leftJoin('users', 'users', 'members.user_id = users.id')
-            .leftJoin('profile', 'profile', 'profile.user_id = users.id')
+            .innerJoin('members', 'members', 'stats.member_id = members.id')
+            .innerJoin('users', 'users', 'members.user_id = users.id')
+            .innerJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
+            .andWhere('members.deleted_at IS NULL')
             .groupBy('stats.member_id')
             .orderBy('totalGoals', 'DESC')
             .limit(3)
@@ -316,9 +319,9 @@ export class StatisticsService {
                 'users.name as userName',
                 'profile.image_uuid as image',
             ])
-            .leftJoin('members', 'members', 'stats.member_id = members.id')
-            .leftJoin('users', 'users', 'members.user_id = users.id')
-            .leftJoin('profile', 'profile', 'profile.user_id = users.id')
+            .innerJoin('members', 'members', 'stats.member_id = members.id')
+            .innerJoin('users', 'users', 'members.user_id = users.id')
+            .innerJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
             .orderBy('totalAssists', 'DESC')
@@ -343,9 +346,9 @@ export class StatisticsService {
                 'users.name as userName',
                 'profile.image_uuid as image',
             ])
-            .leftJoin('members', 'members', 'stats.member_id = members.id')
-            .leftJoin('users', 'users', 'members.user_id = users.id')
-            .leftJoin('profile', 'profile', 'profile.user_id = users.id')
+            .innerJoin('members', 'members', 'stats.member_id = members.id')
+            .innerJoin('users', 'users', 'members.user_id = users.id')
+            .innerJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
             .orderBy('joining', 'DESC')
@@ -370,9 +373,9 @@ export class StatisticsService {
                 'users.name as userName',
                 'profile.image_uuid as image',
             ])
-            .leftJoin('members', 'members', 'stats.member_id = members.id')
-            .leftJoin('users', 'users', 'members.user_id = users.id')
-            .leftJoin('profile', 'profile', 'profile.user_id = users.id')
+            .innerJoin('members', 'members', 'stats.member_id = members.id')
+            .innerJoin('users', 'users', 'members.user_id = users.id')
+            .innerJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
             .orderBy('totalSave', 'DESC')
@@ -397,9 +400,9 @@ export class StatisticsService {
                 'users.name userName',
                 'profile.image_uuid as image',
             ])
-            .leftJoin('members', 'members', 'stats.member_id = members.id')
-            .leftJoin('users', 'users', 'members.user_id = users.id')
-            .leftJoin('profile', 'profile', 'profile.user_id = users.id')
+            .innerJoin('members', 'members', 'stats.member_id = members.id')
+            .innerJoin('users', 'users', 'members.user_id = users.id')
+            .innerJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
             .orderBy('attactPoint', 'DESC')
@@ -459,30 +462,42 @@ export class StatisticsService {
         let redisResult = await this.redisService.getTeamYellowAndRedCards(teamId);
 
         if (!redisResult) {
-            const matchCount = this.playerStatsRepository
-                .createQueryBuilder('players')
-                .select('COUNT(DISTINCT DATE(players.created_at)) as count')
-                .where('players.team_id = :teamId', { teamId });
+            // const matchCount = this.playerStatsRepository
+            //     .createQueryBuilder('players')
+            //     .select('COUNT(DISTINCT DATE(players.created_at)) as count')
+            //     .where('players.team_id = :teamId', { teamId });
 
-            let { count } = await matchCount.getRawOne();
+            // let { count } = await matchCount.getRawOne();
 
-            if (+count > 5) {
-                count -= 5;
-            } else {
-                count = 0;
-            }
+            // if (+count > 5) {
+            //     count -= 5;
+            // } else {
+            //     count = 0;
+            // }
 
+            // const rawYellowAndRedCards = await this.playerStatsRepository
+            //     .createQueryBuilder('players')
+            //     .select([
+            //         'players.yellow_cards as yellow',
+            //         'players.red_cards as red',
+            //         'DATE(players.created_at) as created',
+            //     ])
+            //     .where('players.team_id = :teamId', { teamId })
+            //     .groupBy('created')
+            //     .orderBy('created', 'ASC')
+            //     .offset(count)
+            //     .limit(5)
+            //     .getRawMany();
             const rawYellowAndRedCards = await this.playerStatsRepository
                 .createQueryBuilder('players')
                 .select([
-                    'players.yellow_cards as yellow',
-                    'players.red_cards as red',
+                    'SUM(players.yellow_cards) as yellow',
+                    'SUM(players.red_cards) as red',
                     'DATE(players.created_at) as created',
                 ])
                 .where('players.team_id = :teamId', { teamId })
                 .groupBy('created')
                 .orderBy('created', 'ASC')
-                .offset(count)
                 .limit(5)
                 .getRawMany();
 

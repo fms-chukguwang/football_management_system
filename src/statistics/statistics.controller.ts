@@ -9,15 +9,11 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { StatisticsService } from './statistics.service';
 import { IsMemberGuard } from '../member/guard/is-member.guard';
-import { StatisticsTestService } from './statistics.service.test';
 
 @ApiTags('통계')
 @Controller()
 export class StatisticsController {
-    constructor(
-        private readonly statisticsService: StatisticsService,
-        private readonly statsTestService: StatisticsTestService,
-    ) {}
+    constructor(private readonly statisticsService: StatisticsService) {}
 
     /**
      * 팀 승무패 가져오기
@@ -27,7 +23,6 @@ export class StatisticsController {
     @Get('statistics/:teamId')
     getTeamStats(@Param('teamId') teamId: number) {
         return this.statisticsService.getTeamStats(teamId);
-        //return this.statsTestService.getTeamStats(teamId);
     }
 
     /**
@@ -39,7 +34,6 @@ export class StatisticsController {
     async getTopPlayer(@Param('teamId') teamId: number) {
         try {
             const topPlayers = await this.statisticsService.getTopPlayer(teamId);
-            //const topPlayers = await this.statsTestService.getTopPlayer(teamId);
 
             return topPlayers;
         } catch (err) {
@@ -56,7 +50,6 @@ export class StatisticsController {
     getPlayers(@Param('teamId') teamId: number) {
         try {
             return this.statisticsService.getPlayers(teamId);
-            //return this.statsTestService.getPlayers(teamId);
         } catch (err) {
             throw new InternalServerErrorException();
         }
@@ -79,7 +72,6 @@ export class StatisticsController {
     @Get('team/:teamId/cards')
     getYellowAndRedCards(@Param('teamId') teamId: number) {
         return this.statisticsService.getYellowAndRedCards(teamId);
-        //return this.statsTestService.getYellowAndRedCards(teamId);
     }
 
     /**
