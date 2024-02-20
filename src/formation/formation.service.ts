@@ -110,8 +110,6 @@ export class FormationService {
             await queryRunner.commitTransaction();
         }catch(error){
 
-            console.error('Error saving playerFormation:', error);
-
             await queryRunner.rollbackTransaction();
             if (error instanceof HttpException) {
                 // HttpException을 상속한 경우(statusCode 속성이 있는 경우)

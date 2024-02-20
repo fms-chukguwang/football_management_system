@@ -11,7 +11,6 @@ export class TaskService {
     @Cron('0 */12 * * *') // 12시간마다 실행되는 크론 작업
     //@Cron('1 * * * * *') // 1분마다 실행되는 크론 작업
     handleCron() {
-        console.log('handleCron chk');
         this.jobService.fetchDataAndProcess();
     }
 }

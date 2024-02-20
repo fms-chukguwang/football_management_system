@@ -57,7 +57,6 @@ export class MatchController {
     @Post('/book/accept')
     async createMatch(@Body() creatematchDto: createMatchDto) {
         const data = await this.matchService.createMatch(creatematchDto);
-        console.log(data);
         return '경기 일정 생성 되었습니다.';
     }
 
@@ -71,9 +70,6 @@ export class MatchController {
     @Get('/creator')
     async verifyTeamCreator(@Request() req) {
         const userId = req.user.id;
-
-        console.log(`userId: ${userId}`);
-
         const data = await this.matchService.verifyTeamCreator(userId);
 
         return {
@@ -249,15 +245,11 @@ export class MatchController {
         @Body() creatematchResultDto: createMatchResultDto,
     ) {
         const userId = req.user.id;
-        console.log('userId', userId);
-        console.log('creatematchResultDto', creatematchResultDto);
         const data = await this.matchService.resultMatchCreate(
             userId,
             matchId,
             creatematchResultDto,
         );
-
-        console.log('data', data);
         return {
             statusCode: HttpStatus.OK,
             success: true,
@@ -485,9 +477,6 @@ export class MatchController {
         @Param('matchId') matchId: number,
     ) {
         // 유저의 팀이 매치에 속해있는지 확인
-
-        console.log('teamId', teamId);
-        console.log('matchId', matchId);
 
         const data = await this.matchService.getMatchResultByMatchId(matchId, teamId);
 

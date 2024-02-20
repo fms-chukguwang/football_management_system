@@ -192,10 +192,6 @@ export class MatchService {
 
         const currentTime = new Date();
 
-        console.log('current Time=', currentTime);
-        console.log('match time=', match.date, match.time);
-        console.log('match end time +2 hr=', matchEndTimePlus2Hours);
-
         if (currentTime < matchEndTimePlus2Hours) {
             throw new NotFoundException('경기가 아직 안끝났습니다.');
         }
@@ -358,7 +354,6 @@ export class MatchService {
             return;
         } catch (error) {
             await queryRunner.rollbackTransaction();
-            console.log(`error : ${error}`);
             if (error instanceof HttpException) {
                 // HttpException을 상속한 경우(statusCode 속성이 있는 경우)
                 throw error;
@@ -421,9 +416,7 @@ export class MatchService {
         }
 
         // 경기 결과 멤버 체크
-        console.log('here');
         await this.chkResultMember(userId, matchId, creatematchResultDto);
-        console.log('here2');
         //await this.chkResultMember(userId, matchId, creatematchResultDto);
 
         //경기 결과
@@ -674,8 +667,6 @@ export class MatchService {
                 // 모든 경기 결과에서 goals이 null이 아닌지 확인
                 const allGoalsNotNull = matches.every((match) => match.goals !== null);
 
-                console.log('allGoalsNotNull:', allGoalsNotNull);
-
                 if (allGoalsNotNull) {
                     // 모든 goals의 값이 null이 아닌 경우의 처리를 여기에 작성합니다.
                     throw new NotFoundException('이미 경기결과가 집계 되었습니다.');
@@ -834,7 +825,6 @@ export class MatchService {
                 throw error;
             } else {
                 // 그 외의 예외
-                console.log('error:', error);
                 throw new InternalServerErrorException('서버 에러가 발생했습니다.');
             }
         } finally {
@@ -893,9 +883,6 @@ export class MatchService {
             ])
             .where('team.creator_id=:userId', { userId })
             .getMany();
-
-        console.log('userId:', userId);
-        console.log('creator:', creator);
 
         if (!creator[0]) {
             throw new BadRequestException('구단주가 아닙니다.');
@@ -993,11 +980,9 @@ export class MatchService {
         let away_score = 0;
 
         if (!home_result) {
-            console.log(`홈 없음`);
             home_score = matchResult.goals.reduce((total, goal) => total + goal.count, 0);
             away_score = away_result.goals.reduce((total, goal) => total + goal.count, 0);
         } else {
-            console.log(`어웨이 없음`);
             home_score = home_result.goals.reduce((total, goal) => total + goal.count, 0);
             away_score = matchResult.goals.reduce((total, goal) => total + goal.count, 0);
         }
@@ -1066,7 +1051,6 @@ export class MatchService {
         });*/
 
         // 교체 멤버 체크 ?? 교체 멤버가 없는 경우는??
-        console.log('교체 체크');
         // creatematchResultDto.substitions.forEach((x) => {
         //     this.isTeamMember(teamId, x.inPlayerId);
         //     this.isTeamMember(teamId, x.outPlayerId);
@@ -1539,7 +1523,6 @@ export class MatchService {
         if (!result) {
             throw new NotFoundException('경기 결과가 없습니다.');
         }
-        console.log('result= ', result);
         return result;
     }
 }
