@@ -21,7 +21,6 @@ export class SoccerfieldService {
             .createQueryBuilder('soccer_fields')
             .where('soccer_fields.id = :id', { id: soccer_field_id })
             .getOne();
-        console.log('stadium', stadium);
         return stadium;
     }
 

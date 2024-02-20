@@ -60,7 +60,6 @@ export class JobsService {
                 await this.saveLocationAndSoccerField(item, address);
             }
         } catch (error) {
-            console.error(error);
         }
     }
 
@@ -130,7 +129,6 @@ export class JobsService {
                 throw new Error('주소를 찾을 수 없습니다.');
             }
         } catch (error) {
-            console.error('Error fetching address: ', error);
             throw error;
         }
     }

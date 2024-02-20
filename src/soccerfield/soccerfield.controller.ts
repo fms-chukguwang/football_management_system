@@ -27,7 +27,6 @@ export class SoccerfieldController {
     @Get(':soccer_field_id')
     async findOneStadium(@Param('soccer_field_id') soccer_field_id: number) {
         const data = await this.soccerfieldService.findOneStadium(soccer_field_id);
-        console.log('data', data);
         return data;
     }
 }
