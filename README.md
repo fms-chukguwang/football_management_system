@@ -1,4 +1,4 @@
-# 축구왕 - 대용량 트래픽 관리를 위한 Football Management System (FMS) 백엔드 **⚽**
+![fms-tech-used drawio (2)](https://github.com/fms-chukguwang/football_management_system/assets/39757235/e387ace1-7f0d-4681-9255-8eb840b40186)# 축구왕 - 대용량 트래픽 관리를 위한 Football Management System (FMS) 백엔드 **⚽**
 ![1 (1)](https://github.com/fms-chukguwang/.github/assets/39757235/88b7bc7f-cf9f-4423-9c57-a98e7ad90e9a)
 
 ## 0. 목차
@@ -28,13 +28,11 @@
 
 ## 2. ⚙️ 서비스 아키텍쳐
 
----
+![fms-tech-used drawio (2)](https://github.com/fms-chukguwang/football_management_system/assets/39757235/6cfd31b7-2a48-4ccf-a62d-5ff2b1de71d6)
 
-![image](https://github.com/HoyeongJeon/security/assets/78394999/6d6a031d-a6ef-46bf-9b00-927781f18d1f)
 
 ## 3. 𓊳 ERD 다이어그램
 
----
 가독성을 위해 간소화한 ERD
 
 ![image](https://github.com/HoyeongJeon/security/assets/78394999/cd328130-aa07-4a29-b577-0f95213c39d8)
