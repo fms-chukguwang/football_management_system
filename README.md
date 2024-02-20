@@ -71,11 +71,14 @@
 <div markdown="1">
 
 1. 경기 생성
-https://github.com/fms-chukguwang/football_management_system/assets/39757235/154a376a-4f3a-44cb-ae86-1d5106374eae
+   ![경기생성 new (1)](https://github.com/fms-chukguwang/.github/assets/39757235/7da7d0b6-4d73-47f9-9c91-86a8119c8111)
+
 2. 경기 수락
-https://github.com/fms-chukguwang/football_management_system/assets/39757235/ae32a628-d87c-4d5e-94e2-4e47f7fa594a
+   ![경기 수락 new (1)](https://github.com/fms-chukguwang/.github/assets/39757235/9dccfd64-8537-45ab-b8ea-ea200375dd3e)
+   
 3. 경기 전술 설정
-https://github.com/fms-chukguwang/football_management_system/assets/39757235/6a1635e9-aaf9-41f9-8ee7-046f313c9b53
+![경기_전술설정_new](https://github.com/fms-chukguwang/.github/assets/39757235/c78a2a13-dd55-42f6-a0cf-642490355a21)
+
 
  </div>
  </details>
