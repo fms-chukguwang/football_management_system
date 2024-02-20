@@ -1,4 +1,4 @@
-![fms-tech-used drawio (2)](https://github.com/fms-chukguwang/football_management_system/assets/39757235/e387ace1-7f0d-4681-9255-8eb840b40186)# 축구왕 - 대용량 트래픽 관리를 위한 Football Management System (FMS) 백엔드 **⚽**
+# 축구왕 - 대용량 트래픽 관리를 위한 Football Management System (FMS) 백엔드 **⚽**
 ![1 (1)](https://github.com/fms-chukguwang/.github/assets/39757235/88b7bc7f-cf9f-4423-9c57-a98e7ad90e9a)
 
 ## 0. 목차
