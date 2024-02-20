@@ -3,14 +3,13 @@
 ## 0. 목차
 
 1. [서비스 소개](#1-🏃서비스-소개)
-2. [팀원 소개](#2-👨‍👩‍👧‍👦-팀원-소개)
-3. [⚙️ 서비스 아케틱처](#3-⚙️-서비스-아키텍쳐)
-4. [𓊳 ERD 다이어그램](#4-𓊳-ERD-다이어그램)
-5. [⚔️ 기술적 의사결정](#5-⚔️-기술적-의사결정)
-6. [🦄 프로젝트 주요 기능](#6-🦄-프로젝트-주요-기능)
-7. [💎 기능 소개](#7-💎-기능-소개)
-8. [💥 기술적인 도전 과제](#8-💥-기술적인-도전-과제)
-9. [⚠️ 트러블 슈팅](#9-⚠️-트러블-슈팅)
+2. [⚙️ 서비스 아케틱처](#2-⚙️-서비스-아키텍쳐)
+3. [𓊳 ERD 다이어그램](#3-𓊳-ERD-다이어그램)
+4. [⚔️ 기술적 의사결정](#4-⚔️-기술적-의사결정)
+5. [🦄 프로젝트 주요 기능](#5-🦄-프로젝트-주요-기능)
+6. [💎 기능 소개](#6-💎-기능-소개)
+7. [💥 기술적인 도전 과제](#7-💥-기술적인-도전-과제)
+8. [⚠️ 트러블 슈팅](#8-⚠️-트러블-슈팅)
 
 ## 1. 🏃서비스 소개
 
@@ -22,16 +21,7 @@
 
 **GitHub Link** : https://github.com/fms-chukguwang
 
-**Notion Link :** [https://www.notion.so/b972006f1c854d748e138ec260b04c84](https://www.notion.so/b972006f1c854d748e138ec260b04c84?pvs=21)
-
-## 2. 👨‍👩‍👧‍👦 팀원 소개
-
-| 이름   | 역할   | GitHub                                           | 블로그 주소                          | 담당 업무                                                                                                                                                                                    | 연락처                 |
-| ------ | ------ | ------------------------------------------------ | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
-| 전호영 | 리더   | https://github.com/HoyeongJeon                   | https://securityinit.tistory.com/    | 백엔드:페이지네이션, 채팅 및 알림, 테스트 코드, 로깅 전략 수립, 어드민 , 토너먼트 프론트:리액트 기본 구조 및 디자인 세팅, 상태관리, 경기 결과 / 선수 기록 입력 및 조회, 프로필, 페이지네이션 | abc29887@naver.com     |
-| 박조은 | 부리더 | https://github.com/joeunparkdev?tab=repositories | https://velog.io/@joeunparkdev/posts | 백엔드: 프로젝트 세팅, 인증 인가, 이메일 전송, 더미데이터 생성 및 테스트, 필터링, 배포 프론트: 로그인, 카카오맵, 팀/멤버 조회 및 참가/초대, 개인 상세, 필터링 및 검색, 배포                  | joeunparkdev@gmail.com |
-| 한범석 | 팀원   | https://github.com/lemon-table                   | https://lemonlog.tistory.com/        | 백엔드:경기장 조회, 경기 예약, 경기 일정, 전술 설정, 이메일 전송, 경기장 ETL 프론트:경기장 목록, 경기 예약, 경기 일정, 전술설정                                                              | codzero00@gmail.com    |
-| 김승태 | 팀원   | https://github.com/iufan1526?tab=repositories    | https://seungtudy4.tistory.com/      | 백엔드:이미지 저장, 팀 개인 통계, 데이터 최적화,회원 관리, 팀 관리프론트:팀 상세화면, 개인 상세화면,메인 페이지 그래프, 팀 등록화면                                                          | iufan1526@gmail.com    |
+**Notion Link :** [https://www.notion.so/b972006f1c854d748e138ec260b04c84](https://www.notion.so/b972006f1c854d748e138ec260b04c84?pvs=21)                                              
 
 ## 3. ⚙️ 서비스 아키텍쳐
 
@@ -81,10 +71,11 @@
 <div markdown="1">
 
 1. 경기 생성
-
+https://github.com/fms-chukguwang/football_management_system/assets/39757235/154a376a-4f3a-44cb-ae86-1d5106374eae
 2. 경기 수락
-
+https://github.com/fms-chukguwang/football_management_system/assets/39757235/ae32a628-d87c-4d5e-94e2-4e47f7fa594a
 3. 경기 전술 설정
+https://github.com/fms-chukguwang/football_management_system/assets/39757235/6a1635e9-aaf9-41f9-8ee7-046f313c9b53
 
  </div>
  </details>
