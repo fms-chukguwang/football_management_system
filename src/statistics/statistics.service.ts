@@ -2,7 +2,7 @@ import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nes
 import { InjectRepository } from '@nestjs/typeorm';
 import { MatchResult } from '../match/entities/match-result.entity';
 import { TeamStats } from '../match/entities/team-stats.entity';
-import { Repository, getConnection, getManager } from 'typeorm';
+import { Repository, getRepository } from 'typeorm';
 import { StatisticsDto } from './dto/statistics.dto';
 import { PlayerStats } from '../match/entities/player-stats.entity';
 import { TopPlayerDto } from './dto/top-player.dto';
@@ -46,6 +46,8 @@ export class StatisticsService {
                 const assists = await this.getAssists(teamId);
                 const otherTeamStats = await this.getStatsForOtherTeams(teamId);
 
+                console.log('다른팀 통계=>>>>>>>>>>>>>>>>>>>>>>>', otherTeamStats);
+
                 const teamStatsObject: StatisticsDto = {
                     ...getWinsAndLosesAndDraws,
                     goals,
@@ -68,35 +70,6 @@ export class StatisticsService {
         console.log('redis service result =>>>>', redisResult);
         return JSON.parse(redisResult);
     }
-
-    /**
-     * 팀 스탯 + 다른 팀 스탯 가져오기
-     * @param teamId
-     * @returns
-     */
-    // async getTeamStats(teamId: number): Promise<StatisticsDto> {
-    //     try {
-    //         const goals = await this.getGoals(teamId);
-    //         const getWinsAndLosesAndDraws = await this.getWinsAndLosesAndDraws(teamId);
-    //         const conceded = await this.getConceded(teamId);
-    //         const cleanSheet = await this.getCleanSheet(teamId);
-    //         const assists = await this.getAssists(teamId);
-    //         const otherTeamStats = await this.getStatsForOtherTeams(teamId);
-
-    //         return {
-    //             ...getWinsAndLosesAndDraws,
-    //             goals,
-    //             conceded,
-    //             cleanSheet,
-    //             assists,
-    //             otherTeam: {
-    //                 ...otherTeamStats,
-    //             },
-    //         };
-    //     } catch (err) {
-    //         console.log(err);
-    //     }
-    // }
 
     async getMemberStats(teamId: number) {
         const getWinsAndLosesAndDraws = await this.getWinsAndLosesAndDraws(teamId);
@@ -269,7 +242,6 @@ export class StatisticsService {
                 totalCleanSheet,
             };
         } catch (err) {
-            console.log('캐치안에 있다.');
             console.log(err);
         }
     }
@@ -304,26 +276,6 @@ export class StatisticsService {
 
         return JSON.parse(redisResult);
     }
-    /**
-     * 스탯별 상위선수 가져오기
-     * @param teamId
-     * @returns
-     */
-    // async getTopPlayer(teamId: number): Promise<TopPlayerDto> {
-    //     const topGoalsMembers = await this.getTopGoalsMembers(teamId);
-    //     const topAssistsMembers = await this.getTopAssistsMembers(teamId);
-    //     const topJoiningMembers = await this.getTopJoiningMembers(teamId);
-    //     const topSaveMembers = await this.getTopSaveMembers(teamId);
-    //     const topAttactPointMembers = await this.getTopAttactPoint(teamId);
-
-    //     return {
-    //         topGoals: topGoalsMembers,
-    //         topAssists: topAssistsMembers,
-    //         topJoining: topJoiningMembers,
-    //         topSave: topSaveMembers,
-    //         topAttactPoint: topAttactPointMembers,
-    //     };
-    // }
 
     /**
      * 우리팀 득점 랭킹 가져오기
@@ -340,16 +292,15 @@ export class StatisticsService {
                 'users.name userName',
                 'profile.image_uuid as image',
             ])
-            .leftJoin('members', 'members', 'stats.member_id = members.id')
-            .leftJoin('users', 'users', 'members.user_id = users.id')
-            .leftJoin('profile', 'profile', 'profile.user_id = users.id')
+            .innerJoin('members', 'members', 'stats.member_id = members.id')
+            .innerJoin('users', 'users', 'members.user_id = users.id')
+            .innerJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
+            .andWhere('members.deleted_at IS NULL')
             .groupBy('stats.member_id')
             .orderBy('totalGoals', 'DESC')
             .limit(3)
             .getRawMany();
-
-        console.log('우리팀 득점왕', rankGoalsMembers);
 
         return rankGoalsMembers;
     }
@@ -369,9 +320,9 @@ export class StatisticsService {
                 'users.name as userName',
                 'profile.image_uuid as image',
             ])
-            .leftJoin('members', 'members', 'stats.member_id = members.id')
-            .leftJoin('users', 'users', 'members.user_id = users.id')
-            .leftJoin('profile', 'profile', 'profile.user_id = users.id')
+            .innerJoin('members', 'members', 'stats.member_id = members.id')
+            .innerJoin('users', 'users', 'members.user_id = users.id')
+            .innerJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
             .orderBy('totalAssists', 'DESC')
@@ -396,9 +347,9 @@ export class StatisticsService {
                 'users.name as userName',
                 'profile.image_uuid as image',
             ])
-            .leftJoin('members', 'members', 'stats.member_id = members.id')
-            .leftJoin('users', 'users', 'members.user_id = users.id')
-            .leftJoin('profile', 'profile', 'profile.user_id = users.id')
+            .innerJoin('members', 'members', 'stats.member_id = members.id')
+            .innerJoin('users', 'users', 'members.user_id = users.id')
+            .innerJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
             .orderBy('joining', 'DESC')
@@ -423,9 +374,9 @@ export class StatisticsService {
                 'users.name as userName',
                 'profile.image_uuid as image',
             ])
-            .leftJoin('members', 'members', 'stats.member_id = members.id')
-            .leftJoin('users', 'users', 'members.user_id = users.id')
-            .leftJoin('profile', 'profile', 'profile.user_id = users.id')
+            .innerJoin('members', 'members', 'stats.member_id = members.id')
+            .innerJoin('users', 'users', 'members.user_id = users.id')
+            .innerJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
             .orderBy('totalSave', 'DESC')
@@ -450,9 +401,9 @@ export class StatisticsService {
                 'users.name userName',
                 'profile.image_uuid as image',
             ])
-            .leftJoin('members', 'members', 'stats.member_id = members.id')
-            .leftJoin('users', 'users', 'members.user_id = users.id')
-            .leftJoin('profile', 'profile', 'profile.user_id = users.id')
+            .innerJoin('members', 'members', 'stats.member_id = members.id')
+            .innerJoin('users', 'users', 'members.user_id = users.id')
+            .innerJoin('profile', 'profile', 'profile.user_id = users.id')
             .where('stats.team_id = :teamId', { teamId })
             .groupBy('stats.member_id')
             .orderBy('attactPoint', 'DESC')
@@ -503,34 +454,6 @@ export class StatisticsService {
             players: [...JSON.parse(redisResult)],
         };
     }
-    // async getPlayers(teamId: number): Promise<PlayersDto> {
-    //     const players = await this.memberRepository
-    //         .createQueryBuilder('members')
-    //         .select([
-    //             'members.id as memberId',
-    //             'users.name as userName',
-    //             'profile.image_uuid as image',
-    //             'COUNT(members.id) as totalGames',
-    //             'SUM(stats.goals) as totalGoals',
-    //             'SUM(stats.assists) as totalAssists',
-    //             'SUM(stats.goals) + SUM(stats.assists) as attactPoint',
-    //             'SUM(stats.yellow_cards) as totalYellowCards',
-    //             'SUM(stats.red_cards) as totalRedCards',
-    //             'SUM(stats.clean_sheet) as totalÇleanSheet',
-    //             'SUM(stats.save) as totalSave',
-    //         ])
-    //         .leftJoin('player_statistics', 'stats', 'members.id = stats.member_id')
-    //         .leftJoin('users', 'users', 'members.user_id = users.id')
-    //         .leftJoin('profile', 'profile', 'users.id = profile.user_id')
-    //         .where('members.team_id = :teamId', { teamId })
-    //         .groupBy('members.id')
-    //         .orderBy('members.created_at', 'ASC')
-    //         .getRawMany();
-
-    //     return {
-    //         players: [...players],
-    //     };
-    // }
 
     /**
      * 최근 5경기 옐로우카드, 레드카드 통계 가져오기
@@ -540,30 +463,42 @@ export class StatisticsService {
         let redisResult = await this.redisService.getTeamYellowAndRedCards(teamId);
 
         if (!redisResult) {
-            const matchCount = this.playerStatsRepository
-                .createQueryBuilder('players')
-                .select('COUNT(DISTINCT DATE(players.created_at)) as count')
-                .where('players.team_id = :teamId', { teamId });
+            // const matchCount = this.playerStatsRepository
+            //     .createQueryBuilder('players')
+            //     .select('COUNT(DISTINCT DATE(players.created_at)) as count')
+            //     .where('players.team_id = :teamId', { teamId });
 
-            let { count } = await matchCount.getRawOne();
+            // let { count } = await matchCount.getRawOne();
 
-            if (+count > 5) {
-                count -= 5;
-            } else {
-                count = 0;
-            }
+            // if (+count > 5) {
+            //     count -= 5;
+            // } else {
+            //     count = 0;
+            // }
 
+            // const rawYellowAndRedCards = await this.playerStatsRepository
+            //     .createQueryBuilder('players')
+            //     .select([
+            //         'players.yellow_cards as yellow',
+            //         'players.red_cards as red',
+            //         'DATE(players.created_at) as created',
+            //     ])
+            //     .where('players.team_id = :teamId', { teamId })
+            //     .groupBy('created')
+            //     .orderBy('created', 'ASC')
+            //     .offset(count)
+            //     .limit(5)
+            //     .getRawMany();
             const rawYellowAndRedCards = await this.playerStatsRepository
                 .createQueryBuilder('players')
                 .select([
-                    'players.yellow_cards as yellow',
-                    'players.red_cards as red',
+                    'SUM(players.yellow_cards) as yellow',
+                    'SUM(players.red_cards) as red',
                     'DATE(players.created_at) as created',
                 ])
                 .where('players.team_id = :teamId', { teamId })
                 .groupBy('created')
                 .orderBy('created', 'ASC')
-                .offset(count)
                 .limit(5)
                 .getRawMany();
 
@@ -588,47 +523,6 @@ export class StatisticsService {
             yellowAndRedCards: [...JSON.parse(redisResult)],
         };
     }
-    // async getYellowAndRedCards(teamId: number): Promise<YellowAndRedCardsDto> {
-    //     const matchCount = this.playerStatsRepository
-    //         .createQueryBuilder('players')
-    //         .select('COUNT(DISTINCT DATE(players.created_at)) as count')
-    //         .where('players.team_id = :teamId', { teamId });
-
-    //     let { count } = await matchCount.getRawOne();
-
-    //     if (+count > 5) {
-    //         count -= 5;
-    //     } else {
-    //         count = 0;
-    //     }
-
-    //     const rawYellowAndRedCards = await this.playerStatsRepository
-    //         .createQueryBuilder('players')
-    //         .select([
-    //             'players.yellow_cards as yellow',
-    //             'players.red_cards as red',
-    //             'DATE(players.created_at) as created',
-    //         ])
-    //         .where('players.team_id = :teamId', { teamId })
-    //         .groupBy('created')
-    //         .orderBy('created', 'ASC')
-    //         .offset(count)
-    //         .limit(5)
-    //         .getRawMany();
-
-    //     const yellowAndRedCards = rawYellowAndRedCards.map((item) => {
-    //         const convertDate = new Date(item.created);
-
-    //         return {
-    //             ...item,
-    //             created: convertDate.toLocaleDateString(),
-    //         };
-    //     });
-
-    //     return {
-    //         yellowAndRedCards: [...yellowAndRedCards],
-    //     };
-    // }
 
     /**
      * 멤버 히스토리 가져오기
