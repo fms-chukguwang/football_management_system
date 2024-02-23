@@ -11,17 +11,14 @@ export default class MatchSeeder implements Seeder {
         const teams = await teamRepository.find({
             relations: ['creator'],
         });
-        console.log('teams', teams);
         for (let i = 1; i < 20; i++) {
             const match = await matchFactory.make();
-            console.log('teams[i]=', teams[i]);
             match.owner_id = teams[0].creator.id;
             match.hometeam = teams[0];
             match.home_team_id = teams[0].id;
             match.awayteam = teams[i];
             match.away_team_id = teams[i].id;
             await matchRepository.save(match);
-            console.log('matchDone!');
         }
     }
 }
