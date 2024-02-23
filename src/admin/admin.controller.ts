@@ -55,8 +55,6 @@ export class AdminController {
     @ApiBearerAuth()
     @Delete('/:dataType/:id')
     async deleteUserById(@Param('dataType') dataType: string, @Param('id') id: number) {
-        console.log('id', id);
-        console.log('dataType', dataType);
         if (dataType === 'users') {
             return await this.userService.deleteId(id);
         } else if (dataType === 'teams') {
