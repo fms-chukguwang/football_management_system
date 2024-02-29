@@ -23,7 +23,9 @@
 
 **Service Link** : https://www.fms-chukguwang.site/
 
-**Notion Link :** [https://www.notion.so/b972006f1c854d748e138ec260b04c84](https://www.notion.so/b972006f1c854d748e138ec260b04c84?pvs=21)        
+**Notion Link** : [https://www.notion.so/b972006f1c854d748e138ec260b04c84](https://www.notion.so/b972006f1c854d748e138ec260b04c84?pvs=21) 
+
+**브로셔 링크** : https://www.notion.so/teamsparta/B-1-6a5f1f3b9c5047beb98f59fa36bbb59e
 
 **프론트** : https://github.com/fms-chukguwang/fms_react
 
