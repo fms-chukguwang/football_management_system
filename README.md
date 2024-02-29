@@ -1,4 +1,7 @@
+
 # 축구왕 - 대용량 트래픽 관리를 위한 Football Management System (FMS) 백엔드 **⚽**
+![인기상 - 축구왕](https://github.com/fms-chukguwang/football_management_system/assets/39757235/fa8758b8-436a-4b43-8fa3-392f3bd82e6d)
+
 ![1 (1)](https://github.com/fms-chukguwang/.github/assets/39757235/88b7bc7f-cf9f-4423-9c57-a98e7ad90e9a)
 
 ## 0. 목차
