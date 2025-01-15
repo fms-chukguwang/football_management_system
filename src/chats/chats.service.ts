@@ -42,7 +42,6 @@ export class ChatsService {
     // 채팅방 생성
     async createChat(createChatDto: CreateChatDto) {
         // 팀 생성 시 채팅방 생성
-
         const chat = await this.chatsRepository.save({
             users: createChatDto.userIds.map((id) => ({ id })),
         });

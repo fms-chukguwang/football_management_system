@@ -19,6 +19,8 @@ import { SocketBearerTokenGuard } from './guard/ws-bearer-token.guard';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import { UserService } from '../user/user.service';
+
+@UseFilters(new WsExceptionFilter())
 @WebSocketGateway({
     namespace: /^\/chats\/.+$/,
 })
@@ -63,7 +65,6 @@ export class ChatsGateway implements OnGatewayConnection {
             forbidNonWhitelisted: true,
         }),
     )
-    @UseFilters(WsExceptionFilter)
     @SubscribeMessage('create_chat')
     async createChat(
         @MessageBody() createChatDto: CreateChatDto,
@@ -79,7 +80,6 @@ export class ChatsGateway implements OnGatewayConnection {
             forbidNonWhitelisted: true,
         }),
     )
-    @UseFilters(WsExceptionFilter)
     @SubscribeMessage('enter_room')
     async enterRoom(@MessageBody() room: EnterChatDto, @ConnectedSocket() socket: Socket) {
         const exists = await this.chatsService.checkIdChatExists(room.teamId);
@@ -101,7 +101,6 @@ export class ChatsGateway implements OnGatewayConnection {
     )
 
     // 팀에 들어오면, 팀에 들어온 사실을 알리는 메소드
-    @UseFilters(WsExceptionFilter)
     @SubscribeMessage('enter_team')
     async enterTeam(teamId: number, userId: number) {
         const newUser = await this.userService.findOneById(userId);
@@ -118,7 +117,6 @@ export class ChatsGateway implements OnGatewayConnection {
             forbidNonWhitelisted: true,
         }),
     )
-    @UseFilters(WsExceptionFilter)
     @SubscribeMessage('kick_out')
     async kickOut(
         @MessageBody() payload: { chatId: number; targetUserId: number },
@@ -176,7 +174,6 @@ export class ChatsGateway implements OnGatewayConnection {
         }),
     )
     // 내가 나가고 싶은 방 번호를 보내면, 그 방에서 나가게 해주는 메소드
-    @UseFilters(WsExceptionFilter)
     @SubscribeMessage('leave_room')
     async leaveRoom(@MessageBody() payload: { chatId: number }, @ConnectedSocket() socket: Socket) {
         const { chatId } = payload;
@@ -207,7 +204,6 @@ export class ChatsGateway implements OnGatewayConnection {
             forbidNonWhitelisted: true,
         }),
     )
-    @UseFilters(WsExceptionFilter)
     @SubscribeMessage('send_message')
     async sendMessage(
         @MessageBody() creatMessagesDto: CreateMessagesDto,

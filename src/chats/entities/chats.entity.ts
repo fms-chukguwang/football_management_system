@@ -4,10 +4,6 @@ import { Entity, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn } from 
 import { Message } from '../../messages/entities/messages.entity';
 import { TeamModel } from '../../team/entities/team.entity';
 
-/**
- * 하나의 팀은 하나의 채팅방을 가질 수 있음. (1:1)
- * 여러명의 유저는 여러개의 채팅방을 가질 수 있음. (N:M)
- */
 @Entity('chats')
 export class Chats extends BaseModel {
     @PrimaryGeneratedColumn()
