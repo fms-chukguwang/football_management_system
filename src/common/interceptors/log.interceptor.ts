@@ -9,7 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 export class LogInterceptor implements NestInterceptor {
     constructor(private readonly myLogger: LoggingService) {}
     intercept(context: ExecutionContext, next: CallHandler<any>): Observable<any> {
-        const now = new Date(); // 현재 시간과 날짜
+        const now = new Date();
         const req = context.switchToHttp().getRequest();
         const url = req.originalUrl;
         const method = req.method;
