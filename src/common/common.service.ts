@@ -13,10 +13,8 @@ export class CommonService {
         path: string,
     ) {
         if (dto.page) {
-            // page 기반 pagination
             return await this.pagePagination(dto, repsitory, overrideFindOptions);
         } else {
-            // cursor 기반 pagination
             return await this.cursorPagination(dto, repsitory, overrideFindOptions, path);
         }
     }
@@ -52,13 +50,14 @@ export class CommonService {
         const lastItem =
             result.length > 0 && result.length === dto.take ? result[result.length - 1] : null;
 
-        // nextUrl 만들기
-        const nextUrl = lastItem && new URL(`${process.env.SERVER_HOST}:${process.env.SERVER_PORT || 3001}/api/${path}`);
+        const nextUrl =
+            lastItem &&
+            new URL(`${process.env.SERVER_HOST}:${process.env.SERVER_PORT || 3001}/api/${path}`);
         if (nextUrl) {
             for (const key of Object.keys(dto)) {
                 if (dto[key]) {
                     if (key !== 'where__id__more_than' && key !== 'where__id__less_than') {
-                        nextUrl.searchParams.append(key, dto[key]); // url의 쿼리파라미터는 무조건 string
+                        nextUrl.searchParams.append(key, dto[key]);
                     }
                 }
             }
@@ -115,13 +114,6 @@ export class CommonService {
         }
 
         if (split.length === 2) {
-            // where__id = 3
-            //   {
-            //     where : {
-            //         id: 3
-            //     }
-            //    }
-
             const [_, field] = split;
             options[field] = value;
         } else {
